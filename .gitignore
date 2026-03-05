@@ -36,3 +36,12 @@ zzzz*
 .vscode
 cacert.pem
 venv/
+
+# DDLC base files
+DDLC.exe
+DDLC.sh
+DDLC.py
+lib/
+renpy/
+log/
+COPYRIGHT.txt
