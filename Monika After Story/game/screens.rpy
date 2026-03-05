@@ -900,49 +900,49 @@ screen navigation():
 
         if main_menu:
 
-            textbutton _("Just Monika") action If(persistent.playername, true=Start(), false=Show(screen="name_input", message="Please enter your name", ok_action=Function(FinishEnterName)))
+            textbutton _("Только Моника") action If(persistent.playername, true=Start(), false=Show(screen="name_input", message="Please enter your name", ok_action=Function(FinishEnterName)))
 
         else:
 
-            textbutton _("History") action [ShowMenu("history"), SensitiveIf(renpy.get_screen("history") == None)]
+            textbutton _("История") action [ShowMenu("history"), SensitiveIf(renpy.get_screen("history") == None)]
 
-            textbutton _("Save Game") action [ShowMenu("save"), SensitiveIf(renpy.get_screen("save") == None)]
+            textbutton _("Сохранить") action [ShowMenu("save"), SensitiveIf(renpy.get_screen("save") == None)]
 
-        textbutton _("Load Game") action [ShowMenu("load"), SensitiveIf(renpy.get_screen("load") == None)]
+        textbutton _("Загрузить") action [ShowMenu("load"), SensitiveIf(renpy.get_screen("load") == None)]
 
         if _in_replay:
 
             textbutton _("End Replay") action EndReplay(confirm=True)
 
         elif not main_menu:
-            textbutton _("Main Menu") action NullAction(), Show(screen="dialog", message="No need to go back there.\nYou'll just end up back here so don't worry.", ok_action=Hide("dialog"))
+            textbutton _("Главное меню") action NullAction(), Show(screen="dialog", message="No need to go back there.\nYou'll just end up back here so don't worry.", ok_action=Hide("dialog"))
 
-        textbutton _("Settings") action [ShowMenu("preferences"), SensitiveIf(renpy.get_screen("preferences") == None)]
+        textbutton _("Настройки") action [ShowMenu("preferences"), SensitiveIf(renpy.get_screen("preferences") == None)]
 
         if store.mas_submod_utils.submod_map:
-            textbutton _("Submods") action [ShowMenu("submods"), SensitiveIf(renpy.get_screen("submods") == None)]
+            textbutton _("Сабмоды") action [ShowMenu("submods"), SensitiveIf(renpy.get_screen("submods") == None)]
 
         if store.mas_windowreacts.can_show_notifs and not main_menu:
-            textbutton _("Alerts") action [ShowMenu("notif_settings"), SensitiveIf(renpy.get_screen("notif_settings") == None)]
+            textbutton _("Уведомления") action [ShowMenu("notif_settings"), SensitiveIf(renpy.get_screen("notif_settings") == None)]
 
         if store.mas_api_keys.has_features():
-            textbutton _("API Keys") action [ShowMenu("mas_apikeys"), SensitiveIf(renpy.get_screen("mas_apikeys") == None)]
+            textbutton _("API ключи") action [ShowMenu("mas_apikeys"), SensitiveIf(renpy.get_screen("mas_apikeys") == None)]
 
-        textbutton _("Hotkeys") action [ShowMenu("hot_keys"), SensitiveIf(renpy.get_screen("hot_keys") == None)]
+        textbutton _("Горячие клавиши") action [ShowMenu("hot_keys"), SensitiveIf(renpy.get_screen("hot_keys") == None)]
 
         #textbutton _("About") action ShowMenu("about")
 
         if renpy.variant("pc"):
 
             ## Help isn't necessary or relevant to mobile devices.
-            textbutton _("Help") action Help("README.html")
+            textbutton _("Помощь") action Help("README.html")
 
             ## The quit button is banned on iOS and unnecessary on Android.
             #If we're on the main menu, we don't want to confirm quit as Monika isn't back yet
-            textbutton _("Quit") action Quit(confirm=(None if main_menu else _confirm_quit))
+            textbutton _("Выход") action Quit(confirm=(None if main_menu else _confirm_quit))
 
         if not main_menu:
-            textbutton _("Return") action Return()
+            textbutton _("Вернуться") action Return()
 
 style navigation_button is gui_button:
     properties gui.button_properties("navigation_button")
@@ -1433,7 +1433,7 @@ screen preferences():
 
     default tooltip = Tooltip("")
 
-    use game_menu(_("Settings"), scroll="viewport"):
+    use game_menu(_("Настройки"), scroll="viewport"):
 
         vbox:
             xoffset 50
@@ -1445,9 +1445,9 @@ screen preferences():
 
                     vbox:
                         style_prefix "generic_fancy_check"
-                        label _("Display")
-                        textbutton _("Window") action Preference("display", "window")
-                        textbutton _("Fullscreen") action Preference("display", "fullscreen")
+                        label _("Режим экрана")
+                        textbutton _("Оконный") action Preference("display", "window")
+                        textbutton _("Полный") action Preference("display", "fullscreen")
 
 #                vbox:
 #                    style_prefix "check"
@@ -1459,7 +1459,7 @@ screen preferences():
                 #Disable/Enable space animation AND lens flair in room
                 vbox:
                     style_prefix "generic_fancy_check"
-                    label _("Graphics")
+                    label _("Графика")
 
                     # this is a normal button
                     textbutton _("Change Renderer"):
@@ -1479,7 +1479,7 @@ screen preferences():
 
                 vbox:
                     style_prefix "generic_fancy_check"
-                    label _("Gameplay")
+                    label _("Игровой процесс")
                     if not main_menu:
                         if persistent._mas_unstable_mode:
                             if store.mas_utils.is_ver_stable(config.version):
@@ -1592,7 +1592,7 @@ screen preferences():
                 vbox:
 
                     hbox:
-                        label _("Sunrise  ")
+                        label _("Рассвет  ")
 
                         # display time
                         label _("[[ " + sr_display + " ]")
@@ -1601,7 +1601,7 @@ screen preferences():
 
 
                     hbox:
-                        label _("Sunset  ")
+                        label _("Закат  ")
 
                         # display time
                         label _("[[ " + ss_display + " ]")
@@ -1612,7 +1612,7 @@ screen preferences():
                 vbox:
 
                     hbox:
-                        label _("Random Chatter  ")
+                        label _("Случайная болтовня  ")
 
                         # display str
                         label _("[[ " + rc_display + " ]")
@@ -1625,35 +1625,35 @@ screen preferences():
                     )
 
                     hbox:
-                        label _("Ambient Volume")
+                        label _("Громкость окружения")
 
                     bar value Preference("mixer amb volume")
 
 
                 vbox:
 
-                    label _("Text Speed")
+                    label _("Скорость текста")
 
                     #bar value Preference("text speed")
                     bar value FieldValue(_preferences, "text_cps", range=170, max_is_zero=False, style="slider", offset=30)
 
-                    label _("Auto-Forward Time")
+                    label _("Скорость авточтения")
 
                     bar value Preference("auto-forward time")
 
                 vbox:
-                    label _("Music Volume")
+                    label _("Громкость музыки")
                     hbox:
                         bar value Preference("music volume")
 
-                    label _("Sound Volume")
+                    label _("Громкость звуков")
                     hbox:
                         bar value Preference("sound volume")
 
 
                     null height gui.pref_spacing
 
-                    textbutton _("Mute All"):
+                    textbutton _("Без звука"):
                         style "generic_fancy_check_button"
                         action Preference("all mute", "toggle")
 
@@ -1883,7 +1883,7 @@ screen hot_keys():
             hbox:
                 style_prefix "check"
                 vbox:
-                    label _("General")
+                    label _("Основные")
                     spacing 10
                     text _("Music")
                     text _("Play")
@@ -1909,7 +1909,7 @@ screen hot_keys():
             hbox:
                 style_prefix "check"
                 vbox:
-                    label _("Music")
+                    label _("Музыка")
                     spacing 10
                     text _("Volume Up")
                     text _("Volume Down")
