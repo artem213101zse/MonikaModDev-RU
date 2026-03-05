@@ -8043,7 +8043,7 @@ default persistent.clearall = None
 default persistent.menu_bg_m = None
 default persistent.first_load = None
 default persistent._mas_imported_saves = False
-default persistent._mas_monika_nickname = "Monika"
+default persistent._mas_monika_nickname = "Моника"
 default in_sayori_kill = None
 default in_yuri_kill = None
 default anticheat = 0
@@ -8055,10 +8055,10 @@ default currentpos = 0
 default faint_effect = None
 
 
-default s_name = "Sayori"
+default s_name = "Сайори"
 default m_name = persistent._mas_monika_nickname
-default n_name = "Natsuki"
-default y_name = "Yuri"
+default n_name = "Нацуки"
+default y_name = "Юри"
 
 # Instantiating variables for poem appeal. This is how much each character likes the poem for each day.
 # -1 = Dislike, 0 = Neutral, 1 = Like

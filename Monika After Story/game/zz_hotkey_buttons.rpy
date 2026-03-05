@@ -130,24 +130,24 @@ screen hkb_overlay():
 #        yalign 0.95
 
         if store.hkb_button.talk_enabled:
-            textbutton _("Talk") action Function(show_dialogue_box)
+            textbutton _("Поговорить") action Function(show_dialogue_box)
         else:
-            textbutton _("Talk")
+            textbutton _("Поговорить")
 
         if store.hkb_button.extra_enabled:
-            textbutton _("Extra") action Function(mas_open_extra_menu)
+            textbutton _("Экстра") action Function(mas_open_extra_menu)
         else:
-            textbutton _("Extra")
+            textbutton _("Экстра")
 
         if store.hkb_button.music_enabled:
-            textbutton _("Music") action Function(select_music)
+            textbutton _("Музыка") action Function(select_music)
         else:
-            textbutton _("Music")
+            textbutton _("Музыка")
 
         if store.hkb_button.play_enabled:
-            textbutton _("Play") action Function(pick_game)
+            textbutton _("Играть") action Function(pick_game)
         else:
-            textbutton _("Play")
+            textbutton _("Играть")
 
 
 screen movie_overlay():

@@ -33,7 +33,7 @@ init -1 python in songs:
     PLAYWITHME_VAR6 = "Play With Me (Variant 6)"
     YR_EUROBEAT = "Your Reality (Eurobeat ver.)"
     MONIKA_LULLABY = "Monika's Lullaby"
-    NO_SONG = "No Music"
+    NO_SONG = "Выкл. Музыку"
 
     # SONG FILEPATHS
     FP_PIANO_COVER = "mod_assets/bgm/runereality.ogg"
@@ -938,7 +938,7 @@ screen music_menu(music_page, page_num=0, more_pages=False):
 
             # dynamic prevous text, so we can keep button size alignments
             if page_num > 0:
-                textbutton _("<<<< Prev"):
+                textbutton _("<<<< Пред"):
                     style "music_menu_prev_button"
                     action Return(page_num - 1)
 
@@ -956,7 +956,7 @@ screen music_menu(music_page, page_num=0, more_pages=False):
 #                        sensitive False
 
             if more_pages:
-                textbutton _("Next >>>>"):
+                textbutton _("След >>>>"):
                     style "music_menu_return_button"
                     action Return(page_num + 1)
 
@@ -964,11 +964,11 @@ screen music_menu(music_page, page_num=0, more_pages=False):
             style "music_menu_return_button"
             action Return(songs.NO_SONG)
 
-        textbutton _("Return"):
+        textbutton _("Вернуться"):
             style "music_menu_return_button"
             action Return(return_value)
 
-    label "Music Menu"
+    label "Плейлист"
 
 # sets locks and calls hte appropriate screen
 label display_music_menu:
