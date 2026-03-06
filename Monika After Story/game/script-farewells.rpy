@@ -206,8 +206,8 @@ label mas_farewell_start:
 
             #Setup the last options
             final_items = [
-                (_("Goodbye."), -1, False, False, 20),
-                (_("Nevermind."), False, False, False, 0)
+                (_("До свидания"), -1, False, False, 20),
+                (_("Неважно."), False, False, False, 0)
             ]
 
             #To manage this, we'll go by aff/anni first, as by now, the user should likely have a pref (also it's like an aff thing)
@@ -438,7 +438,7 @@ init 5 python:
             persistent.farewell_database,
             eventlabel="bye_prompt_to_class",
             unlocked=True,
-            prompt="I'm going to class.",
+            prompt="Я иду на занятия.",
             pool=True
         ),
         code="BYE"
@@ -495,7 +495,7 @@ init 5 python:
             persistent.farewell_database,
             eventlabel="bye_prompt_to_work",
             unlocked=True,
-            prompt="I'm going to work.",
+            prompt="Я иду на работу.",
             pool=True
         ),
         code="BYE"
@@ -552,7 +552,7 @@ init 5 python:
             persistent.farewell_database,
             eventlabel="bye_prompt_sleep",
             unlocked=True,
-            prompt="I'm going to sleep.",
+            prompt="Я собираюсь поспать.",
             pool=True
         ),
         code="BYE"
@@ -1030,7 +1030,7 @@ init 5 python:
             persistent.farewell_database,
             eventlabel="bye_long_absence",
             unlocked=True,
-            prompt="I'll be going away for a while.",
+            prompt="Я ненадолго уеду.",
             pool=True
         ),
         code="BYE"
@@ -1167,7 +1167,7 @@ init 5 python:
             persistent.farewell_database,
             eventlabel="bye_going_somewhere",
             unlocked=True,
-            prompt="I'm going to take you somewhere.",
+            prompt="Я возьму тебя с собой кое-куда",
             pool=True
         ),
         code="BYE"
@@ -1333,7 +1333,7 @@ init 5 python:
             persistent.farewell_database,
             eventlabel="bye_prompt_game",
             unlocked=True,
-            prompt="I'm going to play another game.",
+            prompt="Я хочу поиграть в другую игру.",
             pool=True
         ),
         code="BYE"
@@ -1422,7 +1422,7 @@ init 5 python:
             persistent.farewell_database,
             eventlabel="bye_prompt_eat",
             unlocked=True,
-            prompt="I'm going to go eat...",
+            prompt="Я собираюсь пойти перекусить...",
             pool=True
         ),
         code="BYE"
@@ -1684,7 +1684,7 @@ init 5 python:
             persistent.farewell_database,
             eventlabel="bye_prompt_housework",
             unlocked=True,
-            prompt="I'm going to do some housework.",
+            prompt="Я собираюсь заняться домашними делами.",
             pool=True
         ),
         code="BYE"
@@ -1719,7 +1719,7 @@ init 5 python:
             persistent.farewell_database,
             eventlabel="bye_prompt_restart",
             unlocked=True,
-            prompt="I'm going to restart.",
+            prompt="Я собираюсь перезагрузить приложение.",
             pool=True
         ),
         code="BYE"
@@ -1727,12 +1727,12 @@ init 5 python:
 
 label bye_prompt_restart:
     if mas_isMoniNormal(higher=True):
-        m 1eua "Alright, [player]."
-        m 1eub "See you soon!"
+        m 1eua "Хорошо, [player]."
+        m 1eub "До скорой встречи!"
     elif mas_isMoniBroken():
         m 6ckc "..."
     else:
-        m 2euc "Alright."
+        m 2euc "Хорошо."
 
     $ persistent._mas_greeting_type_timeout = datetime.timedelta(minutes=20)
     $ persistent._mas_greeting_type = store.mas_greetings.TYPE_RESTART
@@ -1743,7 +1743,7 @@ init 5 python:
         Event(
             persistent.farewell_database,
             eventlabel="bye_prompt_workout",
-            prompt="I'm going to work out.",
+            prompt="Я собираюсь позаниматься спортом.",
             unlocked=True,
             pool=True
         ),
@@ -1781,7 +1781,7 @@ init 5 python:
         Event(
             persistent.farewell_database,
             eventlabel="bye_going_shopping",
-            prompt="I'm going shopping.",
+            prompt="Я собираюсь пройтись по магазинам.",
             unlocked=True,
             pool=True
         ),
@@ -1817,7 +1817,7 @@ init 5 python:
         Event(
             persistent.farewell_database,
             eventlabel="bye_prompt_hangout",
-            prompt="I'm going to hang out with friends.",
+            prompt="Я собираюсь потусоваться с друзьями.",
             unlocked=True,
             pool=True
         ),

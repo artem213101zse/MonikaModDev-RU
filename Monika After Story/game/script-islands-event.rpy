@@ -1995,7 +1995,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="mas_monika_islands",
-            category=['monika','misc'],
+            category=['моника','разное'],
             prompt="Can you show me the floating islands?",
             pool=True,
             unlocked=False,

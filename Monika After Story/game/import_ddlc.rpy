@@ -42,9 +42,9 @@ label import_ddlc_persistent:
 
     if persistent._mas_imported_saves:
         menu:
-            "Save data from Doki Doki Literature Club has been merged already. Aborting."
+            "Данные сохранения из Doki Doki Literature Club уже были объединены. Операция отменена."
 
-            "Okay.":
+            "Хорошо.":
                 pass
 
         pause 0.3
@@ -77,24 +77,24 @@ label import_ddlc_persistent:
     #We have something to import
     if ddlc_save_path:
         $ ddlc_save_path = ddlc_save_path[0]
-        "Save data for Doki Doki Literature Club was found at [ddlc_save_path]."
+        "Данные сохранения Doki Doki Literature Club найдены по пути: [ddlc_save_path]."
         menu:
-            "Would you like to import Doki Doki Literature Club save data into [config.name]?\n(DDLC will not be affected)"
+            "Хотите импортировать данные сохранения из Doki Doki Literature Club в [config.name]?\n(Оригинальная DDLC никак не изменится)"
 
-            "Yes, import DDLC save data.":
+            "Да, импортировать сохранения DDLC.":
                 pause 0.3
 
-            "No, do not import.":
+            "Нет, не импортировать.":
                 pause 0.3
                 return
 
     #Nothing to import
     else:
-        "Save data from Doki Doki Literature Club could not be found."
+        "Данные сохранения Doki Doki Literature Club не найдены."
         menu:
-            "Save data will not be imported at this time."
+            "Сохранения не будут импортированы на данный момент."
 
-            "Okay.":
+            "Хорошо.":
                 pause 0.3
                 return
 
@@ -120,9 +120,9 @@ label import_ddlc_persistent:
 
     if ddlc_persistent is None:
         menu:
-            "Couldn't read/decode save data from Doki Doki Literature Club. Aborting."
+            "Не удалось прочитать или расшифровать данные сохранения из Doki Doki Literature Club. Операция отменена."
 
-            "Okay.":
+            "Хорошо.":
                 pass
 
         pause 0.3
@@ -132,13 +132,13 @@ label import_ddlc_persistent:
     if not persistent.first_run:
         label .save_merge_or_replace:
         menu:
-            "Previous Monika After Story save data has also been found.\nWould you like to merge with DDLC save data?"
+            "Также найдены предыдущие данные сохранения Monika After Story.\nХотите объединить их с данными из DDLC?"
 
-            "Merge save data.":
+            "Объединить сохранения.":
                 pass
 
-            "Cancel.":
-                "DDLC data can be imported later in the Settings menu."
+            "Отмена.":
+                "Данные DDLC можно будет импортировать позже в меню настроек."
                 return
 
 
@@ -296,7 +296,7 @@ label import_ddlc_persistent:
 
 label merge_unmatched_names:
     menu:
-        "Player names do not match. Which would you like to keep?"
+        "Имена игрока не совпадают. Какое имя вы хотите оставить?"
         "[ddlc_persistent.playername]":
             $ persistent.playername = ddlc_persistent.playername
         "[persistent.playername]":

@@ -11,13 +11,13 @@ python early:
     ## title, and shows up in the interface and error reports.
     ##
     ## The _() surrounding the string marks it as eligible for translation.
-    renpy.config.name = "Monika After Story"
+    renpy.config.name = "Моника: Эпилог"
 
     ## The version of the game.
     renpy.config.version = "0.12.18"
 
     #Triple space suffix to avoid potential issues with same names in window title
-    config.window_title = "Monika After Story   "
+    config.window_title = "Моника: Эпилог   "
 
     ## Save directory ##############################################################
     ##

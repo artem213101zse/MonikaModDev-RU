@@ -36,7 +36,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_fun_facts_open",
-            category=['misc'],
+            category=['разное'],
             prompt="Can you tell me a fun fact?",
             pool=True
         )

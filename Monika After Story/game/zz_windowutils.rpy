@@ -32,8 +32,8 @@ init -10 python in mas_windowreacts:
     #NOTE: We do this so that we don't have to try to get a notification
     #In order for it to show up in the menu and in the dict
     _groups_list = [
-        "Topic Alerts",
-        "Window Reactions",
+        "Тематические оповещения",
+        "Реакция на окно",
     ]
 
 init python in mas_windowutils:

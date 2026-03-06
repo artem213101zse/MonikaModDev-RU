@@ -7,7 +7,7 @@ init -100 python:
     for archive in ['audio','images','scripts','fonts']:
         if not archive in config.archives:
             #If one is missing, throw an error and chlose
-            renpy.error("DDLC archive files not found in /game folder. Check installation and try again.")
+            renpy.error("Архивы игры DDLC не найдены в папке /game. Проверьте установку и попробуйте снова.")
 
 ## First, a disclaimer declaring this is a mod is shown, then there is a
 ## check for the original DDLC assets in the install folder. If those are
@@ -188,12 +188,12 @@ label splashscreen:
         scene tos
         with Dissolve(1.0)
         pause 1.0
-        "[config.name] is a Doki Doki Literature Club fan mod that is not affiliated with Team Salvato."
-        "It is designed to be played only after the official game has been completed, and contains spoilers for the official game."
-        "Game files for Doki Doki Literature Club are required to play this mod and can be downloaded for free at: http://ddlc.moe"
+        "[config.name] — это фанатский мод для Doki Doki Literature Club, не связанный с Team Salvato."
+        "Его следует проходить только после завершения официальной игры, так как мод содержит спойлеры к оригиналу."
+        "Для запуска мода требуются файлы оригинальной игры Doki Doki Literature Club. Их можно бесплатно скачать здесь: http://ddlc.moe"
         menu:
-            "By playing [config.name] you agree that you have completed Doki Doki Literature Club and accept any spoilers contained within."
-            "I agree.":
+            "Запуская [config.name], вы подтверждаете, что прошли Doki Doki Literature Club до конца и согласны со всеми спойлерами, которые могут здесь встретиться."
+            "Согласен":
                 pass
         scene tos2
         with Dissolve(1.5)
@@ -268,8 +268,8 @@ label after_load:
     if anticheat != persistent.anticheat:
         stop music
         scene black
-        "The save file could not be loaded."
-        "Are you trying to cheat?"
+        "Не удалось загрузить сохранение."
+        "Ты что, пытался жульничать?"
         #Handle however you want, default is to force reset all save data
         $ renpy.utter_restart()
     return

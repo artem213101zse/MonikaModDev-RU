@@ -1462,17 +1462,17 @@ screen preferences():
                     label _("Графика")
 
                     # this is a normal button
-                    textbutton _("Change Renderer"):
+                    textbutton _("Поменять рендер"):
                         style "check_button"
                         action Function(renpy.call_in_new_context, "mas_gmenu_start")
 
-                    textbutton _("Disable Animation") action ToggleField(persistent, "_mas_disable_animations")
+                    textbutton _("Отключить Анимации") action ToggleField(persistent, "_mas_disable_animations")
 
                     #Handle buttons
-                    textbutton _("UI: Night Mode"):
+                    textbutton _("UI: Тёмная тема"):
                         action [Function(mas_settings._ui_change_wrapper, persistent._mas_dark_mode_enabled), Function(mas_settings._dark_mode_toggle)]
                         selected persistent._mas_dark_mode_enabled
-                    textbutton _("UI: D/N Cycle"):
+                    textbutton _("UI: Д/Н Цикл"):
                         action [Function(mas_settings._ui_change_wrapper, mas_current_background.isFltDay()), Function(mas_settings._auto_mode_toggle)]
                         selected persistent._mas_auto_mode_enabled
 
@@ -1495,12 +1495,12 @@ screen preferences():
                                     hovered tooltip.Action(layout.MAS_TT_UNSTABLE_DISABLED)
 
                         else:
-                            textbutton _("Unstable"):
+                            textbutton _("Нестабильная версия"):
                                 action [Show(screen="dialog", message=layout.UNSTABLE, ok_action=Hide(screen="dialog")), SetField(persistent, "_mas_unstable_mode", True)]
                                 selected persistent._mas_unstable_mode
                                 hovered tooltip.Action(layout.MAS_TT_UNSTABLE)
 
-                    textbutton _("Repeat Topics"):
+                    textbutton _("Повторение тем"):
                         action ToggleField(persistent,"_mas_enable_random_repeats", True, False)
                         hovered tooltip.Action(layout.MAS_TT_REPEAT)
 
@@ -1514,7 +1514,7 @@ screen preferences():
 #                        hovered tooltip.Action(layout.MAS_TT_SENS_MODE)
 
                     if store.mas_windowreacts.can_do_windowreacts:
-                        textbutton _("Window Detect"):
+                        textbutton _("Обнаружение окна"):
                             action ToggleField(persistent, "_mas_windowreacts_windowreacts_enabled", True, False)
                             hovered tooltip.Action(layout.MAS_TT_ACTV_WND)
 
@@ -1856,7 +1856,7 @@ screen notif_settings():
 
             #Dynamically populate this
             for item in persistent._mas_windowreacts_notif_filters:
-                if item != "Window Reactions" or persistent._mas_windowreacts_windowreacts_enabled:
+                if item != "Реакция на окно" or persistent._mas_windowreacts_windowreacts_enabled:
                     textbutton _(item):
                         action ToggleDict(persistent._mas_windowreacts_notif_filters, item)
                         selected persistent._mas_windowreacts_notif_filters.get(item)
@@ -1885,14 +1885,14 @@ screen hot_keys():
                 vbox:
                     label _("Основные")
                     spacing 10
-                    text _("Music")
-                    text _("Play")
-                    text _("Talk")
-                    text _("Bookmark")
+                    text _("Музыка")
+                    text _("Игры")
+                    text _("Погворить")
+                    text _("Избранное")
                     text _("Derandom")
-                    text _("Fullscreen")
-                    text _("Screenshot")
-                    text _("Settings")
+                    text _("Полный экран")
+                    text _("Скриншот")
+                    text _("Настройки")
 
                 vbox:
                     label _("")
@@ -1911,9 +1911,9 @@ screen hot_keys():
                 vbox:
                     label _("Музыка")
                     spacing 10
-                    text _("Volume Up")
-                    text _("Volume Down")
-                    text _("Mute")
+                    text _("Громкоть +")
+                    text _("Громкость -")
+                    text _("Без звука")
 
                 vbox:
                     label _("")
@@ -2852,7 +2852,7 @@ screen twopane_scrollable_menu(prev_items, main_items, left_area, left_align, ri
                 changed store.mas_ui.twopane_menu_search_callback
 
         if flt_evs is None:
-            text "Search for a conversation...":
+            text "Поиск темы для разговора...":
                 text_align 0.0
                 layout "nobreak"
                 color "#EEEEEEB2"
