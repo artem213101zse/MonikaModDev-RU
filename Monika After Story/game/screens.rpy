@@ -1887,7 +1887,7 @@ screen hot_keys():
                     spacing 10
                     text _("Музыка")
                     text _("Игры")
-                    text _("Погворить")
+                    text _("Поговорить")
                     text _("Избранное")
                     text _("Derandom")
                     text _("Полный экран")

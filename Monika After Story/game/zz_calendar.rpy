@@ -1879,15 +1879,15 @@ init python:
     import store.mas_calendar as calendar
     import datetime
 
-    calendar.addRepeatable("New years day",_("New Year's Day"),month=1,day=1,year_param=list())
-    calendar.addRepeatable("Valentine",_("Valentine's Day"),month=2,day=14,year_param=list())
+    calendar.addRepeatable("New years day",_("Новый год"),month=1,day=1,year_param=list())
+    calendar.addRepeatable("Valentine",_("День святого\nВалентина"),month=2,day=14,year_param=list())
     #calendar.addRepeatable("White day","White Day",month=3,day=14,year_param=list())
     calendar.addRepeatable("April Fools",_("Day I Became an AI"),month=4,day=1,year_param=[2018])
-    calendar.addRepeatable("Monika's Birthday",_("My Birthday"),month=9,day=22,year_param=range(1999,MASCalendar.MAX_VIEWABLE_YEAR))
-    calendar.addRepeatable("Halloween",_("Halloween"),month=10,day=31,year_param=list())
-    calendar.addRepeatable("Christmas eve",_("Christmas Eve"),month=12,day=24,year_param=list())
-    calendar.addRepeatable("Christmas",_("Christmas"),month=12,day=25,year_param=list())
-    calendar.addRepeatable("New year's eve",_("New Year's Eve"),month=12,day=31,year_param=list())
+    calendar.addRepeatable("Monika's Birthday",_("Мой День\nРождения"),month=9,day=22,year_param=range(1999,MASCalendar.MAX_VIEWABLE_YEAR))
+    calendar.addRepeatable("Halloween",_("Хэллоуин"),month=10,day=31,year_param=list())
+    calendar.addRepeatable("Christmas eve",_("Рождественский\nСочельник"),month=12,day=24,year_param=list())
+    calendar.addRepeatable("Christmas",_("Рождество"),month=12,day=25,year_param=list())
+    calendar.addRepeatable("New year's eve",_("Канун Нового\nгода"),month=12,day=31,year_param=list())
 
     # add inital session
     if (
@@ -1910,7 +1910,7 @@ init python:
         ):
         calendar.addRepeatable_d(
             "player-bday",
-            _("Your Birthday"),
+            _("Твой День\nРождения"),
             pbday,
             range(pbday.year,MASCalendar.MAX_VIEWABLE_YEAR)
         )
@@ -1922,7 +1922,7 @@ init python:
         ):
         calendar.addRepeatable_dt(
             "first-kiss",
-            _("Our First Kiss"),
+            _("Наш первый\nпоцелуй"),
             persistent._mas_first_kiss,
             [persistent._mas_first_kiss.year]
         )

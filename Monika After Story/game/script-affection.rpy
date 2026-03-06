@@ -1717,118 +1717,120 @@ init 15 python in mas_affection:
         ## DISTRESSED quips
         quips = [
             _("..."),
-            _("Yes?"),
-            _("Oh..."),
-            _("Huh..."),
-            _("I guess we can talk."),
-            _("You want to talk?"),
-            _("...Go ahead."),
-            _("Are you sure you want to talk to me?"),
-            _("You actually want to talk to me?"),
-            _("Alright...{w=0.3}if that's what you want."),
-            _("Is this really what you want?"),
+            _("Да?"),
+            _("Ох..."),
+            _("Хм..."),
+            _("Ладно, можем поговорить, наверное."),
+            _("Хочешь поговорить?"),
+            _("...Давай."),
+            _("Ты точно хочешь со мной поговорить?"),
+            _("Ты правда хочешь поговорить со мной?"),
+            _("Хорошо...{w=0.3}если тебе так хочется."),
+            _("Это правда то, чего ты хочешь?"),
         ]
         save_quips(DISTRESSED, quips)
 
         ## UPSET quips
         quips = [
             _("..."),
-            _("What?"),
-            _("Huh?"),
-            _("Yeah?"),
-            _("What do you want?"),
-            _("What now?"),
-            _("What is it?"),
-            _("Go on then."),
-            _("I hope this is important."),
-            _("Something on your mind?"),
-            _("Yes, [player]?"),
+            _("Что?"),
+            _("А?"),
+            _("Да?"),
+            _("Чего тебе?"),
+            _("Что теперь?"),
+            _("В чём дело?"),
+            _("Ну, говори уже"),
+            _("Надеюсь, это важно."),
+            _("Что-то на уме?"),
+            _("Да, [player]?"),
         ]
         save_quips(UPSET, quips)
 
         ## NORMAL quips
         quips = [
-            _("What would you like to talk about?"),
-            _("What are you thinking of?"),
-            _("Is there something you'd like to talk about?"),
-            _("Something on your mind?"),
-            _("Yes, [player]?"),
+            _("О чём хочешь поговорить?"),
+            _("О чём думаешь?"),
+            _("Есть что-то, о чём хочешь поговорить?"),
+            _("Что-то на уме?"),
+            _("Да, [player]?"),
         ]
         save_quips(NORMAL, quips)
 
         ## HAPPY quips
         quips = [
-            _("What would you like to talk about?"),
-            _("What are you thinking of?"),
-            _("Is there something you'd like to talk about?"),
-            _("Something on your mind?"),
-            _("Up to chat, [player]?"),
-            _("Yes, [player]?"),
-            _("What's on your mind, [player]?"),
-            _("What's up, [player]?"),
-            _("Ask away, [player]."),
-            _("Don't be shy, [player]."),
+            _("О чём хочешь поговорить?"),
+            _("О чём думаешь?"),
+            _("Есть что-то, о чём хочешь поговорить?"),
+            _("Что-то на уме?"),
+            _("Поболтаем, [player]?"),
+            _("Да, [player]?"),
+            _("О чём думаешь, [player]?"),
+            _("Что случилось, [player]?"),
+            _("Спрашивай, не стесняйся [player]."),
+            _("Не стесняйся,, [player]."),
         ]
         save_quips(HAPPY, quips)
 
         ## AFFECTIONATE quips
         quips = [
-            _("What would you like to talk about?"),
-            _("What would you like to talk about, [mas_get_player_nickname()]?"),
-            _("What are you thinking of?"),
-            _("Is there something you'd like to talk about, [mas_get_player_nickname()]?"),
-            _("Something on your mind?"),
-            _("Something on your mind, [mas_get_player_nickname()]?"),
-            _("Up to chat, [mas_get_player_nickname()]?"),
-            _("Yes, [mas_get_player_nickname()]?"),
-            _("What's on your mind, [mas_get_player_nickname()]?"),
-            _("What's up, [mas_get_player_nickname()]?"),
-            _("Ask away, [mas_get_player_nickname()]."),
-            _("Don't be shy, [mas_get_player_nickname()]~"),
-            _("I'm all ears, [mas_get_player_nickname()]~"),
-            _("Of course we can talk, [mas_get_player_nickname()]."),
+            _("О чём хочешь поговорить?"),
+            _("О чём хочешь поговорить, [mas_get_player_nickname()]?"),
+            _("О чём думаешь?"),
+            _("Есть что-то, о чём хочешь поговорить, [mas_get_player_nickname()]?"),
+            _("Что-то на уме?"),
+            _("Что-то на уме, [mas_get_player_nickname()]?"),
+            _("Поболтаем, [mas_get_player_nickname()]?"),
+            _("Да, [mas_get_player_nickname()]?"),
+            _("О чём думаешь, [mas_get_player_nickname()]?"),
+            _("Что-то случилось, [mas_get_player_nickname()]?"),
+            _("Спрашивай, не стесняйся [mas_get_player_nickname()]."),
+            _("Не стесняйся,, [mas_get_player_nickname()]~"),
+            _("Я вся во внимании, [mas_get_player_nickname()]~"),
+            _("Конечно можем поговорить, [mas_get_player_nickname()]."),
         ]
         save_quips(AFFECTIONATE, quips)
 
         ## ENAMORED quips
         quips = [
-            _("What would you like to talk about? <3"),
-            _("What would you like to talk about, [mas_get_player_nickname()]? <3"),
-            _("What are you thinking of?"),
-            _("Is there something you'd like to talk about, [mas_get_player_nickname()]?"),
-            _("Something on your mind?"),
-            _("Something on your mind, [mas_get_player_nickname()]?"),
-            _("Up to chat, I see~"),
-            _("Yes, [mas_get_player_nickname()]?"),
-            _("What's on your mind, [mas_get_player_nickname()]?"),
-            _("What's up, [player]?"),
-            _("Ask away, [mas_get_player_nickname()]~"),
-            _("I'm all ears, [mas_get_player_nickname()]~"),
-            _("Of course we can talk, [mas_get_player_nickname()]~"),
-            _("Take all the time you need, [player]."),
-            _("We can talk about whatever you'd like, [mas_get_player_nickname()]."),
+            _("О чём хочешь поговорить? <3"),
+            _("О чём хочешь поговорить, [mas_get_player_nickname()]? <3"),
+            _("О чём думаешь?"),
+            _("Есть что-то, о чём хочешь поговорить, [mas_get_player_nickname()]?"),
+            _("Что-то на уме?"),
+            _("Что-то на уме, [mas_get_player_nickname()]?"),
+            _("Вижу же что хочешь поболтать~"),
+            _("Да, [mas_get_player_nickname()]?"),
+            _("О чём думаешь, [mas_get_player_nickname()]?"),
+            _("Что-то случилось, [mas_get_player_nickname()]?"),
+            _("Спрашивай, не стесняйся [mas_get_player_nickname()]."),
+            _("Не стесняйся,, [mas_get_player_nickname()]~"),
+            _("Я вся во внимании, [mas_get_player_nickname()]~"),
+            _("Конечно можем поговорить, [mas_get_player_nickname()]."),
+            _("Не торопись, говори сколько хочешь, [player]."),
+            _("Можем говорить о чём угодно, [mas_get_player_nickname()]."),
         ]
         save_quips(ENAMORED, quips)
 
         ## LOVE quips
         quips = [
-            _("What would you like to talk about? <3"),
-            _("What would you like to talk about, [mas_get_player_nickname()]? <3"),
-            _("What are you thinking of?"),
-            _("Something on your mind?"),
-            _("Something on your mind, [mas_get_player_nickname()]?"),
-            _("Up to chat, I see~"),
-            _("Yes, [mas_get_player_nickname()]?"),
-            _("What's on your mind, [mas_get_player_nickname()]?"),
+            _("О чём хочешь поговорить? <3"),
+            _("О чём хочешь поговорить, [mas_get_player_nickname()]? <3"),
+            _("О чём думаешь?"),
+            _("Есть что-то, о чём хочешь поговорить, [mas_get_player_nickname()]?"),
+            _("Что-то на уме?"),
+            _("Что-то на уме, [mas_get_player_nickname()]?"),
+            _("Вижу же что хочешь поболтать~"),
+            _("Да, [mas_get_player_nickname()]?"),
+            _("О чём думаешь, [mas_get_player_nickname()]?"),
             _("<3"),
-            _("What's up, [mas_get_player_nickname()]?"),
-            _("Ask away, [mas_get_player_nickname()]~"),
-            _("I'm all ears, [mas_get_player_nickname()]~"),
-            _("We can talk about whatever you'd like, [mas_get_player_nickname()]."),
-            _("Of course we can talk, [mas_get_player_nickname()]~"),
-            _("Take all the time you need, [mas_get_player_nickname()]~"),
-            _("I'm all yours, [mas_get_player_nickname()]~"),
-            _("Oh? Something...{w=0.3}{i}important{/i} on your mind, [mas_get_player_nickname()]?~"),
+            _("Что случилось, [mas_get_player_nickname()]?"),
+            _("Спрашивай, не стесняйся, [mas_get_player_nickname()]~"),
+            _("Я вся во внимании, [mas_get_player_nickname()]~"),
+            _("Можем говорить о чём угодно, [mas_get_player_nickname()]."),
+            _("Конечно можем поговорить, [mas_get_player_nickname()]~"),
+            _("Не торопись, говори сколько хочешь, [mas_get_player_nickname()]~"),
+            _("Я вся твоя, [mas_get_player_nickname()]~"),
+            _("О? Что-то...{w=0.3}{i}важное{/i} на уме, [mas_get_player_nickname()]?~"),
         ]
         save_quips(LOVE, quips)
 
@@ -1854,38 +1856,38 @@ init 15 python in mas_affection:
         ## DISTRESSED quips
         quips = [
             _("..."),
-            _("If that's what you want..."),
-            _("I suppose it wouldn't hurt to give this a try..."),
-            _("...Really?"),
+            _("Если тебе так хочется..."),
+            _("Думаю хуже не будет если попробуем..."),
+            _("...Серьёзно?"),
         ]
         save_quips(DISTRESSED, quips)
 
         ## UPSET quips
         quips = [
             _("..."),
-            _("If that's what you want..."),
-            _("...Really?"),
-            _("Oh, okay..."),
+            _("Если тебе так хочется..."),
+            _("...Серьёзно?"),
+            _("Ох, ладно..."),
         ]
         save_quips(UPSET, quips)
 
         ## NORMAL quips
         quips = [
-            _("What would you like to play?"),
-            _("Is there something you had in mind?"),
-            _("Anything specific you'd like to play?"),
-            _("What should we play today, [player]?"),
-            _("Sure, I'm up for a game."),
+            _("Во что хочешь поиграть?"),
+            _("Есть что-то на примете?"),
+            _("Есть какая-то конкретная игра?"),
+            _("Во что поиграем сегодня, [player]?"),
+            _("Конечно, давай поиграем."),
         ]
         save_quips(NORMAL, quips)
 
         ## HAPPY quips
         quips = [
-            _("What would you like to play?"),
-            _("Is there something you had in mind?"),
-            _("Anything specific you'd like to play?"),
-            _("What should we play today, [player]?"),
-            _("Sure, I'm up for a game!"),
+            _("Во что хочешь поиграть?"),
+            _("Есть что-то на примете?"),
+            _("Есть какая-то конкретная игра?"),
+            _("Во что поиграем сегодня, [player]?"),
+            _("Конечно, давай поиграем!"),
         ]
         save_quips(HAPPY, quips)
 

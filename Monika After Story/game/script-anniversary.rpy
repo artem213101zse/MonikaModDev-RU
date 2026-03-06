@@ -349,7 +349,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='anni_1week',
-            prompt="1 Week",
+            prompt="1 Неделя",
             action=EV_ACT_QUEUE,
             category=["anniversary"],
             start_date=store.mas_anni.build_anni(weeks=1),
@@ -376,7 +376,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='anni_1month',
-            prompt="1 Month",
+            prompt="1 Месяц",
             category=["anniversary"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(months=1),
@@ -408,7 +408,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='anni_3month',
-            prompt="3 Months",
+            prompt="3 Месяца",
             category=["anniversary"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(months=3),
@@ -436,7 +436,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='anni_6month',
-            prompt="6 Months",
+            prompt="6 Месяцев",
             category=["anniversary"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(months=6),
@@ -474,7 +474,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='anni_1',
-            prompt="1 Year",
+            prompt="1 Год",
             category=["anniversary"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=1),
