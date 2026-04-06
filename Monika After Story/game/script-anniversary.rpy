@@ -351,7 +351,7 @@ init 5 python:
             eventlabel='anni_1week',
             prompt="1 Неделя",
             action=EV_ACT_QUEUE,
-            category=["anniversary"],
+            category=["юбилей"],
             start_date=store.mas_anni.build_anni(weeks=1),
             end_date=store.mas_anni.build_anni_end(weeks=1)
         ),
@@ -377,7 +377,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_1month',
             prompt="1 Месяц",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(months=1),
             end_date=store.mas_anni.build_anni_end(months=1)
@@ -409,7 +409,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_3month',
             prompt="3 Месяца",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(months=3),
             end_date=store.mas_anni.build_anni_end(months=3)
@@ -437,7 +437,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_6month',
             prompt="6 Месяцев",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(months=6),
             end_date=store.mas_anni.build_anni_end(months=6)
@@ -475,7 +475,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_1',
             prompt="1 Год",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=1),
             end_date=store.mas_anni.build_anni_end(years=1)
@@ -508,7 +508,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_2',
             prompt="2 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=2),
             end_date=store.mas_anni.build_anni_end(years=2)
@@ -546,7 +546,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_3',
             prompt="3 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=3),
             end_date=store.mas_anni.build_anni_end(years=3)
@@ -575,7 +575,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_4',
             prompt="4 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=4),
             end_date=store.mas_anni.build_anni_end(years=4)
@@ -602,7 +602,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_5',
             prompt="5 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=5),
             end_date=store.mas_anni.build_anni_end(years=5)
@@ -630,7 +630,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_6',
             prompt="6 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=6),
             end_date=store.mas_anni.build_anni_end(years=6)
@@ -656,7 +656,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_7',
             prompt="7 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=7),
             end_date=store.mas_anni.build_anni_end(years=7)
@@ -682,7 +682,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_8',
             prompt="8 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=8),
             end_date=store.mas_anni.build_anni_end(years=8)
@@ -716,7 +716,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_10',
             prompt="10 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=10),
             end_date=store.mas_anni.build_anni_end(years=10)
@@ -740,7 +740,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_20',
             prompt="20 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=20),
             end_date=store.mas_anni.build_anni_end(years=20)
@@ -771,7 +771,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_50',
             prompt="50 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=50),
             end_date=store.mas_anni.build_anni_end(years=50)
@@ -801,7 +801,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='anni_100',
             prompt="100 Years",
-            category=["anniversary"],
+            category=["юбилей"],
             action=EV_ACT_QUEUE,
             start_date=store.mas_anni.build_anni(years=100),
             end_date=store.mas_anni.build_anni_end(years=100)

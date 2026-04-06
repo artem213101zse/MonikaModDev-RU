@@ -40,8 +40,8 @@ init 5 python:
        Event(
            persistent.event_database,
            eventlabel='monika_playerapologizes',
-           prompt="I want to apologize...",
-           category=['you'],
+           prompt="Я хочу извиниться...",
+           category=['ты'],
            pool=True,
            unlocked=True
         )
@@ -52,20 +52,20 @@ label monika_playerapologizes:
     #Firstly, let's check if there's an apology reason for the prompt
     #NOTE: When adding more apology reasons, add a reason the player would say sorry for here (corresponding to the same #as the apology reason)
     $ player_apology_reasons = {
-        0: "something else.", #since we shouldn't actually be able to get this, we use this as our fallback
-        1: "saying I wanted to break up.",
-        2: "joking about having another girlfriend.",
-        3: "calling you a murderer.",
-        4: "closing the game on you.",
-        5: "entering your room without knocking.",
-        6: "missing Christmas.",
-        7: "forgetting your birthday.",
-        8: "not spending time with you on your birthday.",
-        9: "the game crashing.",
-        10: "the game crashing.", #easiest way to handle this w/o overrides
-        11: "not listening to your speech.",
-        12: "calling you evil.",
-        13: "not answering you seriously."
+        0: "за кое-что ещё.", #since we shouldn't actually be able to get this, we use this as our fallback
+        1: "за то, что сказал, что хочу расстаться.",
+        2: "за то, что пошутил о том, что у меня есть другая девушка.",
+        3: "за то, что назвал тебя убийцей.",
+        4: "за то что закрыл игру с тобой.",
+        5: "за то, что вошёл в твою комнату, не постучав.",
+        6: "за то, что пропустил Рождество.",
+        7: "за то, что забыл о твоём дне рождения.",
+        8: "за то, что не провел с тобой время в твой день рождения.",
+        9: "за сбой игры.",
+        10: "за сбой игры.", #easiest way to handle this w/o overrides
+        11: "за то, что не слушал твою речь.",
+        12: "за то, что назвал тебя злой.",
+        13: "за то, что не ответил тебе всерьёз."
     }
 
     #Set the prompt for this...
@@ -223,21 +223,21 @@ label mas_apology_generic:
         #Set apology_reason
         $ apology_reason = mas_apology_reason_db.get(mas_apology_reason,mas_apology_reason_db[0])
 
-        m 1eka "Thank you for apologizing for [apology_reason]"
-        m "I accept your apology, [player]. It means a lot to me."
+        m 1eka "Спасибо, что ты извинился за [apology_reason]"
+        m "Я принимаю твои извинения, [player]. Это очень много для меня значит."
 
     #She knows that you've got something else to apologize for, and wants you to own up
     elif len(persistent._mas_apology_time_db) > 0:
-        m 2tfc "[player], if you have something to apologize for, please just say it."
-        m 2rfc "It'd mean a lot more to me if you would just admit what you did."
+        m 2tfc "[player], если тебе есть за что извиниться, просто скажи об этом."
+        m 2rfc "Для меня было бы гораздо важнее, если бы ты просто признал, что сделал."
 
     #She knows there's a reason for your apology but won't comment on it
     else:
         #Since this 'reason' technically varies, we don't really have a choice as we therefore can't add 0 to the db
         #So recover a tiny bit of affection
         $ mas_gainAffection(modifier=0.1)
-        m 2tkd "What you did wasn't funny, [player]."
-        m 2dkd "Please be more considerate about my feelings in the future."
+        m 2tkd "То, что ты сделал, было не смешно, [player]."
+        m 2dkd "В будущем, пожалуйста, будь более внимателен к моим чувствам."
 
     #We only want this for actual apology reasons. Not the 0 case or the None case.
     if mas_apology_reason:

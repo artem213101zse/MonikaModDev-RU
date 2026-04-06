@@ -1851,7 +1851,7 @@ init -1 python:
     store.mas_sprites.init_acs(mas_acs_ribbon_def)
     store.mas_selspr.init_selectable_acs(
         mas_acs_ribbon_def,
-        "Ribbon (White)",
+        "Лента (белая)",
         "ribbon_def",
         "ribbon",
         hover_dlg=[

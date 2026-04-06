@@ -76,8 +76,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_compliments",
-            category=['monika', 'romance'],
-            prompt="I want to tell you something...",
+            category=['моника', 'романтика'],
+            prompt="Я хочу тебе кое-что сказать...",
             pool=True,
             unlocked=True
         )

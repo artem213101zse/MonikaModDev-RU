@@ -1620,7 +1620,7 @@ init -19 python:
 #        Event(
 #            persistent.event_database,
 #            eventlabel="monika_decoration_select",
-#            category=["appearance"],
+#            category=["внешний вид"],
 #            prompt=store.mas_selspr.get_prompt("decoration", "change"),
 #            pool=True,
 #            unlocked=True,

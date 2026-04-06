@@ -1,6 +1,6 @@
 define persistent.demo = False
 
-define config.developer = False
+define config.developer = True # не забыть потом отключить (пока что временно включено в целях разработки)
 # define persistent.steam = "steamapps" in config.basedir.lower()
 
 python early:
