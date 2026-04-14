@@ -224,26 +224,26 @@ label mas_pick_a_game:
             python:
                 if mas_isMoniUpset(lower=True):
                     begin_quips = [
-                        _("Okay, let's play."),
-                        _("I guess we can play that."),
-                        _("Let's begin."),
-                        _("Sure."),
-                        _("Fine."),
-                        _("Alright."),
+                        _("Хорошо, давай сыграем."),
+                        _("Думаю, мы можем в это сыграть."),
+                        _("Давай начнем."),
+                        _("Конечно."),
+                        _("Ладно."),
+                        _("Хорошо."),
                     ]
 
                 else:
                     begin_quips = [
-                        _("Let's do this!"),
-                        _("Bring it on, [mas_get_player_nickname()]!"),
-                        _("Ready to lose, [mas_get_player_nickname()]?"),
-                        _("I'm ready when you are, [mas_get_player_nickname()]!"),
-                        _("I hope you're ready, [mas_get_player_nickname()]~"),
-                        _("Let's have some fun, [mas_get_player_nickname()]!"),
-                        _("Don't expect me to go easy on you, [mas_get_player_nickname()]!~"),
-                        _("Throwing down the gauntlet, are we?"),
-                        _("It's time to duel!"),
-                        _("Challenge accepted!"),
+                        _("Давай сделаем это!"),
+                        _("Покажи, на что ты способен, [mas_get_player_nickname()]!"),
+                        _("Готов проиграть, [mas_get_player_nickname()]?"),
+                        _("Я готова, как только будешь готов ты, [mas_get_player_nickname()]!"),
+                        _("Надеюсь, ты готов, [mas_get_player_nickname()]~"),
+                        _("Давай повеселимся, [mas_get_player_nickname()]!"),
+                        _("Не надейся, что я буду поддаваться, [mas_get_player_nickname()]!~"),
+                        _("Решил бросить мне вызов, да?"),
+                        _("Пришло время для дуэли!"),
+                        _("Вызов принят!"),
                     ]
 
                 game_quip = renpy.substitute(renpy.random.choice(begin_quips))

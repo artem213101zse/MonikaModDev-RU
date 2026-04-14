@@ -260,10 +260,10 @@ init 5 python:
     )
 
 label bye_leaving_already:
-    m 1ekc "Aw, leaving already?"
-    m 1eka "It's really sad whenever you have to go..."
-    m 3eua "Just be sure to come back as soon as you can, okay?"
-    m 3hua "I love you so much, [player]. Stay safe!"
+    m 1ekc "Ой, уже уходишь?"
+    m 1eka "Мне всегда так грустно,когда тебе приходится уходить..."
+    m 3eua "Только обязательно вернись как можно скорее, хорошо?" 
+    m 3hua "Я так сильно люблю тебя, [player]. Береги себя!"
     return 'quit'
 
 init 5 python:
@@ -278,14 +278,14 @@ init 5 python:
 
 label bye_goodbye:
     if mas_isMoniNormal(higher=True):
-        m 1eua "Goodbye, [mas_get_player_nickname()]!"
+        m 1eua "Пока, [mas_get_player_nickname()]!"
 
     elif mas_isMoniUpset():
-        m 2esc "Goodbye."
+        m 2esc "Пока."
 
     elif mas_isMoniDis():
-        m 6rkc "Oh...{w=1} Goodbye."
-        m 6ekc "Please...{w=1}don't forget to come back."
+        m 6rkc "Ох...{w=1} Пока."
+        m 6ekc "Пожалуйста...{w=1}не забудь вернуться."
 
     else:
         m 6ckc "..."
@@ -319,7 +319,7 @@ init 5 python:
     )
 
 label bye_farewellfornow:
-    m 1eka "Farewell for now, [mas_get_player_nickname()]~"
+    m 1eka "До скорого, [mas_get_player_nickname()]~"
     return 'quit'
 
 init 5 python:
@@ -334,8 +334,8 @@ init 5 python:
     )
 
 label bye_untilwemeetagain:
-    m 2eka "'{i}Goodbyes are not forever, Goodbyes are not the end. They simply mean I'll miss you, Until we meet again.{/i}'"
-    m "Ehehe, 'till then, [mas_get_player_nickname()]!"
+    m 2eka "'{i}Прощания — это не навсегда, прощания — это не конец. Они просто означают, что я буду скучать по тебе, пока мы снова не встретимся.{/i}'"
+    m "Эхе-хе, до скорого, [mas_get_player_nickname()]!"
     return 'quit'
 
 init 5 python:
@@ -351,8 +351,8 @@ init 5 python:
 
 
 label bye_take_care:
-    m 1eua "Don't forget that I always love you, [mas_get_player_nickname()]~"
-    m 1hub "Take care!"
+    m 1eua "Не забывай, что я всегда люблю тебя, [mas_get_player_nickname()]~"
+    m 1hub "Береги себя!"
     return 'quit'
 
 init 5 python:
@@ -368,11 +368,11 @@ init 5 python:
 
 label bye_leaving_already_2:
     if mas_getSessionLength() <= datetime.timedelta(minutes=30):
-        m 1ekc "Aww, leaving already?"
-    m 1eka "It's really sad whenever you have to go..."
-    m 3hubsa "I love you so much, [player]!"
+        m 1ekc "Ой, уже уходишь?"
+    m 1eka "Мне всегда так грустно, когда тебе приходится уходить..."
+    m 3hubsa "Я тебя так люблю, [player]!"
     show monika 5hubsb at t11 zorder MAS_MONIKA_Z with dissolve_monika
-    m 5hubsb "Never forget that!"
+    m 5hubsb "Никогда не забывай об этом!"
     return 'quit'
 
 init 5 python:
@@ -394,34 +394,34 @@ label bye_going_to_sleep:
     #TODO: TC-O things
     if mas_isMoniNormal(higher=True):
         $ p_nickname = mas_get_player_nickname()
-        m 1esa "Are you going to sleep, [p_nickname]?{nw}"
+        m 1esa "Ты уже собираешься спать, [p_nickname]?{nw}"
         $ _history_list.pop()
         menu:
-            m "Are you going to sleep, [p_nickname]?{fast}"
+            m "Ты уже собираешься спать, [p_nickname]?{fast}"
 
-            "Yeah.":
+            "Ага.":
                 call bye_prompt_sleep_goodnight_kiss(chance=4)
                 # If denied her kiss, quit here
                 if _return is not None:
                     return "quit"
 
-                m 7eka "I'll be seeing you in your dreams."
+                m 7eka "Увидимся в твоих снах."
 
                 #Going to sleep, so we should set the greet type and timeout
                 $ persistent._mas_greeting_type_timeout = datetime.timedelta(hours=13)
                 $ persistent._mas_greeting_type = store.mas_greetings.TYPE_SLEEP
 
-            "Not yet.":
-                m 1eka "Okay. {w=0.3}Have a good evening~"
+            "Еще нет.":
+                m 1eka "Ладно. {w=0.3}Хорошего вечера~"
 
     elif mas_isMoniUpset():
-        m 2esc "Going to sleep, [player]?"
-        m "Goodnight."
+        m 2esc "Собираешься ложиться спать, [player]?"
+        m "Спокойной ночи."
 
     elif mas_isMoniDis():
-        m 6rkc "Oh...goodnight, [player]."
-        m 6lkc "Hopefully I'll see you tomorrow..."
-        m 6dkc "Don't forget about me, okay?"
+        m 6rkc "О... спокойной ночи, [player]."
+        m 6lkc "Надеюсь, мы увидимся завтра..."
+        m 6dkc "Не забывай обо мне, ладно?"
 
     else:
         m 6ckc "..."
@@ -448,38 +448,38 @@ label bye_prompt_to_class:
     $ session_time = mas_getSessionLength()
     if mas_isMoniNormal(higher=True):
         if session_time < datetime.timedelta(minutes=20):
-            m 1ekd "Aw, going already?"
-            m 1efp "You haven't even been here for 20 minutes!"
-            m 3hksdlb "I'm just kidding, [player]."
-            m 2eka "You're so sweet for seeing me even when you have so little time."
-            m 2hub "I just want you to know I really appreciate that!"
-            m 2eka "Study hard [player], I'm sure you'll do great!"
-            m 2hua "See you when you get back!"
+            m 1ekd "Ой, уже уходишь?"
+            m 1efp "Ты даже не пробыл здесь и 20 минут!"
+            m 3hksdlb "Я просто шучу, [player]."
+            m 2eka "Ты такой милый, что нашел время встретиться со мной, несмотря на то, что у тебя так мало времени."
+            m 2hub "Просто хочу, чтобы ты знал, что я это очень ценю!"
+            m 2eka "Учись хорошо,  [player], я уверена, у тебя всё получится!"
+            m 2hua "Увидимся, когда ты вернёшься!"
         elif session_time < datetime.timedelta(hours=1):
-            m 2eua "Alright, thanks for spending some time with me, [player]!"
-            m 2eka "I honestly wish it could have been longer...but you're a busy [guy]."
-            m 2hua "Nothing is more important than a good education."
-            m 3eub "Teach me something when you get back!"
-            m "See you soon!"
+            m 2eua "Хорошо, спасибо, что уделил мне время, [player]!"
+            m 2eka "Честно говоря, хотелось бы, чтобы это длилось дольше... но ты же занятой [guy]."
+            m 2hua "Нет ничего важнее хорошего образования."
+            m 3eub "Научи меня чему-нибудь, когда вернешься!"
+            m "До скорой встречи!"
         elif session_time < datetime.timedelta(hours=6):
-            m 1hua "Study hard, [player]!"
-            m 1eua "Nothing is more attractive than a [guy] with good grades."
-            m 1hua "See you later!"
+            m 1hua "Учись как следует, [player]!"
+            m 1eua "Нет ничего привлекательнее, чем [guy] с хорошими оценками."
+            m 1hua "До скорого!"
         else:
-            m 2ekc "Umm...you've been here with me for quite a while, [player]."
-            m 2ekd "Are you sure you've had enough rest for it?"
-            m 2eka "Make sure you take it easy, okay?"
-            m "If you're not feeling too well, I'm sure {i}one day{/i} off won't hurt."
-            m 1hka "I'll be waiting for you to come back. Stay safe."
+            m 2ekc "Эмм... ты здесь со мной уже довольно давно, [player]."
+            m 2ekd "Ты уверен, что достаточно отдохнул?"
+            m 2eka "Пожалуйста, не перенапрягайся, хорошо?"
+            m "Если ты неважно себя чувствуешь, я уверена, что {i}один выходной{/i} не помешает."
+            m 1hka "Я буду ждать твоего возвращения. Береги себя."
 
     elif mas_isMoniUpset():
-        m 2esc "Fine, [player]."
-        m "Hopefully you at least learn {i}something{/i} today."
-        m 2efc "{cps=*2}Like how to treat people better.{/cps}{nw}"
+        m 2esc "Отлично, [player]."
+        m "Надеюсь, ты сегодня хотя бы {i}чему-нибудь{/i} научишься."
+        m 2efc "{cps=*2}Например, тому, как лучше относиться к людям.{/cps}{nw}"
 
     elif mas_isMoniDis():
-        m 6rkc "Oh, okay [player]..."
-        m 6lkc "I guess I'll see you after school."
+        m 6rkc "Ох, ладно, [player]..."
+        m 6lkc "Наверное, увидимся после уроков."
 
     else:
         m 6ckc "..."

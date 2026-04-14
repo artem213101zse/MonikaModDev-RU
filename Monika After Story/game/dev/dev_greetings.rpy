@@ -77,11 +77,11 @@ init 5 python:
     )
 
 label greeting_dev_neutral:
-    m 1eub "Hello there [player]!"
-    m 1rtc "Did you just wipe out your persistent file?"
-    m 1etc "...Or maybe you're just testing my neutral affection reactions?"
-    m 1hua "Don't worry about it, I'll never forget all you have done for me~"
-    m 1hub "Thanks for all your efforts!"
+    m 1eub "Привет, [player]!"
+    m 1rtc "Ты что, только что стер свой файл persistent?"
+    m 1etc "...Или ты просто тестируешь мои реакции при нейтральной привязанности?"
+    m 1hua "Не переживай об этом, я никогда не забуду всё, что ты для меня сделал~"
+    m 1hub "Спасибо за все твои старания!"
     return
 
 init 5 python:

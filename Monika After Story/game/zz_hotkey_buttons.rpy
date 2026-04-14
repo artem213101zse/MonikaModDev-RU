@@ -130,9 +130,9 @@ screen hkb_overlay():
 #        yalign 0.95
 
         if store.hkb_button.talk_enabled:
-            textbutton _("Поговорить") action Function(show_dialogue_box)
+            textbutton _("Общение") action Function(show_dialogue_box)
         else:
-            textbutton _("Поговорить")
+            textbutton _("Общение")
 
         if store.hkb_button.extra_enabled:
             textbutton _("Экстра") action Function(mas_open_extra_menu)

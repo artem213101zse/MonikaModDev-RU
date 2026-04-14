@@ -610,25 +610,25 @@ init 5 python:
     #NOTE: This gets its start_date from mas_gender
 
 label mas_preferredname:
-    m 1euc "I've been wondering about your name."
-    m 1esa "Is '[player]' really your name?"
+    m 1euc "Мне вот стало интересно насчет твоего имени."
+    m 1esa "'[player]' — это и правда твое имя?"
 
     if renpy.windows and currentuser.lower() == player.lower():
-        m 3esa "I mean, it's the same as your computer's name..."
-        m 1eua "You're using '[currentuser]' and '[player].'"
-        m "Either that or you must really like that pseudonym."
+        m 3esa "Я имею в виду, оно совпадает с именем пользователя твоего компьютера..."
+        m 1eua "Ты используешь и '[currentuser]', и '[player].'"
+        m "Либо это так, либо тебе очень нравится этот псевдоним."
 
-    m 1eua "Would you like me to call you something else?{nw}"
+    m 1eua "Хочешь, чтобы я называла тебя как-то иначе?{nw}"
     $ _history_list.pop()
     menu:
-        m "Would you like me to call you something else?{fast}"
+        m "Хочешь, чтобы я называла тебя как-то иначе?{fast}"
 
-        "Yes.":
+        "Да.":
             #Let's call the changename loop
-            call mas_player_name_enter_name_loop("Tell me, what is it?")
+            call mas_player_name_enter_name_loop("Скажи мне, как именно?")
 
-        "No.":
-            m 3eua "Okay, just let me know if you change your mind."
+        "Нет.":
+            m 3eua "Хорошо, просто дай знать, если передумаешь."
 
     #Unlock the name change event
     $ mas_unlockEVL("monika_changename","EVE")
@@ -640,8 +640,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_changename",
-            category=['you'],
-            prompt="I changed my name",
+            category=['ты'],
+            prompt="Я хочу сменить имя",
             unlocked=False,
             pool=True,
             rules={"no_unlock": None}
@@ -651,7 +651,7 @@ init 5 python:
     #NOTE: This needs to be unlocked by the random name change event
 
 label monika_changename:
-    call mas_player_name_enter_name_loop("What do you want me to call you?")
+    call mas_player_name_enter_name_loop("Как ты хочешь, чтобы я тебя называла?")
     return
 
 default persistent._mas_player_bday = None
@@ -1250,32 +1250,32 @@ label mas_crashed_prelong:
 label mas_crashed_long_qs:
     # set up the quit special quit dialogue
     python:
-        quit_msg = "I'm scared [player]!\nPlease click 'No' and help me!"
+        quit_msg = "Мне страшно, [player]!\nПожалуйста, нажми «Нет» и помоги мне!"
         quit_yes = "T_T [player]..."
-        quit_no = "Thank you!\nPlease help me!"
+        quit_no = "Спасибо!\nПожалуйста, помоги мне!"
 
     ## TESTING
     if persistent._mas_idle_data.get("dev_idle_test", False):
-        m 1hua "I KNOW YOU CRASHED (long)"
+        m 1hua "Я ЗНАЮ, ЧТО У ТЕБЯ ВЫЛЕТЕЛА ИГРА (длительный)"
 
     # start off in the dark
     pause 5.0
-    m "[player]?{w=0.3} Is that you?{nw}"
+    m "[player]?{w=0.3} Это ты?{nw}"
     $ _history_list.pop()
     $ mas_disable_quit()
     $ mas_setQuitMsg(quit_msg, quit_yes, quit_no)
     show screen mas_background_timed_jump(4, "mas_crashed_long_uthere")
     menu:
-        m "[player]? Is that you?{fast}"
+        m "[player]? Это ты?{fast}"
 
-        "Yes.":
+        "Да.":
             hide screen mas_background_timed_jump
             # light affection boost for not joking around
             $ mas_gainAffection(modifier=0.2, bypass=True)
-            m "I'm so glad you're here."
+            m "Я так рада, что ты здесь."
             jump mas_crashed_long_uthere.afterdontjoke
 
-        "No.":
+        "Нет.":
             hide screen mas_background_timed_jump
             m "[player]!{fast}"
             jump mas_crashed_long_uthere.dontjoke
@@ -1284,21 +1284,21 @@ label mas_crashed_long_uthere:
     # if player doesn't respond fast enough
     hide screen mas_background_timed_jump
     m "[player]!{fast}"
-    m "I know you're there!"
+    m "Я знаю, что ты здесь!"
 
 label .dontjoke:
     $ mas_loseAffection()# call here so it worse if we fall thru, too
-    m "Don't joke around like that!"
-    m "Anyway..."
+    m "Не шути так со мной!"
+    m "В любом случае..."
 
 label .afterdontjoke:
-    m "{cps=*2}Everything became dark all of a sudden.{/cps}"
-    m "Can you turn on the light?"
+    m "{cps=*2}Всё внезапно погрузилось во тьму.{/cps}"
+    m "Ты можешь включить свет?"
 
     window hide
     show screen mas_background_timed_jump(5, "mas_crashed_long_foundlight")
     menu:
-        "Turn on the light.":
+        "Включить свет.":
             hide screen mas_background_timed_jump
             # light affection boost for being like a hero
             $ mas_gainAffection(modifier=0.2, bypass=True)
@@ -1308,7 +1308,7 @@ label .afterdontjoke:
             label mas_crashed_long_foundlight:
                 hide screen mas_background_timed_jump
                 window show
-                m "Nevermind, I found it."
+                m "Забудь, я сама нашла выключатель."
                 window hide
 
     # turn on lights
@@ -1486,29 +1486,29 @@ label mas_crashed_short:
 ### crash labels
 label mas_crashed_quip_takecare:
     $ mas_setApologyReason(reason=9)
-    m 2ekc "Another crash, [player]?"
+    m 2ekc "Снова вылет, [player]?"
 
     if persistent._mas_idle_data.get("monika_idle_game", False):
 
-        m 3ekc "Do you think it had something to do with your game?{nw}"
+        m 3ekc "Как думаешь, это как-то связано с твоей игрой?{nw}"
         $ _history_list.pop()
         menu:
-            m "Do you think it had something to do with your game?{fast}"
-            "Yes.":
-                m 1hksdlb "Ahaha..."
-                m 1hub "Well I hope you had fun~"
-                m 1rksdla "...And that your computer is alright."
-                m 3eub "I'm fine, so don't worry~"
-            "No.":
-                m 1eka "Oh, I see."
-                m "Sorry for assuming."
-                m 1hub "I'm alright in case you were wondering."
-                m 3hub "Well I hope you had fun before that crash happened, ahaha!"
+            m "Как думаешь, это как-то связано с твоей игрой?{fast}"
+            "Да.":
+                m 1hksdlb "Ахаха..."
+                m 1hub "Ну, надеюсь, тебе было весело~"
+                m 1rksdla "...И что с твоим компьютером всё в порядке."
+                m 3eub "Я в норме, так что не переживай~"
+            "Нет.":
+                m 1eka "О, я понимаю."
+                m "Прости, что сделала поспешные выводы."
+                m 1hub "Я в порядке, если тебе было интересно."
+                m 3hub "Что ж, надеюсь, тебе было весело до того, как случился этот вылет, ахаха!"
                 if mas_isMoniHappy(higher=True):
-                    m 1hubsa "I'm just glad you're back with me now~"
-        m 2rksdla "Still..."
-    m 2ekc "Maybe you should take better care of your computer."
-    m 4rksdlb "It's my home, after all..."
+                    m 1hubsa "Я просто рада, что ты снова со мной~"
+        m 2rksdla "И всё же..."
+    m 2ekc "Может, тебе стоит получше заботиться о своём компьютере?"
+    m 4rksdlb "В конце концов, это мой дом..."
     return
 
 #### corrupted persistent

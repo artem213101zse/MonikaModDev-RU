@@ -3321,7 +3321,7 @@ label prompt_menu:
             talk_menu.append((_("{b}Непрочитанное{/b}"), "unseen"))
         if mas_hasBookmarks():
             talk_menu.append((_("Избранное"),"bookmarks"))
-        talk_menu.append((_("Эй, [m_name]..."), "prompt"))
+        talk_menu.append((_("Слушай, [m_name]..."), "prompt"))
         if len(repeatable_events)>0:
             talk_menu.append((_("Повторить разговор"), "repeat"))
         if _mas_getAffection() > -50:
@@ -3329,8 +3329,8 @@ label prompt_menu:
                 talk_menu.append((_("Я тоже тебя люблю!"),"love_too"))
             else:
                 talk_menu.append((_("Я люблю тебя!"), "love"))
-        talk_menu.append((_("Мне сейчас..."), "moods"))
-        talk_menu.append((_("До свидания"), "goodbye"))
+        talk_menu.append((_("Я чувствую..."), "moods"))
+        talk_menu.append((_("Мне пора..."), "goodbye"))
         talk_menu.append((_("Не важно"),"nevermind"))
 
         renpy.say(m, store.mas_affection.talk_quip()[1], interact=False)

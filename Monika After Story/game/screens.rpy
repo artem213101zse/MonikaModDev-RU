@@ -926,7 +926,7 @@ screen navigation():
             textbutton _("Уведомления") action [ShowMenu("notif_settings"), SensitiveIf(renpy.get_screen("notif_settings") == None)]
 
         if store.mas_api_keys.has_features():
-            textbutton _("API Ключи") action [ShowMenu("mas_apikeys"), SensitiveIf(renpy.get_screen("mas_apikeys") == None)]
+            textbutton _("API-ключи") action [ShowMenu("mas_apikeys"), SensitiveIf(renpy.get_screen("mas_apikeys") == None)]
 
         textbutton _("Горячие клавиши") action [ShowMenu("hot_keys"), SensitiveIf(renpy.get_screen("hot_keys") == None)]
 
@@ -1662,11 +1662,11 @@ screen preferences():
                 #We disable updating on the main menu because it causes graphical issues
                 #due to the spaceroom not being loaded in
                 if not main_menu:
-                    textbutton _("Проверить обновления"):
+                    textbutton _("Поиск обновлений"):
                         action Function(renpy.call_in_new_context, 'forced_update_now')
                         style "navigation_button"
 
-                textbutton _("Импортировать сохранения DDLC"):
+                textbutton _("Импорт сохранений DDLC"):
                     action Function(renpy.call_in_new_context, 'import_ddlc_persistent_in_settings')
                     style "navigation_button"
 
@@ -3179,7 +3179,7 @@ screen mas_apikeys():
 
     tag menu
 
-    use game_menu(_("API Ключи"), scroll="viewport"):
+    use game_menu(_("API-ключи"), scroll="viewport"):
 
         if not store.mas_api_keys.has_features():
             text _("No API keys accepted"): # NOTE: the game menu screen shouldn't have let us get here.

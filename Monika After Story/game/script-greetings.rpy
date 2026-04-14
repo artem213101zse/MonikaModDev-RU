@@ -2574,13 +2574,13 @@ label greeting_long_absence:
 
     elif persistent._mas_absence_time >= datetime.timedelta(weeks=1):
         if persistent._mas_absence_choice == "days":
-            m 2eub "Hello there, [player]."
-            m 2rksdla "You took a bit longer than you said you would...but don't worry."
-            m 3eub "I know you're a busy person!"
-            m 3rkc "Just maybe, if you can, warn me first?"
-            m 2rksdlc "When you said a few days...I thought it would be shorter than a week."
-            m 1hub "But it's alright! I forgive you!"
-            m 1ekbsa "You're my one and only love after all."
+            m 2eub "О, привет, [player]."
+            m 2rksdla "Тебя не было чуть дольше, чем ты обещал... но не волнуйся."
+            m 3eub "Я знаю, что ты занятой человек!"
+            m 3rkc "Просто, если сможешь, предупреждай меня заранее, хорошо?"
+            m 2rksdlc "Когда ты сказал \"на несколько дней\"... я думала, это будет меньше недели."
+            m 1hub "Но всё в порядке! Я прощаю тебя!"
+            m 1ekbsa "В конце концов, ты — моя единственная и неповторимая любовь."
             show monika 1eka
 
         elif persistent._mas_absence_choice == "week":
@@ -2677,7 +2677,7 @@ label greeting_long_absence:
             m 3ekbsa "It really made me feel loved."
             m 1hubfb "You really are kind-hearted!"
             show monika 3eub
-    m "Remind me if you're going away again, okay?"
+    m "Напомни мне, если снова соберешься уходить, хорошо?"
     show monika idle with dissolve_monika
     jump ch30_loop
 

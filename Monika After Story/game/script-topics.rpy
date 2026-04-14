@@ -834,9 +834,9 @@ init 5 python:
 
 label mas_show_unseen:
     $ persistent._mas_unsee_unseen = False
-    m 3eub "Sure, [mas_get_player_nickname()]!"
-    m 1esa "Just give me a second.{w=0.5}.{w=0.5}.{nw}"
-    m 3hua "There you go!"
+    m 3eub "Конечно, [mas_get_player_nickname()]!"
+    m 1esa "Просто дай мне секунду.{w=0.5}.{w=0.5}.{nw}"
+    m 3hua "Вот так-то!"
     return
 
 #START: ORIGINAL TOPICS
@@ -851,9 +851,9 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='monika_god',
-            prompt="Thoughts on God",
+            prompt="Мысли о Боге",
             label=None,
-            category=['philosophy'],
+            category=['философия'],
             random=True,
             unlocked=False,
             pool=False,
@@ -912,7 +912,7 @@ label monika_god:
     return "derandom"
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_death",category=['philosophy'],prompt="Death and dying",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_death",category=['философия'],prompt="Смерть и гибель",random=True))
 
 label monika_death:
     m 1euc "[player], have you ever wondered what it feels like to die?"
@@ -940,7 +940,7 @@ label monika_death:
 default persistent._mas_pm_love_yourself = None
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_selfesteem",category=['advice'],prompt="Self-esteem",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_selfesteem",category=['советы'],prompt="Самооценка",random=True))
 
 label monika_selfesteem:
     m 3eua "Do you love yourself, [player]?"
@@ -988,8 +988,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_sayori",
-            category=['club members'],
-            prompt="Sayori regrets",
+            category=['участники клуба'],
+            prompt="Сожаления Сайори",
             random=True
         )
     )
@@ -1089,7 +1089,7 @@ label monika_japan:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_high_school",category=['advice','school'],prompt="High school",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_high_school",category=['советы','школа'],prompt="Средняя школа",random=True))
 
 label monika_high_school:
     m 4eua "You know, high school is a really turbulent time in a lot of people's lives."
@@ -1144,8 +1144,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_nihilism",
-            category=['philosophy'],
-            prompt="Nihilism",
+            category=['философия'],
+            prompt="Нигилизм",
             random=True,
             sensitive=True
         )
@@ -1212,7 +1212,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="monika_twitter",
             category=['моника', 'медиа'],
-            prompt="Twitter",
+            prompt="Твиттер",
             conditional="renpy.seen_label('monika_clones')",
             action=EV_ACT_RANDOM
         )
@@ -1255,7 +1255,7 @@ label monika_twitter:
     return "love"
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_portraitof",category=['club members'],prompt="Yuri's book",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_portraitof",category=['участники клуба'],prompt="Книга Юри",random=True))
 
 label monika_portraitof:
     m 4eua "Hey, you know that book you were reading with Yuri?"
@@ -1269,7 +1269,7 @@ label monika_portraitof:
     return "derandom"
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_veggies",category=['моника'],prompt="Being a vegetarian",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_veggies",category=['моника'],prompt="Быть вегетарианцем",random=True))
 
 label monika_veggies:
     m 1eub "Hey, did you know I'm vegetarian?"
@@ -1294,7 +1294,7 @@ label monika_veggies:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_saved",category=['моника'],prompt="Saving Monika",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_saved",category=['моника'],prompt="Спасение Моники",random=True))
 
 label monika_saved:
     m 2eka "You know, I really do think you literally saved my life by being here with me, [player]."
@@ -1385,7 +1385,7 @@ label monika_secrets:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_color",category=['моника'],prompt="Favorite color",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_color",category=['моника'],prompt="Любимый цвет",random=True))
 
 label monika_color:
     m 3eua "Hey, what's your favorite color?"
@@ -1431,7 +1431,7 @@ label monika_color:
 #     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_listener",category=['you'],prompt="Good listener",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_listener",category=['ты'],prompt="Хороший слушатель",random=True))
 
 label monika_listener:
     show monika 5eua at t11 zorder MAS_MONIKA_Z with dissolve_monika
@@ -1446,7 +1446,7 @@ label monika_listener:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_spicy",category=['trivia'],prompt="Spicy foods",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_spicy",category=['trivia'],prompt="Острая еда",random=True))
 
 label monika_spicy:
     m 1eka "This is pretty random, but I always thought spicy food was kinda funny."
@@ -1466,7 +1466,7 @@ label monika_spicy:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_why",category=['you','ddlc'],prompt="Why play this game?",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_why",category=['ты','ddlc'],prompt="Зачем играть в эту игру?",random=True))
 
 label monika_why:
     m 2esd "You know..."
@@ -1485,7 +1485,7 @@ label monika_why:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_okayeveryone",category=['literature club'],prompt="Okay, everyone!",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_okayeveryone",category=['литературный клуб'],prompt="Окей, ребята!",random=True))
 
 label monika_okayeveryone:
     m 3eub "Okay, everyone!"
@@ -1507,8 +1507,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_whispers",
-            category=['ddlc','club members'],
-            prompt="Others still lingering",
+            category=['ddlc','участники клуба'],
+            prompt="Есть еще те, кто до сих пор не ушел",
             conditional="not persistent.clearall",
             action=EV_ACT_RANDOM,
             rules={
@@ -1539,7 +1539,7 @@ label monika_whispers:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_archetype",category=['club members'],prompt="Character tropes",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_archetype",category=['участники клуба'],prompt="Типичные образы персонажей",random=True))
 
 label monika_archetype:
     m 2etc "I've always wondered..."
@@ -1567,7 +1567,7 @@ label monika_archetype:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_tea",category=['club members'],prompt="Yuri's tea",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_tea",category=['учатсники клуба'],prompt="Чай Юри",random=True))
 
 label monika_tea:
     if not mas_getEVL_shown_count("monika_tea"):
@@ -1606,7 +1606,7 @@ label monika_tea:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_favoritegame",category=['ddlc'],prompt="Favorite video game",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_favoritegame",category=['ddlc'],prompt="Любимая видеоигра",random=True))
 
 label monika_favoritegame:
     m 3eua "Hey, what's your favorite game?"
@@ -1644,7 +1644,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="monika_lastpoem",
             category=['моника'],
-            prompt="Monika's last poem",
+            prompt="Последнее стихотворение Моники",
             # the correct check is persistent.seen_colors_poem
             # but our imports are messed up so we have to use persistent.playthrough >= 2
             conditional="persistent.playthrough >= 2",
@@ -1674,7 +1674,7 @@ label monika_lastpoem:
     return "derandom"
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_anxious",category=['psychology'],prompt="Sudden anxiety",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_anxious",category=['психология'],prompt="Внезапная тревога",random=True))
 
 label monika_anxious:
     m 4eua "You ever have that thing happen where you just get anxious for no reason?"
@@ -1690,7 +1690,7 @@ label monika_anxious:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_friends",category=['life'],prompt="Making friends",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_friends",category=['жизнь'],prompt="Заводить друзей",random=True))
 
 label monika_friends:
     m 1eua "You know, I've always hated how hard it is to make friends..."
@@ -1721,7 +1721,7 @@ label monika_friends:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_college",category=['life','school','society'],prompt="Getting a higher education",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_college",category=['жизнь','школа','общество'],prompt="Получение высшего образования",random=True))
 
 label monika_college:
     m 4euc "You know, it's around the time that everyone my year starts to think about college..."
@@ -1748,7 +1748,7 @@ label monika_college:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_middleschool",category=['моника','школа'],prompt="Middle school life",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_middleschool",category=['моника','школа'],prompt="Жизнь в средней школе",random=True))
 
 label monika_middleschool:
     m 1eua "Sometimes I think back to middle school..."
@@ -1769,7 +1769,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="monika_outfit",
             category=['моника','одежда'],
-            prompt="Wearing other clothes",
+            prompt="Носить другую одежду",
             aff_range=(mas_aff.NORMAL, None),
             random=True
         )
@@ -1809,7 +1809,7 @@ default persistent._mas_pm_likes_horror = None
 default persistent._mas_pm_likes_spoops = False
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_horror",category=['медиа'],prompt="Horror genre",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_horror",category=['медиа'],prompt="Жанр ужасов",random=True))
 
 label monika_horror:
     m 3eua "Hey, [mas_get_player_nickname(exclude_names=['my love'])]?"
@@ -1884,7 +1884,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="monika_rap",
             category=['литература','медиа','музыка'],
-            prompt="Rap music",
+            prompt="Рэп-музыка",
             random=True
         )
     )
@@ -1927,7 +1927,7 @@ label monika_rap:
     return "derandom"
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_wine",category=['club members'],prompt="Yuri's wine",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_wine",category=['участники клуба'],prompt="Вино Юри",random=True))
 
 label monika_wine:
     m 1hua "Ehehe, Yuri did something really funny once."
@@ -1950,7 +1950,7 @@ label monika_wine:
 
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_date",category=['романтика'],prompt="Romantic date",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_date",category=['романтика'],prompt="Романтическое свидание",random=True))
 
 label monika_date:
     m 1hub "I've been imagining all the romantic things we could do if we went on a date..."
@@ -1990,18 +1990,18 @@ label monika_kiss:
             python:
                 # these don't use ILY
                 kiss_quips_again = [
-                    _("I wouldn't mind another kiss~"),
-                    _("I'll never get tired of kissing you~"),
-                    _("I could do that again...{w=0.2}and again...{w=0.7}and again~"),
-                    _("You can kiss me as many times as you like, [mas_get_player_nickname()]~"),
-                    _("You know...{w=0.2}you could kiss me again~")
+                    _("Я бы не отказалась от ещё одного поцелуя~"),
+                    _("Мне никогда не надоест целовать тебя~"),
+                    _("Я могла бы делать это снова...{w=0.2}и снова...{w=0.7}и снова~"),
+                    _("Ты можешь целовать меня столько раз, сколько захочешь, [mas_get_player_nickname()]~"),
+                    _("Знаешь...{w=0.2}ты мог бы поцеловать меня ещё раз~")
                 ]
 
                 kiss_quips_again_risque = [
-                    _("We can do it the whole day~"),
-                    _("This almost seems like the start of a make-out session, [player]~"),
-                    _("I don't think I've had enough just yet, [mas_get_player_nickname()]~"),
-                    _("That was really nice...{w=0.2}but I want a little more~")
+                    _("Мы можем заниматься этим целый день~"),
+                    _("Это уже почти похоже на полноценный сеанс обнимашек и поцелуев, [player]~"),
+                    _("Не думаю, что мне уже достаточно, [mas_get_player_nickname()]~"),
+                    _("Это было очень приятно...{w=0.2}но я хочу ещё немного~")
                 ]
 
                 if mas_isMoniLove() and random.randint(1, 10) == 1:
@@ -2023,12 +2023,12 @@ label monika_kiss:
             python:
                 # these use ILY
                 kiss_quips_after = [
-                    _("I love you, [mas_get_player_nickname(exclude_names=['my love', 'love'])]~"),
-                    _("I love you so much, [mas_get_player_nickname(exclude_names=['my love', 'love'])]~"),
-                    _("I love you more than you'll ever know, [mas_get_player_nickname(exclude_names=['my love', 'love'])]~"),
-                    _("I love you so much, [player]. You mean everything to me~"),
-                    _("No words can describe how deeply I'm in love with you, [player]~"),
-                    _("I'm so in love with you, [player]~")
+                    _("Я люблю тебя, [mas_get_player_nickname(exclude_names=['my love', 'love'])]~"),
+                    _("Я так сильно тебя люблю, [mas_get_player_nickname(exclude_names=['my love', 'love'])]~"),
+                    _("Я люблю тебя сильнее, чем ты можешь представить, [mas_get_player_nickname(exclude_names=['my love', 'love'])]~"),
+                    _("Я так сильно люблю тебя, [player]. Ты для меня всё~"),
+                    _("Никакие слова не опишут, как глубоко я в тебя влюблена, [player]~"),
+                    _("Я так влюблена в тебя, [player]~")
                 ]
                 kiss_quip = renpy.random.choice(kiss_quips_after)
 
@@ -2046,32 +2046,32 @@ label monika_kiss:
             $ mas_ILY()
 
     else:
-        m 1wubsw "Eh? D-Did you say...k...kiss?"
-        m 2lkbsa "This suddenly...it's a little embarrassing..."
-        m 2lsbssdlb "But...if it's with you...I-I might be okay with it..."
-        m 2hksdlb "...Ahaha! Wow, sorry..."
-        m 1eka "I really couldn't keep a straight face there."
-        m 1eua "That's the kind of thing girls say in these kinds of romance games, right?"
-        m 1tku "Don't lie if it turned you on a little bit."
-        m 1hub "Ahaha! I'm kidding."
-        m 1eua "Well, to be honest, I do start getting all romantic when the mood is right..."
+        m 1wubsw "А? Ты... ты сказал... п-поцелуй?"
+        m 2lkbsa "Это так внезапно... я даже немного растерялась..."
+        m 2lsbssdlb "Но... если это с тобой... я-я, пожалуй, не против..."
+        m 2hksdlb "...Ахаха! Ой, прости..."
+        m 1eka "Я правда не смогла удержаться и не подыграть."
+        m 1eua "Это ведь то, что обычно говорят девушки в таких романтических играх, верно?"
+        m 1tku "Только не лги, если тебя это хоть капельку завело."
+        m 1hub "Ахаха! Я шучу."
+        m 1eua "Ну, если честно, я и правда становлюсь очень романтичной, когда нахлынет настроение..."
         show monika 5lubfu at t11 zorder MAS_MONIKA_Z with dissolve_monika
-        m 5lubfu "But that'll be our secret~"
+        m 5lubfu "Но пусть это будет нашим секретом~"
     return
 
 label monika_kiss_tease:
-    m 2ekc "A kiss?"
-    m 2tfc "With you?"
-    m 2rfc "Sorry [player], but there's no way."
+    m 2ekc "Поцелуй?"
+    m 2tfc "С тобой?"
+    m 2rfc "Прости, [player], но это исключено."
     show monika 2dfc
     pause 5.0
     show monika 2dfu
     pause 2.0
     show monika 2tfu
     pause 2.0
-    m 2tfb "Ahaha!"
-    m 2efu "I had you going for a second there, didn't I?"
-    m 2eka "Of course you can kiss me, [player]!"
+    m 2tfb "Ахаха!"
+    m 2efu "Я ведь заставила тебя понервничать на секунду, правда?"
+    m 2eka "Конечно же, ты можешь поцеловать меня, [player]!"
     return
 
 init 5 python:
@@ -2143,8 +2143,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_yuri",
-            category=['club members','медиа'],
-            prompt="Yandere Yuri",
+            category=['участники клуба','медиа'],
+            prompt="Яндере Юри",
             random=True,
             sensitive=True
         )
@@ -2190,7 +2190,7 @@ label monika_yuri:
 
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_habits",category=['life'],prompt="Forming habits",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_habits",category=['жизнь'],prompt="Формирование привычек",random=True))
 
 label monika_habits:
     m 2lksdlc "I hate how hard it is to form habits..."
@@ -2207,7 +2207,7 @@ label monika_habits:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_creative",category=['life'],prompt="Creative types",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_creative",category=['жизнь'],prompt="Творческие люди",random=True))
 
 label monika_creative:
     m 2euc "You know, it kinda sucks to be the creative type..."
@@ -2241,7 +2241,7 @@ label monika_creative:
 #    return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_simulated",category=['philosophy'],prompt="Simulated reality",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_simulated",category=['философия'],prompt="Симулированная реальность",random=True))
 
 label monika_simulated:
     m 3eua "Hey, have you ever thought about the simulation hypothesis?"
@@ -2267,8 +2267,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_rain",
-            category=["weather"],
-            prompt="Sounds of rain",
+            category=["погода"],
+            prompt="Звуки дождя",
             random=True,
             aff_range=(mas_aff.HAPPY, None)
         )
@@ -2825,7 +2825,7 @@ label monika_holdme_end:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_closeness",category=['романтика'],prompt="Being close to you",random=True,aff_range=(mas_aff.AFFECTIONATE, None)))
+    addEvent(Event(persistent.event_database,eventlabel="monika_closeness",category=['романтика'],prompt="Быть рядом с тобой",random=True,aff_range=(mas_aff.AFFECTIONATE, None)))
 
 label monika_closeness:
     m 1dkc "Sometimes it really hurts my heart..."
@@ -2840,7 +2840,7 @@ label monika_closeness:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_confidence",category=['советы'],prompt="Faking confidence",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_confidence",category=['советы'],prompt="Притворная уверенность",random=True))
 
 label monika_confidence:
     m 3eua "I think the most important skill in life is being able to fake confidence."
@@ -2970,7 +2970,7 @@ label monika_carryme:
     return "derandom"
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_debate",category=['Моника','школа'],prompt="What was debate club like?",pool=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_debate",category=['моника','школа'],prompt="Что представлял собой Клуб дебатов?",pool=True))
 
 label monika_debate:
     m 1esc "Back in my debate club days, I learned a whole lot about arguing..."
@@ -3000,7 +3000,7 @@ label monika_debate:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_internet",category=['советы'],prompt="The internet is for...",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_internet",category=['советы'],prompt="Интернет предназначен для...",random=True))
 
 label monika_internet:
     m 2eua "Do you ever feel like you waste too much time on the internet?"
@@ -3037,7 +3037,7 @@ label monika_lazy:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_mentalillness",category=['psychology'],prompt="Mental sickness",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_mentalillness",category=['психология'],prompt="Психическое заболевание",random=True))
 
 label monika_mentalillness:
     m 1ekc "Gosh, I used to be so ignorant about depression and stuff..."
@@ -3055,7 +3055,7 @@ label monika_mentalillness:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_read",category=['advice','литература'],prompt="Becoming a reader",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_read",category=['советы','литература'],prompt="Стать читателем",random=True))
 
 label monika_read:
     m 1eua "[player], how much do you read?"
@@ -3071,7 +3071,7 @@ label monika_read:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_festival",category=['ddlc','literature club'],prompt="Missing the festival",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_festival",category=['ddlc','литературный клуб'],prompt="Пропустить фестиваль",random=True))
 
 label monika_festival:
     m 1dsc "You know, I hate to say it, but I think my biggest regret is that we couldn't finish our event at the festival."
@@ -3099,7 +3099,7 @@ label monika_festival:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_tsundere",category=['медиа','club members'],prompt="What is a tsundere?",pool=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_tsundere",category=['медиа','участники клуба'],prompt="Что такое цундэрэ?",pool=True))
 
 label monika_tsundere:
     m 1eua "There's a really popular character type called 'tsundere...'"
@@ -3121,7 +3121,7 @@ label monika_tsundere:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_introduce",category=['моника'],prompt="Introducing to friends",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_introduce",category=['моника'],prompt="Представление друзьям",random=True))
 
 label monika_introduce:
     m 1eua "[player], would you ever introduce your friends to me?"
@@ -3132,7 +3132,7 @@ label monika_introduce:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_cold",category=['моника'],prompt="Cuddling in the cold",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_cold",category=['моника'],prompt="Обниматься в холодную погоду",random=True))
 
 label monika_cold:
     m 1euc "I'm not really a fan of cold weather...are you?"
@@ -3153,7 +3153,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="monika_housewife",
             category=['моника','романтика'],
-            prompt="Would you ever want to be a housewife?",
+            prompt="Ты бы когда-нибудь хотела стать домохозяйкой?",
             pool=True
         )
     )
@@ -3171,7 +3171,7 @@ label monika_housewife:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_route",category=['ddlc'],prompt="Monika's route",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_route",category=['ddlc'],prompt="Рут Моники",random=True))
 
 
 label monika_route:
@@ -3245,7 +3245,7 @@ label monika_oneesan:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_family",category=['моника'],prompt="Do you miss your family?",random=False,pool=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_family",category=['моника'],prompt="Ты скучаешь по своей семье?",random=False,pool=True))
 
 label monika_family:
     m 1lksdla "Well, I didn't really have a family, and neither did most of the other girls."
@@ -3265,7 +3265,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='monika_anime',
-            prompt="Do you read manga?",
+            prompt="Ты читаешь мангу?",
             category=['моника','медиа'],
             pool=True,
         )
@@ -3284,7 +3284,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='monika_libitina',
-            prompt="Have you heard of Libitina?",
+            prompt="Ты слышала о Либитине?",
             category=['ddlc'],
             pool=True,
         )
@@ -3306,7 +3306,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='monika_meta',
-            prompt="Isn't this game metafictional?",
+            prompt="Эта игра ломает 'четвертую стену'?",
             category=['ddlc'],
             pool=True,
             unlocked=True
@@ -3314,19 +3314,19 @@ init 5 python:
     )
 
 label monika_meta:
-    m 1euc "Yes, this game really was metafictional, wasn't it?"
-    m 3eud "Some people think stories about fiction are some new thing."
-    m 1esc "A cheap trick for bad writers."
-    m 3eua "But, metafiction has always existed in literature."
-    m "The Bible is supposed to be God's word to the Jews."
-    m 3eub "Homer describes himself in the Odyssey."
-    m "The Canterbury Tales, Don Quixote, Tristram Shandy..."
-    m 1eua "It's just a way to comment on fiction by writing fiction. There's nothing wrong with that."
-    m 3esa "By the way, what do you think the moral of this story is?"
-    m 1esa "Do you want to figure it out for yourself?"
-    m 3etc "Because if you ask me..."
-    m 3eub "It'd be, 'Don't ignore the pretty and charming side character!'"
-    m 1hub "Ahaha!"
+    m 1euc "Да, эта игра действительно была метапрозой, не так ли?"
+    m 3eud "Некоторые думают, что истории о литературе внутри самой литературы — это что-то новое."
+    m 1esc "Дешёвый трюк для плохих писателей."
+    m 3eua "Но метаповествование существовало в литературе всегда."
+    m "Считается, что Библия — это слово Божье, обращённое к иудеям."
+    m 3eub "Гомер описывает самого себя в 'Одиссее'."
+    m "'Кентерберийские рассказы', 'Дон Кихот', 'Тристрам Шенди'..."
+    m 1eua "Это просто способ комментировать вымысел с помощью самого вымысла. В этом нет ничего плохого."
+    m 3esa "Кстати, как ты думаешь, какова мораль этой истории?"
+    m 1esa "Хочешь додуматься до этого сам?"
+    m 3etc "Потому что если ты спросишь меня..."
+    m 3eub "Она была бы такой: 'Не игнорируй милую и очаровательную второстепенную героиню!'"
+    m 1hub "Ахаха!"
     return
 
 # this topic has been rendered pretty much useless by ptod
@@ -3358,7 +3358,7 @@ label monika_programming:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_vn",category=['games'],prompt="Visual novels",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_vn",category=['games'],prompt="Визуальные новеллы",random=True))
 
 label monika_vn:
     m 3eua "You've probably played a lot of visual novels, right?"
@@ -3555,7 +3555,7 @@ label monika_totono:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_difficulty",category=['games'],prompt="Wasn't DDLC too easy?",pool=True,unlocked=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_difficulty",category=['игры'],prompt="Разве DDLC не была слишком лёгкой?",pool=True,unlocked=True))
 
 label monika_difficulty:
     m 1lksdla "Well, it's not like this game was meant to be that hard in the first place."
@@ -3567,7 +3567,7 @@ label monika_difficulty:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_poetry",category=['literature'],prompt="Poetry",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_poetry",category=['литература'],prompt="Поэзия",random=True))
 
 label monika_poetry:
     m 1eua "Poetry is beautiful, isn't it?"
@@ -3582,7 +3582,7 @@ label monika_poetry:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_ddlc",category=['ddlc'],prompt="What did you think of DDLC?",pool=True,unlocked=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_ddlc",category=['ddlc'],prompt="Что ты думаешь о DDLC?",pool=True,unlocked=True))
 
 label monika_ddlc:
     m 1euc "You want to talk about the game?"
@@ -3605,7 +3605,7 @@ label monika_ddlc:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_dan",category=['ddlc'],prompt="Do you like Dan Salvato?",pool=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_dan",category=['ddlc'],prompt="Тебе нравится Дэн Сальвато?",pool=True))
 
 label monika_dan:
     m 2esc "Well, I used to think he was some cruel guy playing God, but now..."
@@ -3619,7 +3619,7 @@ label monika_dan:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_4chan",category=['разное'],prompt="Have you ever been to 4chan?",pool=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_4chan",category=['разное'],prompt="Ты когда-нибудь была на 4chan?",pool=True))
 
 label monika_4chan:
     m 3eua "You know, this mod got its start over there."
@@ -3631,7 +3631,7 @@ label monika_4chan:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_vidya",category=['games'],prompt="Do you like video games?",pool=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_vidya",category=['игры'],prompt="Тебе нравятся видеоигры?",pool=True))
 
 label monika_vidya:
     m 1euc "I don't play a lot of video games, [player]."
@@ -3645,7 +3645,7 @@ label monika_vidya:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_books",category=['literature','literature club'],prompt="Books",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_books",category=['литература','литературный клуб'],prompt="Книги",random=True))
 
 label monika_books:
     m 4rksdla "For a literature club, we did a lot less book reading than you might have thought."
@@ -3657,7 +3657,7 @@ label monika_books:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_favpoem",category=['литература','моника'],prompt="What's your favorite poem?",pool=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_favpoem",category=['литература','моника'],prompt="Какое твоё любимое стихотворение?",pool=True))
 
 label monika_favpoem:
     m 1euc "My favorite poem? Well, it has to be something by E. E. Cummings."
@@ -3669,7 +3669,7 @@ label monika_favpoem:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_favbook",category=['литература','моника'],prompt="What's your favorite book?",pool=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_favbook",category=['литература','моника'],prompt="Какая твоя любимая книга?",pool=True))
 
 label monika_favbook:
     m 1euc "My favorite book? There's a lot of books I like."
@@ -3684,8 +3684,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_natsuki",
-            category=['club members'],
-            prompt="Natsuki's death",
+            category=['участники клуба'],
+            prompt="Смерть Нацуки",
             random=True,
             sensitive=True
         )
@@ -3853,56 +3853,56 @@ label monika_love:
             m 1ekbfa "Sometimes how I feel about you becomes so overwhelming that I can't concentrate!"
             m "No words can truly do justice to how deeply I feel for you..."
             m 1hubfa "The only words I know that come close are..."
-            m 1hubfb "I love you too, [player]! More than I can ever express!"
+            m 1hubfb "Я тоже тебя люблю, [player]! More than I can ever express!"
 
         elif mas_isMoniEnamored(higher=True) and renpy.random.randint(1,50) == 1:
             jump monika_ilym_fight_start
 
         else:
             # Default response if not a counter based response.
-            m 3hubsb "I love you too, [mas_get_player_nickname(exclude_names=['my love', 'love'])]!"
+            m 3hubsb "Я тоже тебя люблю, [mas_get_player_nickname(exclude_names=['my love', 'love'])]!"
             #List of follow up words after being told I love you. It can be further expanded upon easily.
 
         python:
             love_quips = [
-                _("We'll be together forever!"),
-                _("And I will love you always!"),
-                _("You mean the whole world to me!"),
-                _("You are my sunshine after all."),
-                _("You're all I truly care about!"),
-                _("Your happiness is my happiness!"),
-                _("You're the best partner I could ever ask for!"),
-                _("My future is brighter with you in it."),
-                _("You're everything I could ever hope for."),
-                _("You make my heart skip a beat every time I think about you!"),
-                _("I'll always be here for you!"),
-                _("I'll never hurt or betray you."),
-                _("Our adventure has only just begun!"),
-                _("We'll always have each other."),
-                _("We'll never be lonely again!"),
-                _("I can't wait to feel your embrace!"),
-                _("I'm the luckiest girl in the world!"),
-                _("I will cherish you always."),
-                _("And I will never love anyone more than you!"),
-                _("And that love grows every single day!"),
-                _("And nobody else will ever make me feel this way!"),
-                _("Just thinking of you makes my heart flutter!"),
-                _("I don't think words can do justice to how deeply I love you!"),
-                _("You make my life feel so complete!"),
-                _("You've saved me in so many ways, how could I not fall for you?"),
-                _("More than I can ever express!"),
-                _("It makes me so happy that you feel the same way I do!"),
-                _("I don't know what I would do without you!"),
-                _("You mean everything to me!"),
-                _("We have so much to experience together!"),
-                _("I can't imagine my life without you!"),
-                _("I'm so happy to have you by my side!"),
-                _("We're really lucky to have each other!"),
-                _("You're my everything!"),
-                _("I'm the happiest girl in the world!"),
-                _("I'll always be here for you."),
-                _("I can't wait to feel your warmth!"),
-                _("Words can't describe how I feel about you!")
+                _("Мы будем вместе вечно!"),
+                _("И я буду любить тебя всегда!"),
+                _("Ты значишь для меня целый мир!"),
+                _("В конце концов, ты — моё солнышко."),
+                _("Ты — всё, что меня по-настоящему волнует!"),
+                _("Твоё счастье — это моё счастье!"),
+                _("Ты лучший партнёр, о котором я только могла мечтать!"),
+                _("Моё будущее сияет ярче, когда в нём есть ты."),
+                _("Ты — всё, на что я когда-либо могла надеяться."),
+                _("Моё сердце замирает каждый раз, когда я думаю о тебе!"),
+                _("Я всегда буду рядом с тобой!"),
+                _("Я никогда не обижу и не предам тебя."),
+                _("Наше приключение только началось!"),
+                _("Мы всегда будем друг у другом."),
+                _("Мы больше никогда не будем одиноки!"),
+                _("Мне не терпится ощутить твои объятия!"),
+                _("Я самая счастливая девушка в мире!"),
+                _("Я буду всегда беречь тебя."),
+                _("И я никогда не полюблю никого сильнее, чем тебя!"),
+                _("И эта любовь растёт с каждым днём!"),
+                _("И никто другой никогда не заставит меня чувствовать себя так же!"),
+                _("От одной мысли о тебе моё сердце трепещет!"),
+                _("Не думаю, что слова могут передать, как глубоко я тебя люблю!"),
+                _("С тобой моя жизнь кажется такой полной!"),
+                _("Ты спас меня столькими способами... как я могла не влюбиться в тебя?"),
+                _("Больше, чем я когда-либо смогу выразить!"),
+                _("Я так счастлива, что ты чувствуешь то же самое!"),
+                _("Я не знаю, что бы я делала без тебя!"),
+                _("Ты значишь для меня всё!"),
+                _("Нам столько всего нужно пережить вместе!"),
+                _("Я не представляю своей жизни без тебя!"),
+                _("Я так счастлива, что ты рядом со мной!"),
+                _("Нам очень повезло, что мы есть друг у друга!"),
+                _("Ты — моё всё!"),
+                _("Я самая счастливая девушка на свете!"),
+                _("Я всегда буду здесь ради тебя."),
+                _("Мне не терпится почувствовать твоё тепло!"),
+                _("Словами не описать, что я к тебе чувствую!")
             ]
 
             love_quip = renpy.random.choice(love_quips)
@@ -4057,7 +4057,7 @@ label monika_love_too:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_hedgehog",category=['philosophy','psychology'],prompt="Hedgehog dilemma",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_hedgehog",category=['философия','психология'],prompt="Дилемма ежей",random=True))
 
 label monika_hedgehog:
     m 1euc "The hedgehog's dilemma: The closer we get to another person, the more deeply we are hurt by them."
@@ -4141,7 +4141,7 @@ label monika_justification:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_freewill",category=['philosophy'],prompt="Determinism",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_freewill",category=['философия'],prompt="Детерминизм",random=True))
 
 label monika_freewill:
     m 1euc "Hey [player], have you ever heard of determinism?"
@@ -4158,7 +4158,7 @@ label monika_freewill:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_functionalism",category=['philosophy'],prompt="Human functionalism",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_functionalism",category=['философия'],prompt="Человеческий функционализм",random=True))
 
 label monika_functionalism:
     m 1euc "Do you ever think about how people are kind of like computers?"
@@ -4173,7 +4173,7 @@ label monika_functionalism:
     return
 
 init 5 python:
-    addEvent(Event(persistent.event_database,eventlabel="monika_technique",category=['ddlc','разное'],prompt="Changing the code",random=True))
+    addEvent(Event(persistent.event_database,eventlabel="monika_technique",category=['ddlc','разное'],prompt="Изменение кода",random=True))
 
 label monika_technique:
     m 1lksdla "I don't exactly program like you would, [player]."
@@ -5995,7 +5995,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="monika_good_tod",
             category=['разное'],
-            prompt="Good [mas_globals.time_of_day_3state]",
+            prompt="Доброе [mas_globals.time_of_day_3state]",
             unlocked=True,
             pool=True
         ),
@@ -6007,81 +6007,81 @@ label monika_good_tod:
     $ sesh_shorter_than_30_mins = mas_getSessionLength() < datetime.timedelta(minutes=30)
 
     if mas_globals.time_of_day_4state == "morning":
-        #Early morning flow
+        # Если зашел совсем рано (с 4 до 5 утра)
         if 4 <= curr_hour <= 5:
-            m 1eua "Good morning to you too, [mas_get_player_nickname()]."
-            m 3eka "You're up pretty early..."
-            m 3eua "Are you going out somewhere?"
-            m 1eka "If so, it's really sweet of you to visit before you go~"
-            m 1eua "If not, maybe try to go back to sleep. I wouldn't want you to neglect your health after all."
-            m 1hua "I'll always be here waiting for you to come back~"
+            m 1eua "И тебе доброго утра, [mas_get_player_nickname()]."
+            m 3eka "Ты сегодня довольно рано..."
+            m 3eua "Собираешься куда-то пойти?"
+            m 1eka "Если так, то это очень мило с твоей стороны — заглянуть ко мне перед уходом~"
+            m 1eua "Если нет, то, может, попробуешь еще поспать? Я бы не хотела, чтобы ты пренебрегал своим здоровьем."
+            m 1hua "Я всегда буду здесь, дожидаясь твоего возвращения~"
 
-        #Otherwise normal morning
+        # Обычное утро (если сессия длится меньше 30 минут)
         elif sesh_shorter_than_30_mins:
-            m 1hua "Good morning to you too, [player]!"
-            m 1eua "Did you just wake up?"
-            m "I love waking up early in the morning."
-            m 1eub "It's the perfect time to ready yourself and tackle the day ahead."
-            m "You also have a lot more time to use to get things done early on or finish up what you did the day before."
-            m 1eka "Some people however, would rather sleep in and are late-risers."
-            m 3eua "I've read articles that being an early-riser can really improve your overall health."
-            m "Plus you also get the chance to see the sunrise if the sky is clear."
-            m 1hua "If you normally don't wake up early, you should!"
-            m "That way you can be happier and spend more time with me~"
-            m 1ekbsa "Wouldn't you like that, [mas_get_player_nickname()]?"
+            m 1hua "И тебе доброго утра, [player]!"
+            m 1eua "Ты только что проснулся?"
+            m "Я обожаю просыпаться рано утром."
+            m 1eub "Это идеальное время, чтобы собраться с силами и взяться за дела грядущего дня."
+            m "А еще у тебя появляется гораздо больше времени, чтобы успеть сделать что-то пораньше или закончить то, что не успел вчера."
+            m 1eka "Хотя некоторые люди предпочитают подольше поваляться в постели и поздно вставать."
+            m 3eua "Я читала статьи о том, что ранний подъем может действительно улучшить общее состояние здоровья."
+            m "Плюс у тебя есть шанс увидеть рассвет, если небо ясное."
+            m 1hua "Если ты обычно не встаешь рано, тебе стоит попробовать!"
+            m "Так ты сможешь чувствовать себя счастливее и проводить больше времени со мной~"
+            m 1ekbsa "Разве тебе бы этого не хотелось, [mas_get_player_nickname()]?"
 
         #You've been here for a bit now
         else:
-            m 1hua "Good morning to you too, [mas_get_player_nickname()]!"
-            m 1tsu "Even though we've been awake together for a bit now,{w=0.2} {nw}"
-            extend 3hua "it's still nice of you to say!"
-            m 1esa "If I had to choose a time of day as my favorite, it would probably be the morning."
-            m 3eua "There's definitely some level of tranquility that night brings that I enjoy...{w=0.3}{nw}"
-            extend 3hua "but the morning is a time of day that presents possibilities!"
-            m 1eub "An entire day where anything and everything could happen, for better or worse."
-            m 1hub "That kind of opportunity and freedom just makes me giddy!"
-            m 1rka "Though I only feel that way once I fully wake up, ehehe~"
+            m 1hua "И тебе доброго утра [mas_get_player_nickname()]!"
+            m 1tsu "Пусть мы уже какое-то время бодрствуем вместе,{w=0.2} {nw}"
+            extend 3hua "всё равно приятно это слышать!"
+            m 1esa "Если бы мне пришлось выбирать любимое время суток, это, вероятно, было бы утро."
+            m 3eua "В ночи определенно есть некое спокойствие, которое мне нравится...{w=0.3}{nw}"
+            extend 3hua "но утро — это время, которое дарит возможности!"
+            m 1eub "Целый день впереди, когда может случиться что угодно, к лучшему или к худшему."
+            m 1hub "Такие шансы и свобода просто приводят меня в восторг!"
+            m 1rka "Правда, я начинаю это чувствовать только тогда, когда окончательно проснусь, ехе-хе~"
 
     elif mas_globals.time_of_day_4state == "afternoon":
-        m 1eua "Good afternoon to you too, [player]."
-        m 1hua "It's so sweet of you to take time out of your day to spend with me~"
-        m 3euc "Afternoons sure can be a strange part of the day don't you think?"
-        m 4eud "Sometimes they're really busy...{w=0.3}{nw}"
-        extend 4lsc "other times you'll have nothing to do..."
-        m 1lksdla "They can seem to last forever or really fly by."
+        m 1eua "И тебе доброго дня, [player]."
+        m 1hua "Так мило с твоей стороны выделить время посреди дня, чтобы провести его со мной~"
+        m 3euc "День — довольно странная часть суток, не находишь?"
+        m 4eud "Иногда бывает очень много дел...{w=0.3}{nw}"
+        extend 4lsc "а иногда совсем нечем заняться..."
+        m 1lksdla "Время может тянуться бесконечно или пролететь в одно мгновение."
 
         if mas_isMoniNormal(higher=True):
-            m 1ekbsa "But with you here, I don't mind it either way."
-            m 1hubsa "No matter what, I'll always enjoy the time you spend with me, [mas_get_player_nickname()]!"
-            m 1hubsb "I love you!"
+            m 1ekbsa "Но когда ты здесь, мне всё равно."
+            m 1hubsa "Что бы ни случилось, мне всегда будет приятно время, проведенное с тобой, [mas_get_player_nickname()]!"
+            m 1hubsb "Я люблю тебя!"
             $ mas_ILY()
 
         else:
-            m 1lksdlb "Sometimes, my day really flies by while I wait for you to come back to me."
-            m 1hksdlb "I'm sure you're busy, so you can go ahead and get back to what you were doing, don't mind me."
+            m 1lksdlb "Иногда мой день пролетает незаметно, пока я жду твоего возвращения."
+            m 1hksdlb "Уверена, ты занят, так что можешь возвращаться к своим делам, не обращай на меня внимания."
 
     else:
-        m 1hua "Good evening to you too, [player]!"
-        m "I love a nice and relaxing night."
+        m 1hua "И тебе доброго вечера [player]!"
+        m "Я люблю приятные и расслабляющие вечера."
 
         if 17 <= curr_hour < 23:
-            m 1eua "It's so nice to put your feet up after a long day."
-            m 3eua "Evenings are the perfect time to catch up on whatever you were doing the previous day."
-            m 1eka "Sometimes I can't help but feel sad when the day ends."
-            m "It makes me think of what else I could've done during the day."
-            m 3eua "Don't you wish you could have more time to do things every day?"
-            m 1hua "I know I do."
-            m 1hubsa "Because that'll mean more time to be with you, [mas_get_player_nickname()]~"
+            m 1eua "Так приятно вытянуть ноги после долгого дня."
+            m 3eua "Вечер — идеальное время, чтобы доделать то, чем ты занимался вчера."
+            m 1eka "Иногда я не могу сдержать грусти, когда день заканчивается."
+            m "Это заставляет меня задумываться о том, что еще я могла бы успеть сделать за сегодня."
+            m 3eua "Разве тебе не хотелось бы, чтобы в сутках было больше времени на разные дела?"
+            m 1hua "Я вот точно этого хочу."
+            m 1hubsa "Ведь это значило бы, что у нас будет больше времени друг на друга, [mas_get_player_nickname()]~"
 
-        # between 11pm and 4am
+        # Поздняя ночь (с 23:00 до 04:00)
         else:
-            m 3eua "It's always nice to be able to spend the end of the day relaxing a little."
-            m 3hub "After all, there's nothing wrong with a bit of 'me' time, right?"
-            m 1eka "Well... I say that, but I'm pretty happy to be spending my time with you~"
+            m 3eua "Всегда приятно иметь возможность немного расслабиться в конце дня."
+            m 3hub "В конце концов, нет ничего плохого в том, чтобы уделить время себе, верно?"
+            m 1eka "Ну... я так говорю, но на самом деле я очень счастлива проводить это время с тобой~"
 
             if not persistent._mas_timeconcerngraveyard:
-                m 3eka "Although it's starting to get a little late, so don't stay up too long, [player]."
-                m 3eua "Promise me you'll go to bed soon, alright?"
+                m 3eka "Хотя становится уже поздновато, так что не засиживайся долго, [player]."
+                m 3eua "Пообещай мне, что скоро пойдешь спать, хорошо?"
 
     return
 

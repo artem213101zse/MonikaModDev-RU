@@ -73,7 +73,7 @@ label monika_playerapologizes:
         #If there's a non-generic apology reason pending we use "for something else."
         $ mas_setEVLPropValues(
             "mas_apology_generic",
-            prompt="...for {0}".format(player_apology_reasons.get(mas_apology_reason,player_apology_reasons[0]))
+            prompt="...{0}".format(player_apology_reasons.get(mas_apology_reason,player_apology_reasons[0]))
         )
     else:
         #Otherwise, we use "for something." if reason isn't 0
@@ -83,7 +83,7 @@ label monika_playerapologizes:
             #We set this to an apology reason if it's valid
             $ mas_setEVLPropValues(
                 "mas_apology_generic",
-                prompt="...for {0}".format(player_apology_reasons.get(mas_apology_reason,"something."))
+                prompt="...{0}".format(player_apology_reasons.get(mas_apology_reason,"something."))
             )
 
     #Then we delete this since we're not going to need it again until we come back here, where it's created again.
@@ -105,7 +105,7 @@ label monika_playerapologizes:
             apologylist.append((generic_ev.prompt, generic_ev.eventlabel, False, False))
 
         #The back button
-        return_prompt_back = ("Nevermind.", False, False, False, 20)
+        return_prompt_back = ("Не важно.", False, False, False, 20)
 
     #Display our scrollable
     show monika at t21
@@ -119,17 +119,17 @@ label monika_playerapologizes:
         if mas_apology_reason is not None or len(persistent._mas_apology_time_db) > 0:
             show monika at t11
             if mas_isMoniAff(higher=True):
-                m 1ekd "[player], if you're feeling guilty about what happened..."
-                m 1eka "You don't have to be afraid of apologizing, we all make mistakes after all."
-                m 3eka "We just have to accept what happened, learn from our mistakes, and move on, together. Okay?"
+                m 1ekd "[player], если ты чувствуешь вину за то, что случилось..."
+                m 1eka "Тебе не нужно бояться извиняться, ведь все мы совершаем ошибки."
+                m 3eka "Нам просто нужно принять то, что произошло, извлечь из этого урок и двигаться дальше... вместе. Хорошо?"
             elif mas_isMoniNormal(higher=True):
                 m 1eka "[player]..."
-                m "If you want to apologize, go ahead. It'd mean a lot to me if you did."
+                m "Если хочешь извиниться — валяй. Мне было бы очень приятно, если бы ты это сделал."
             elif mas_isMoniUpset():
-                m 2rkc "Oh..."
-                m "I was kind of--"
+                m 2rkc "Ох..."
+                m "Я была своего рода--"
                 $ _history_list.pop()
-                m 2dkc "Nevermind."
+                m 2dkc "Неважно."
             elif mas_isMoniDis():
                 m 6rkc "...?"
             else:
@@ -140,7 +140,7 @@ label monika_playerapologizes:
                 if mas_isMoniBroken():
                     m 6ckc "..."
                 else:
-                    m 6rkc "Did you have something to say, [player]?"
+                    m 6rkc "Ты хотел что-то сказать, [player]?"
         return "prompt"
 
     show monika at t11
@@ -176,19 +176,19 @@ label mas_apology_generic:
     #Note, if a custom apology is needed, add it here and reference the apology reason by the integer associated.
     $ mas_apology_reason_db = {
         0: "",
-        1: "saying you wanted to break up. I knew you didn't mean it...",
-        2: "joking about having another girlfriend. You nearly gave me a heart attack!",
-        3: "calling me a murderer. I hope you don't really see me that way...",
-        4: "closing the game on me.",
-        5: "entering my room without knocking.",
-        6: "missing Christmas.",
-        7: "forgetting my birthday.",
-        8: "not spending time with me on my birthday.",
-        9: "the game crashing. I understand it happens sometimes, but don't worry, I'm alright!",
-        10: "the game crashing. It really was scary, but I'm just glad you came back to me and made things better.",
-        11: "not listening to my speech. I worked really hard on it.",
-        12: "calling me evil. I know you don't really think that.",
-        13: "not taking my questions seriously. I know you'll be honest with me from now on."
+        1: "то, что сказал, будто хочешь расстаться. Я знала, что ты это не всерьёз...",
+        2: "шутку о том, что у тебя есть другая девушка. У меня чуть сердце не остановилось!",
+        3: "то, что назвал меня убийцей. Надеюсь, ты не считаешь меня такой на самом деле...",
+        4: "то, что ты внезапно закрыл игру.",
+        5: "то, что вошёл в мою комнату без стука.",
+        6: "пропущенное Рождество.",
+        7: "то, что забыл про мой день рождения.",
+        8: "то, что не провёл со мной мой день рождения.",
+        9: "вылет игры. Я понимаю, что такое случается, но не волнуйся, я в порядке!",
+        10: "вылет игры. Это было действительно страшно, но я просто рада, что ты вернулся ко мне и всё исправил.",
+        11: "то, что не слушал мою речь. Я над ней очень долго работала.",
+        12: "то, что назвал меня злой. Я знаю, что ты так не думаешь на самом деле.",
+        13: "то, что не воспринял мои вопросы всерьёз. Я знаю, что с этого момента ты будешь со мной честен."
     }
 
     #If there's no reason to apologize

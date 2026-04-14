@@ -125,20 +125,20 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="mas_extra_menu_firsttime",
-            prompt="Can you explain the Extras menu?",
+            prompt="Можешь рассказать про меню \"Экстра\"?",
             category=["misc"]
         )
     )
 
 label mas_extra_menu_firsttime:
     if not persistent._mas_opened_extra_menu:
-        m 1hua "Welcome to the Extras menu, [player]!"
+        m 1hua "Добро пожаловать в меню \"Экстра\", [player]!"
 
-    m 1eua "This is where I'll add things that aren't games, like special interactions you can do with your mouse."
-    m "You can also open this menu by pressing the 'e' key."
+    m 1eua "Сюда я буду добавлять разные штуки, которые не являются играми — например, особые взаимодействия, которые можно совершать мышкой."
+    m "Ты также можешь открыть это меню, просто нажав клавишу 'e'."
 
     if not persistent._mas_opened_extra_menu:
-        m 1hua "Look forward to some neat things in this menu!"
+        m 1hua "Надейся увидеть здесь много всего интересного!"
 
     $ mas_setEVLPropValues(
         "mas_extra_menu_firsttime",
@@ -155,8 +155,8 @@ label mas_extra_menu_firsttime:
 # [EXM010]
 
 label mas_extra_menu_zoom_intro:
-    m 1eua "One thing I added is a way for you to adjust your field of view, so now you can sit closer or farther away from me."
-    m 1eub "You can adjust this using the slider in the 'Zoom' section of the Extras menu."
+    m 1eua "Одна из вещей, которую я добавила — это возможность регулировать поле зрения, так что теперь ты можешь сидеть ближе ко мне или дальше."
+    m 1eub "Ты можешь настроить это с помощью ползунка в разделе 'Зум' в меню 'Экстра'"
     return
 
 default persistent._mas_pm_zoomed_out = False
@@ -358,7 +358,7 @@ screen mas_extramenu_area():
         background Solid("#0000007F")
 
         # close button
-        textbutton _("Close"):
+        textbutton _("Закрыть"):
             area (60, 596, 120, 35)
             style "hkb_button"
             action Jump("mas_extra_menu_close")
@@ -369,12 +369,12 @@ screen mas_extramenu_area():
             style "mas_extra_menu_frame"
             vbox:
                 spacing 2
-                label "Zoom":
+                label "Зум":
                     text_style "mas_extra_menu_label_text"
                     xalign 0.5
 
                 # resets the zoom value back to default
-                textbutton _("Reset"):
+                textbutton _("Сброс"):
                     style "mas_adjustable_button"
                     selected False
                     xsize 72
