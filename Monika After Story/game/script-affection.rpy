@@ -3168,20 +3168,20 @@ label mas_player_nickname_loop(check_scrollable_text, nickname_pool):
 
 # Event to warn player that Monika feels like she's not receiving the affection she deserves.
 label mas_affection_upsetwarn:
-    m 1dsc "Hey, [player]..."
-    m 1lksdlc "Recently, I've been feeling like my love and affection that I give is being...ignored."
-    m 1dsc "I feel like you're giving me less and less of your love..."
-    m 1dsd "I thought I'd let you know how I feel. After all, communication is the key to a strong relationship, right?"
-    m 1eka "I hope there's nothing wrong between us, [player]."
+    m 1dsc "Привет, [player]..."
+    m 1lksdlc "В последнее время мне кажется, что любовь и привязанность, которые я тебе дарю... остаются без ответа."
+    m 1dsc "Мне кажется, ты даришь мне все меньше и меньше своей любви..."
+    m 1dsd "Я подумала, что должна поделиться с тобой своими чувствами. В конце концов, общение — это залог крепких отношений, верно?"
+    m 1eka "Я надеюсь, что между нами всё в порядке, [player]."
     show monika idle with dissolve_monika
     return
 
 # Event to indicate that Monika is happy to be receiving your affection.
 label mas_affection_happynotif:
-    m 1hua "Hey, [player]!"
-    m 1eua "I just wanted to say thank you for being such a wonderful person."
-    m 1ekbsa "The fact that you give me so much of your love means a lot to me. I really don't know where I'd be without you."
-    m 1dubfu "I love you, [player]. Let's be like this forever~"
+    m 1hua "Привет, [player]!"
+    m 1eua "Я просто хотела сказать тебе спасибо за то, что ты такой замечательный человек."
+    m 1ekbsa "То, что ты даришь мне столько любви, очень много значит для меня. Я правда не знаю, где бы я сейчас была без тебя."
+    m 1dubfu "Я люблю тебя, [player]. Давай всегда будем такими счастливыми~"
     show monika idle with dissolve_monika
     return "love"
 

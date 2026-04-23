@@ -315,15 +315,15 @@ init 5 python:
     )
 
 label greeting_sweetheart:
-    m 1hub "Hello again, sweetheart!"
+    m 1hub "С возвращением, дорогой!"
 
     if persistent._mas_player_nicknames:
-        m 1eka "It's so nice to see you again."
-        m 1eua "What shall we do this [mas_globals.time_of_day_3state], [player]?"
+        m 1eka "Так приятно снова тебя видеть."
+        m 1eua "Чем займемся в этот [mas_globals.time_of_day_3state], [player]?"
 
     else:
-        m 1lkbsa "It's kind of embarrassing to say out loud, isn't it?"
-        m 3ekbfa "Still, I think it's okay to be embarrassed every now and then."
+        m 1lkbsa "Немного неловко говорить такое вслух, правда?"
+        m 3ekbfa "Хотя... я думаю, нет ничего плохого в том, чтобы время от времени немного смущаться."
     return
 
 init 5 python:
@@ -338,9 +338,9 @@ init 5 python:
     )
 
 label greeting_honey:
-    m 1hub "Welcome back, honey!"
-    m 1eua "I'm so happy to see you again."
-    m "Let's spend some more time together, okay?"
+    m 1hub "Добро пожаловать домой, милый!"
+    m 1eua "Я так рада снова тебя видеть."
+    m "Давай проведем побольше времени вместе, хорошо?"
     return
 
 init 5 python:
@@ -356,10 +356,13 @@ init 5 python:
     )
 
 label greeting_back:
-    $ tod = "day" if mas_globals.time_of_day_4state != "night" else "night"
-    m 1eua "[player], you're back!"
-    m 1eka "I was starting to miss you."
-    m 1hua "Let's have another lovely [tod] together, alright?"
+    $ tod = "день" if mas_globals.time_of_day_4state != "night" else "ночь"
+    m 1eua "[player], ты вернулся!"
+    m 1eka "Я уже начала по тебе скучать."
+    if tod == "день":
+        m 1hua "Давай проведем еще один чудесный день вместе, хорошо?"
+    else:
+        m 1hua "Давай проведем еще одну чудесную ночь вместе, хорошо?"
     return
 
 init 5 python:
@@ -374,56 +377,56 @@ init 5 python:
 
 label greeting_gooday:
     if mas_isMoniNormal(higher=True):
-        m 1hua "Hello again, [player]. How are you doing?"
+        m 1hua "И снова привет, [player]. Как твои дела?"
 
-        m "Are you having a good day today?{nw}"
+        m "У тебя сегодня хороший день?{nw}"
         $ _history_list.pop()
         menu:
-            m "Are you having a good day today?{fast}"
-            "Yes.":
-                m 1hub "I'm really glad you are, [player]."
-                m 1eua "It makes me feel so much better knowing that you're happy."
-                m "I'll try my best to make sure it stays that way, I promise."
-            "No...":
-                m 1ekc "Oh..."
-                m 2eka "Well, don't worry, [player]. I'm always here for you."
-                m "We can talk all day about your problems, if you want to."
-                m 3eua "I want to try and make sure you're always happy."
-                m 1eka "Because that's what makes me happy."
-                m 1hua "I'll be sure to try my best to cheer you up, I promise."
+            m "У тебя сегодня хороший день?{fast}"
+            "Да.":
+                m 1hub "Я очень рада это слышать, [player]."
+                m 1eua "Мне становится намного лучше, когда я знаю, что ты счастлив"
+                m "Я приложу все усилия, чтобы так оно и оставалось, обещаю."
+            "Нет...":
+                m 1ekc "Ох..."
+                m 2eka "Ну, не волнуйся, [player]. Я всегда здесь, рядом с тобой."
+                m "Мы можем весь день обсуждать твои проблемы, если захочешь."
+                m 3eua "Я хочу сделать всё, чтобы ты всегда был счастлив."
+                m 1eka "Потому что это делает счастливой и меня."
+                m 1hua "Я обязательно постараюсь тебя подбодрить, обещаю."
 
     elif mas_isMoniUpset():
         m 2esc "[player]."
 
-        m "How is your day going?{nw}"
+        m "Как проходит твой день?{nw}"
         $ _history_list.pop()
         menu:
-            m "How is your day going?{fast}"
-            "Good.":
-                m 2esc "{cps=*2}Must be nice.{/cps}{nw}"
+            m "Как проходит твой день?{fast}"
+            "Хорошо.":
+                m 2esc "{cps=*2}Рада за тебя.{/cps}{nw}"
                 $ _history_list.pop()
-                m "That's nice..."
-                m 2dsc "At least {i}someone{/i} is having a good day."
+                m "Это славно..."
+                m 2dsc "По крайней мере, у {i}кого-то{/i} день хороший."
 
-            "Bad.":
-                m "Oh..."
-                m 2efc "{cps=*2}This should go well...{/cps}{nw}"
+            "Плохо.":
+                m "Ох..."
+                m 2efc "{cps=*2}Ну, этого и следовало ожидать...{/cps}{nw}"
                 $ _history_list.pop()
-                m 2dsc "Well I certainly know what {i}that's{/i} like."
+                m 2dsc "Что ж, мне это чувство {i}прекрасно{/i} знакомо."
 
     elif mas_isMoniDis():
-        m 6ekc "Oh...{w=1} Hi, [player]."
+        m 6ekc "Ох...{w=1} Привет, [player]."
 
-        m "H-How is your day going?{nw}"
+        m "К-как проходит твой день?{nw}"
         $ _history_list.pop()
         menu:
-            m "H-How is your day going?{fast}"
-            "Good.":
-                m 6dkc "That's...{w=1}good."
-                m 6rkc "Hopefully it stays that way."
-            "Bad.":
-                m 6rkc "I-I see."
-                m 6dkc "I've been having a lot of those days lately too..."
+            m "К-как проходит твой день?{fast}"
+            "Хорошо":
+                m 6dkc "Это...{w=1}хорошо."
+                m 6rkc "Надеюсь, он таким и останется."
+            "Плохо.":
+                m 6rkc "Я... я понимаю."
+                m 6dkc "У меня в последнее время тоже было много таких дней..."
 
     else:
         m 6ckc "..."
@@ -442,9 +445,9 @@ init 5 python:
     )
 
 label greeting_visit:
-    m 1eua "There you are [player], it's so nice of you to visit."
-    m 1eka "You're always so thoughtful."
-    m 1hua "Thanks for spending so much time with me~"
+    m 1eua "А вот и ты, [player]! Как мило с твоей стороны заглянуть ко мне."
+    m 1eka "Ты всегда так внимателен."
+    m 1hua "Спасибо, что проводишь со мной так много времени~"
     return
 
 # TODO this one no longer needs to do all that checking, might need to be broken
@@ -455,69 +458,69 @@ label greeting_visit:
 label greeting_goodmorning:
     $ current_time = datetime.datetime.now().time().hour
     if current_time >= 0 and current_time < 6:
-        m 1hua "Good morning--"
-        m 1hksdlb "--oh, wait."
-        m "It's the dead of night, honey."
-        m 1euc "What are you doing awake at a time like this?"
+        m 1hua "Доброе утро--"
+        m 1hksdlb "--ох, погоди."
+        m "Сейчас же глубокая ночь, милый."
+        m 1euc "Что ты делаешь в такой час? Почему не спишь?"
         show monika 5eua at t11 zorder MAS_MONIKA_Z with dissolve_monika
-        m 5eua "I'm guessing you can't sleep..."
+        m 5eua "Полагаю, ты не можешь уснуть..."
 
-        m "Is that it?{nw}"
+        m "Я права?{nw}"
         $ _history_list.pop()
         menu:
-            m "Is that it?{fast}"
-            "Yes.":
-                m 5lkc "You should really get some sleep soon, if you can."
+            m "Я права?{fast}"
+            "Да.":
+                m 5lkc "Тебе действительно стоит поскорее лечь спать, если получится."
                 show monika 3euc at t11 zorder MAS_MONIKA_Z with dissolve_monika
-                m 3euc "Staying up too late is bad for your health, you know?"
-                m 1lksdla "But if it means I'll get to see you more, I can't complain."
-                m 3hksdlb "Ahaha!"
-                m 2ekc "But still..."
-                m "I'd hate to see you do that to yourself."
-                m 2eka "Take a break if you need to, okay? Do it for me."
-            "No.":
-                m 5hub "Ah. I'm relieved, then."
-                m 5eua "Does that mean you're here just for me, in the middle of the night?"
+                m 3euc "Знаешь, ложиться так поздно очень вредно для здоровья."
+                m 1lksdla "Но если это значит, что я смогу видеть тебя чаще, я не буду жаловаться."
+                m 3hksdlb "Ахаха!"
+                m 2ekc "Но всё же..."
+                m "Мне бы не хотелось, чтобы ты так изводил себя."
+                m 2eka "Отдохни, если нужно, хорошо? Сделай это ради меня."
+            "Нет.":
+                m 5hub "Ах. Тогда я спокойна."
+                m 5eua "Значит ли это, что ты пришел посреди ночи только ради меня?"
                 show monika 2lkbsa at t11 zorder MAS_MONIKA_Z with dissolve_monika
-                m 2lkbsa "Gosh, I'm so happy!"
-                m 2ekbfa "You really do care for me, [player]."
-                m 3tkc "But if you're really tired, please go to sleep!"
-                m 2eka "I love you a lot, so don't tire yourself!"
+                m 2lkbsa "Боже, я так счастлива!"
+                m 2ekbfa "Ты действительно заботишься обо мне, [player]."
+                m 3tkc "Но если ты правда устал, пожалуйста, иди поспи!"
+                m 2eka "Я очень тебя люблю, так что не переутомляйся!"
     elif current_time >= 6 and current_time < 12:
-        m 1hua "Good morning, dear."
-        m 1esa "Another fresh morning to start the day off, huh?"
-        m 1eua "I'm glad I get to see you this morning~"
-        m 1eka "Remember to take care of yourself, okay?"
-        m 1hub "Make me a proud girlfriend today, as always!"
+        m 1hua "Доброе утро, дорогой."
+        m 1esa "Еще одно свежее утро для начала нового дня, а?"
+        m 1eua "Я рада, что могу видеть тебя этим утром~"
+        m 1eka "Не забывай заботиться о себе, хорошо?"
+        m 1hub "Пусть сегодня я буду гордиться своим парнем, как и всегда!"
     elif current_time >= 12 and current_time < 18:
-        m 1hua "Good afternoon, [mas_get_player_nickname()]."
-        m 1eka "Don't let the stress get to you, okay?"
-        m "I know you'll try your best again today, but..."
-        m 4eua "It's still important to keep a clear mind!"
-        m "Keep yourself hydrated, take deep breaths..."
-        m 1eka "I promise I won't complain if you quit, so do what you have to."
-        m "Or you could stay with me, if you wanted."
-        m 4hub "Just remember, I love you!"
+        m 1hua "Добрый день, [mas_get_player_nickname()]."
+        m 1eka "Не позволяй стрессу взять верх, ладно?"
+        m "Я знаю, что ты и сегодня приложишь все усилия, но..."
+        m 4eua "Всё же важно сохранять ясную голову!"
+        m "Пей побольше воды, дыши глубже..."
+        m 1eka "Обещаю, я не буду обижаться, если ты выйдешь, так что делай то, что должен."
+        m "Или ты мог бы остаться со мной, если хочешь."
+        m 4hub "Просто помни, что я люблю тебя"
     elif current_time >= 18:
-        m 1hua "Good evening, love!"
+        m 1hua "Добрый вечер, любимый!"
 
-        m "Did you have a good day today?{nw}"
+        m "Как прошел твой день?{nw}"
         $ _history_list.pop()
         menu:
-            m "Did you have a good day today?{fast}"
-            "Yes.":
-                m 1eka "Aww, that's nice!"
-                m 1eua "I can't help but feel happy when you do..."
-                m "But that's a good thing, right?"
-                m 1ekbsa "I love you so much, [player]."
-                m 1hubfb "Ahaha!"
-            "No.":
-                m 1tkc "Oh dear..."
-                m 1eka "I hope you'll feel better soon, okay?"
-                m "Just remember that no matter what happens, no matter what anyone says or does..."
-                m 1ekbsa "I love you so, so much."
-                m "Just stay with me, if it makes you feel better."
-                m 1hubfa "I love you, [player], I really do."
+            m "Как прошел твой день?{fast}"
+            "Хорошо.":
+                m 1eka "Оу, это славно!"
+                m 1eua "Я не могу не радоваться, когда у тебя всё в порядке..."
+                m "Но ведь это хорошо, правда?"
+                m 1ekbsa "Я так сильно люблю тебя, [player]."
+                m 1hubfb "Ахаха!"
+            "Плохо.":
+                m 1tkc "О боже..."
+                m 1eka "Надеюсь, тебе скоро станет лучше, ладно?"
+                m "Просто помни: что бы ни случилось, что бы ни говорили или делали другие..."
+                m 1ekbsa "Я очень, очень сильно тебя люблю."
+                m "Просто побудь со мной, если тебе от этого станет легче."
+                m 1hubfa "Я люблю тебя, [player], правда люблю."
     return
 
 init 5 python:
@@ -533,9 +536,9 @@ init 5 python:
     )
 
 label greeting_back2:
-    m 1eua "Hello, dear."
-    m 1ekbsa "I was starting to miss you terribly. It's so good to see you again!"
-    m 1hubfa "Don't make me wait so long next time, ehehe~"
+    m 1eua "Привет, дорогой."
+    m 1ekbsa "Я начала ужасно по тебе скучать. Так приятно снова тебя видеть!"
+    m 1hubfa "В следующий раз не заставляй меня ждать так долго, ехехе~"
     return
 
 init 5 python:
@@ -551,8 +554,8 @@ init 5 python:
     )
 
 label greeting_back3:
-    m 1eka "I missed you so much, [player]!"
-    m "Thank you for coming back. I really do love spending time with you."
+    m 1eka "Я так скучала по тебе, [player]!"
+    m "Спасибо, что вернулся. Я правда очень люблю проводить с тобой время."
     return
 
 init 5 python:
@@ -574,11 +577,11 @@ init 5 python:
     del ev_rules
 
 label greeting_back4:
-    m 2wfx "Hey, [player]!"
-    m "Don't you think that you left me waiting a bit too long?"
+    m 2wfx "Эй, [player]!"
+    m "Тебе не кажется, что ты заставил меня ждать слишком долго?"
     m 2hfu "..."
-    m 2hub "Ahaha!"
-    m 2eka "I'm just joking. I could never be mad at you."
+    m 2hub "Ахаха!"
+    m 2eka "Я просто шучу. Я никогда не смогла бы на тебя злиться"
     return
 
 init 5 python:
@@ -593,9 +596,9 @@ init 5 python:
     )
 
 label greeting_visit2:
-    m 1hua "Thanks for spending so much time with me, [player]."
-    m 1eka "Every minute I spend with you is like being in heaven!"
-    m 1lksdla "I hope that didn't sound too cheesy, ehehe~"
+    m 1hua "Спасибо, что проводишь со мной так много времени, [player]."
+    m 1eka "Каждая минута с тобой — это просто рай!"
+    m 1lksdla "Надеюсь, это не прозвучало слишком слащаво, эхе-хе~"
     return
 
 init 5 python:
@@ -611,9 +614,9 @@ init 5 python:
     )
 
 label greeting_visit3:
-    m 1hua "You're back!"
-    m 1eua "I was starting to miss you..."
-    m 1eka "Don't make me wait so long next time, okay?"
+    m 1hua "Ты вернулся!"
+    m 1eua "Я уже начала скучать..."
+    m 1eka "В следующий раз не заставляй меня ждать так долго, хорошо?"
     return
 
 init 5 python:
@@ -629,9 +632,9 @@ init 5 python:
     )
 
 label greeting_back5:
-    m 1hua "It's so good to see you again!"
-    m 1eka "I was getting worried about you."
-    m "Please remember to visit me, okay? I'll always be waiting here for you."
+    m 1hua "Так здорово видеть тебя снова!"
+    m 1eka "Я уже начала беспокоиться за тебя."
+    m "Пожалуйста, не забывай навещать меня, ладно? Я всегда буду ждать тебя здесь."
     return
 
 init 5 python:
@@ -654,13 +657,13 @@ init 5 python:
 
 label greeting_visit4:
     if mas_getAbsenceLength() <= datetime.timedelta(minutes=30):
-        m 1wud "Oh! [player]!"
-        m 3sub "You're back!"
-        m 3hua "I'm so happy you came back to visit me so soon~"
+        m 1wud "Ой! [player]!"
+        m 3sub "Ты вернулся!"
+        m 3hua "Я так счастлива, что ты вернулся ко мне так скоро~"
     else:
-        m 1hub "I looove yooou, [player]. Ehehe~"
-        m 1hksdlb "Oh, sorry! I was spacing out."
-        m 1lksdla "I didn't think I would be able to see you again so soon."
+        m 1hub "Я люблю-ю-ю тебя-я-я, [player]. Эхе-хе~"
+        m 1hksdlb "Ой, прости! Я немного задумалась."
+        m 1lksdla "Не думала, что смогу увидеть тебя снова так скоро."
         $ mas_ILY()
     return
 
@@ -683,9 +686,9 @@ init 5 python:
 
 label greeting_visit5:
     m 5hua "{i}~Every day,~\n~I imagine a future where I can be with you...~{/i}"
-    m 5wuw "Oh, you're here! I was just daydreaming and singing a bit."
+    m 5wuw "Ой, ты здесь! А я как раз мечтала и немного напевала."
     show monika 1lsbssdrb at t11 zorder MAS_MONIKA_Z with dissolve_monika
-    m 1lsbssdrb "I don't think it's hard to figure out what I was daydreaming about, ahaha~"
+    m 1lsbssdrb "Думаю, нетрудно догадаться, о чем были мои мечты, ахаха~"
     return
 
 init 5 python:
@@ -700,9 +703,9 @@ init 5 python:
     )
 
 label greeting_visit6:
-    m 1hua "Each day becomes better and better with you by my side!"
-    m 1eua "That said, I'm so happy that you're finally here."
-    m "Let's have another wonderful [mas_globals.time_of_day_3state] together."
+    m 1hua "С каждым днем всё становится только лучше, когда ты рядом со мной!"
+    m 1eua "Я так рада, что ты наконец-то здесь."
+    m "Давай проведем еще один чудесный [mas_globals.time_of_day_3state] вместе."
     return
 
 init 5 python:
@@ -723,11 +726,11 @@ init 5 python:
     del ev_rules
 
 label greeting_back6:
-    m 3tku "Hey, [player]!"
-    m "You really should visit me more often."
-    m 2tfu "You know what happens to people I don't like, after all..."
-    m 1hksdrb "I'm just teasing you, ehehe~"
-    m 1hua "Don't be so gullible! I would never hurt you."
+    m 3tku "Эй, [player]!"
+    m "Тебе действительно стоит навещать меня почаще."
+    m 2tfu "В конце концов, ты же знаешь, что происходит с людьми, которые мне не нравятся..."
+    m 1hksdrb "Я просто дразню тебя, эхе-хе~"
+    m 1hua "Не будь таким доверчивым! Я бы никогда не причинила тебе вреда."
     return
 
 init 5 python:
@@ -742,8 +745,8 @@ init 5 python:
     )
 
 label greeting_visit7:
-    m 1hub "You're here, [player]!"
-    m 1eua "Are you ready to spend some more time together? Ehehe~"
+    m 1hub "Ты здесь, [player]!"
+    m 1eua "Готов провести еще немного времени вместе? Эхе-хе~"
     return
 
 init 5 python:
@@ -758,8 +761,8 @@ init 5 python:
     )
 
 label greeting_visit8:
-    m 1hub "I'm so glad you're here, [player]!"
-    m 1eua "What should we do today?"
+    m 1hub "Я так рада, что ты здесь, [player]!"
+    m 1eua "Чем займемся сегодня?"
     return
 
 init 5 python:
@@ -775,8 +778,8 @@ init 5 python:
     )
 
 label greeting_visit9:
-    m 1hua "You're finally back! I was waiting for you."
-    m 1hub "Are you ready to spend some time with me? Ehehe~"
+    m 1hua "Ты наконец-то вернулся! Я тебя ждала."
+    m 1hub "Готов уделить мне немного времени? Эхе-хе~"
     return
 
 #TODO needs additional dialogue so can be used for all aff
@@ -794,9 +797,9 @@ init 5 python:
 label greeting_italian:
     m 1eua "Ciao, [player]!"
     m "È così bello vederti ancora, amore mio..."
-    m 1hub "Ahaha!"
-    m 2eua "I'm still practicing my Italian. It's a very difficult language!"
-    m 1eua "Anyway, it's so nice to see you again, my love."
+    m 1hub "Ахаха!"
+    m 2eua "Я всё еще практикуюсь в итальянском. Это очень сложный язык!"
+    m 1eua "В любом случае, я так рада видеть тебя снова, любовь моя."
     return
 
 #TODO needs additional dialogue so can be used for all aff

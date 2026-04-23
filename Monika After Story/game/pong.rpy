@@ -73,8 +73,8 @@ init:
                 self.paddle = Image("mod_assets/games/pong/pong.png")
                 self.ball = Image("mod_assets/games/pong/pong_ball.png")
                 self.player = Text(_("[player]"), size=36)
-                self.monika = Text(_("Monika"), size=36)
-                self.ctb = Text(_("Click to Begin!"), size=36)
+                self.monika = Text(_("Моника"), size=36)
+                self.ctb = Text(_("Нажмите, чтобы начать!"), size=36)
 
                 # Sounds used.
                 self.playsounds = True
@@ -562,7 +562,7 @@ label demo_minigame_pong:
     menu:
         m "Would you like to play again?{fast}"
 
-        "Yes.":
+        "Да.":
             $ pong_ev = mas_getEV("mas_pong")
             if pong_ev:
                 # each game counts as a game played
@@ -570,7 +570,7 @@ label demo_minigame_pong:
 
             jump demo_minigame_pong
 
-        "No.":
+        "Нет.":
             if winner == "monika":
                 if renpy.seen_label(store.mas_pong.DLG_WINNER_END):
                     $ end_dialogue = store.mas_pong.DLG_WINNER_FAST
@@ -666,7 +666,7 @@ label mas_pong_dlg_winner:
                     $ player_lets_monika_win_on_purpose = True
                     $ persistent._mas_pm_ever_let_monika_win_on_purpose = True
 
-                "No.":
+                "Нет.":
                     if persistent._mas_pm_ever_let_monika_win_on_purpose:
                         show monika 1ttu
                         m "Are you {i}sure?{/i}{nw}"
@@ -674,10 +674,10 @@ label mas_pong_dlg_winner:
                         menu:
                             m "Are you {i}sure?{/i}{fast}"
 
-                            "Yes":
+                            "Да":
                                 call mas_pong_dlg_sorry_assuming
 
-                            "No":
+                            "Нет":
                                 m 1rfu "[player]!"
                                 m 2hksdlb "Stop teasing me!"
                                 $ player_lets_monika_win_on_purpose = True

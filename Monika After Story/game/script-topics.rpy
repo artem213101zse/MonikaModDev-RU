@@ -824,8 +824,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="mas_show_unseen",
-            category=['you'],
-            prompt="I would like to see 'Unseen' again",
+            category=['ты'],
+            prompt="Я бы хотел снова увидеть 'Непрочитанное'",
             pool=True,
             unlocked=False,
             rules={"no_unlock":None}
