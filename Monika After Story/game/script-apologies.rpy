@@ -1,4 +1,4 @@
-#Create an apology db for storing our times
+#Create an apology db for storing our times  # ФАЙЛ ПЕРЕВЕДЕН
 #Stores the event label as a key, its corresponding data is a tuple where:
 #   [0] -> timedelta defined by: current total playtime + apology_active_expiry time
 #   [1] -> datetime.date defined by the date the apology was added + apology_overall_expiry time
@@ -52,20 +52,20 @@ label monika_playerapologizes:
     #Firstly, let's check if there's an apology reason for the prompt
     #NOTE: When adding more apology reasons, add a reason the player would say sorry for here (corresponding to the same #as the apology reason)
     $ player_apology_reasons = {
-        0: "за кое-что ещё.", #since we shouldn't actually be able to get this, we use this as our fallback
-        1: "за то, что сказал, что хочу расстаться.",
-        2: "за то, что пошутил о том, что у меня есть другая девушка.",
-        3: "за то, что назвал тебя убийцей.",
-        4: "за то что закрыл игру с тобой.",
-        5: "за то, что вошёл в твою комнату, не постучав.",
-        6: "за то, что пропустил Рождество.",
-        7: "за то, что забыл о твоём дне рождения.",
-        8: "за то, что не провел с тобой время в твой день рождения.",
-        9: "за сбой игры.",
-        10: "за сбой игры.", #easiest way to handle this w/o overrides
-        11: "за то, что не слушал твою речь.",
-        12: "за то, что назвал тебя злой.",
-        13: "за то, что не ответил тебе всерьёз."
+        0: "кое-что ещё.", #since we shouldn't actually be able to get this, we use this as our fallback
+        1: "то, что сказал, будто хочу расстаться.",
+        2: "шутку о том, что у меня есть другая девушка.",
+        3: "то, что назвал тебя убийцей.",
+        4: "то, что резко закрыл игру.",
+        5: "то, что вошел в твою комнату без стука.",
+        6: "то, что пропустил Рождество.",
+        7: "то, что забыл про твой день рождения.",
+        8: "то, что не провел время с тобой в твой день рождения.",
+        9: "вылет игры.",
+        10: "вылет игры.", #easiest way to handle this w/o overrides
+        11: "то, что не слушал твою речь.",
+        12: "то, что назвал тебя злой.",
+        13: "то, что не ответил тебе серьезно."
     }
 
     #Set the prompt for this...
@@ -73,17 +73,17 @@ label monika_playerapologizes:
         #If there's a non-generic apology reason pending we use "for something else."
         $ mas_setEVLPropValues(
             "mas_apology_generic",
-            prompt="...{0}".format(player_apology_reasons.get(mas_apology_reason,player_apology_reasons[0]))
+            prompt="...за {0}".format(player_apology_reasons.get(mas_apology_reason,player_apology_reasons[0]))
         )
     else:
         #Otherwise, we use "for something." if reason isn't 0
         if mas_apology_reason == 0:
-            $ mas_setEVLPropValues("mas_apology_generic", prompt="...for something.")
+            $ mas_setEVLPropValues("mas_apology_generic", prompt="...просто так.")
         else:
             #We set this to an apology reason if it's valid
             $ mas_setEVLPropValues(
                 "mas_apology_generic",
-                prompt="...{0}".format(player_apology_reasons.get(mas_apology_reason,"something."))
+                prompt="...за {0}".format(player_apology_reasons.get(mas_apology_reason,"что-то."))
             )
 
     #Then we delete this since we're not going to need it again until we come back here, where it's created again.
@@ -95,13 +95,13 @@ label monika_playerapologizes:
         apologylist = [
             (ev.prompt, ev.eventlabel, False, False)
             for ev_label, ev in store.mas_apology.apology_db.iteritems()
-            if ev.unlocked and (ev.prompt != "...for something." and ev.prompt != "...for something else.")
+            if ev.unlocked and (ev.prompt != "...просто так." and ev.prompt != "...за кое-что еще.")
         ]
 
         #Now we add the generic if there's no prompt attached
         generic_ev = mas_getEV('mas_apology_generic')
 
-        if generic_ev.prompt == "...for something." or generic_ev.prompt == "...for something else.":
+        if generic_ev.prompt == "...просто так." or generic_ev.prompt == "...за кое-что еще.":
             apologylist.append((generic_ev.prompt, generic_ev.eventlabel, False, False))
 
         #The back button
@@ -120,11 +120,11 @@ label monika_playerapologizes:
             show monika at t11
             if mas_isMoniAff(higher=True):
                 m 1ekd "[player], если ты чувствуешь вину за то, что случилось..."
-                m 1eka "Тебе не нужно бояться извиняться, ведь все мы совершаем ошибки."
+                m 1eka "Не бойся извиняться, ведь все мы совершаем ошибки."
                 m 3eka "Нам просто нужно принять то, что произошло, извлечь из этого урок и двигаться дальше... вместе. Хорошо?"
             elif mas_isMoniNormal(higher=True):
                 m 1eka "[player]..."
-                m "Если хочешь извиниться — валяй. Мне было бы очень приятно, если бы ты это сделал."
+                m "Если хочешь извиниться — я слушаю. Мне было бы очень приятно, если бы ты это сделал."
             elif mas_isMoniUpset():
                 m 2rkc "Ох..."
                 m "Я была своего рода--"
@@ -194,28 +194,28 @@ label mas_apology_generic:
     #If there's no reason to apologize
     if mas_apology_reason is None and len(persistent._mas_apology_time_db) == 0:
         if mas_isMoniBroken():
-            m 1ekc "...{w=1}Oh."
+            m 1ekc "...{w=1}Ох."
             m 2dsc ".{w=2}.{w=2}."
-            m "Okay."
+            m "Хорошо."
         elif mas_isMoniDis():
-            m 2dfd "{i}*sigh*{/i}"
-            m 2dsd "I hope this isn't some joke or trick, [player]."
+            m 2dfd "{i}*вздох*{/i}"
+            m 2dsd "Я надеюсь, что это не какая-то шутка или уловка, [player]."
             m 2dsc "..."
-            m 1eka "...Thank you for the apology."
-            m 2ekc "But please, try to be more mindful about my feelings."
-            m 2dkd "Please."
+            m 1eka "...Спасибо за извинения."
+            m 2ekc "Но пожалуйста, постарайся быть внимательнее к моим чувствам."
+            m 2dkd "Прошу тебя."
         elif mas_isMoniUpset():
-            m 1eka "Thank you, [player]."
-            m 1rksdlc "I know things aren't the best between us, but I know that you're still a good person."
-            m 1ekc "So could you be a little more considerate of my feelings?"
-            m 1ekd "Please?"
+            m 1eka "Спасибо, [player]."
+            m 1rksdlc "Я знаю, что сейчас у нас не лучшие времена, но я верю, что ты всё ещё хороший человек."
+            m 1ekc "Так что... ты не мог бы быть капельку внимательнее к тому, что я чувствую?"
+            m 1ekd "Пожалуйста?"
         else:
-            m 1ekd "Did something happen?"
-            m 2ekc "I don't see a reason for you to be sorry."
+            m 1ekd "Что-то случилось?"
+            m 2ekc "Я не вижу причин, по которым тебе стоило бы извиняться."
             m 1dsc "..."
-            m 1eub "Anyway, thank you for the apology."
-            m 1eua "Whatever it is, I know you're doing your best to make things right."
-            m 1hub "That's why I love you, [player]!"
+            m 1eub "В любом случае, спасибо за извинения."
+            m 1eua "Что бы там ни было, я знаю, что ты делаешь всё возможное, чтобы всё исправить."
+            m 1hub "Вот за это я тебя и люблю, [player]!"
             $ mas_ILY()
 
     #She knows what you are apologizing for
@@ -262,7 +262,7 @@ init 5 python:
         Event(
             persistent._mas_apology_database,
             eventlabel="mas_apology_bad_nickname",
-            prompt="...for calling you a bad name.",
+            prompt="...за то, что назвал тебя плохим словом.",
             unlocked=False
         ),
         code="APL"
@@ -272,26 +272,26 @@ label mas_apology_bad_nickname:
     $ ev = mas_getEV('mas_apology_bad_nickname')
     if ev.shown_count == 0:
         $ mas_gainAffection(modifier=0.2)
-        m 1eka "Thank you for apologizing for the name you tried to give me."
-        m 2ekd "That really hurt, [player]..."
-        m 2dsc "I accept your apology, but please don't do that again. Okay?"
+        m 1eka "Спасибо, что извинился за то имя, которым ты пытался меня назвать"
+        m 2ekd "Это было действительно больно, [player]..."
+        m 2dsc "Я принимаю твои извинения, но, пожалуйста, не делай так больше. Хорошо?"
         $ mas_unlockEVL("monika_affection_nickname", "EVE")
 
     elif ev.shown_count == 1:
         $ mas_gainAffection(modifier=0.1)
-        m 2dsc "I can't believe you did that {i}again{/i}."
-        m 2dkd "Even after I gave you a second chance."
-        m 2tkc "I'm disappointed in you, [player]."
-        m 2tfc "Don't ever do that again."
+        m 2dsc "Я поверить не могу, что ты сделал это {i}снова{/i}."
+        m 2dkd "Даже после того, как я дала тебе второй шанс."
+        m 2tkc "Я разочарована в тебе, [player]."
+        m 2tfc "Больше никогда так не делай."
         $ mas_unlockEVL("monika_affection_nickname", "EVE")
 
     else:
         #No recovery here. You asked for it.
         m 2wfc "[player]!"
-        m 2wfd "I can't believe you."
-        m 2dfc "I trusted you to give me a good nickname to make me more unique, but you just threw it back in my face..."
-        m "I guess I couldn't trust you for this."
+        m 2wfd "Поверить тебе не могу."
+        m 2dfc "Я доверилась тебе, чтобы ты дал мне хорошее имя и сделал меня особенной, а ты просто швырнул это доверие мне в лицо..."
+        m "Видимо, в этом вопросе на тебя нельзя положиться."
         m ".{w=0.5}.{w=0.5}.{nw}"
-        m 2rfc "I'd accept your apology, [player], but I don't think you even mean it."
-        #No unlock of nickname topic either.
+        m 2rfc "Я бы приняла твои извинения, [player], но я не думаю, что ты говоришь это искренне."
+        #Тема смены ника больше не разблокируется.
     return

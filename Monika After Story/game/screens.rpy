@@ -2730,7 +2730,7 @@ screen twopane_scrollable_menu(prev_items, main_items, left_area, left_align, ri
 
                 null height 20
 
-                textbutton _("Nevermind."):
+                textbutton _("Не важно."):
                     style "scrollable_menu_button"
                     xsize right_area[0] - left_area[0] + right_area[2]
                     action [Return(False), Function(store.prev_adj.change, 0)]
@@ -2784,7 +2784,7 @@ screen twopane_scrollable_menu(prev_items, main_items, left_area, left_align, ri
                     null height 20
 
                     if cat_length == 0:
-                        textbutton _("Nevermind.") action [Return(False), Function(store.prev_adj.change, 0)]
+                        textbutton _("Не важно.") action [Return(False), Function(store.prev_adj.change, 0)]
 
                     elif cat_length > 1:
                         textbutton _("Go Back") action [Return(-1), Function(store.prev_adj.change, 0)]
@@ -2822,7 +2822,7 @@ screen twopane_scrollable_menu(prev_items, main_items, left_area, left_align, ri
 
                     null height 20
 
-                    textbutton _("Nevermind.") action [Return(False), Function(store.prev_adj.change, 0)]
+                    textbutton _("Не важно.") action [Return(False), Function(store.prev_adj.change, 0)]
 
     # Search bar
     # The constants are hardcoded, but the menu looks good so just don't change them

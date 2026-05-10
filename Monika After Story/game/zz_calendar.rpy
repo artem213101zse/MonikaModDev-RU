@@ -2159,20 +2159,20 @@ screen mas_calendar_events_scrollable_list(items, display_area, scroll_align, fi
 label _first_time_calendar_use:
     $ mas_calRaiseOverlayShield()
     if persistent._mas_player_bday:
-        m 1eub "Oh, you want to take another look at that pretty calendar hanging on the wall, [player]?"
-        m 3hua "It helps me keep track of important events, like your birthday, ehehe~"
+        m 1eub "Ох, ты хочешь ещё раз посмотреть на этот красивый календарь на стене, [player]?"
+        m 3hua "Он помогает мне следить за важными датами, например за твоим днём рождения, эхехе~"
     else:
-        m 1eub "Oh, I see you noticed that pretty calendar hanging on the wall, [player]."
-        m 3hua "It helps me keep track of important events, ehehe~"
+        m 1eub "Ох, я вижу, ты заметил этот симпатичный календарь на стене, [player]."
+        m 3hua "Он помогает мне не пропускать важные события, эхехе~"
 
-    m 1eua "Here, let me show you."
+    m 1eua "Давай я тебе покажу, как им пользоваться."
     show monika 1eua
 
     call mas_start_calendar_read_only
 
-    m 1hua "Pretty cool, right?"
-    m 3eua "Feel free to check the calendar whenever you want."
-    m 1lksdla "Except for when I'm in the middle of talking, of course."
+    m 1hua "Круто, правда?"
+    m 3eua "Можешь заглядывать в него в любое время, когда захочешь."
+    m 1lksdla "Конечно, кроме тех моментов, когда я с тобой разговариваю."
 
     show monika idle with dissolve_monika
 

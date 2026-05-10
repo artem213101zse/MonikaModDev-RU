@@ -41,50 +41,50 @@ init -100 python in mas_selspr:
     PROMPT_MAP = {
         "choker": {
             "_ev": "monika_choker_select",
-            "change": "Can you change your choker?",
-            "wear": "Can you wear a choker?",
+            "change": "Можешь сменить свой чокер?",
+            "wear": "Можешь надеть чокер?",
         },
         "clothes": {
             "_not_group": True,
             "_ev": "monika_clothes_select",
-            "change": "Can you change your clothes?",
+            "change": "Можешь переодеться?",
             # TODO: min-items
         },
         "earrings": {
             "_ev": "monika_earrings_select",
             "_min-items": 1,
-            "change": "Can you change your earrings?",
-            "wear": "Can you wear earrings?",
+            "change": "Можешь сменить серьги?",
+            "wear": "Можешь надеть серьги?",
         },
         "hair": {
             "_not_group": True,
             "_ev": "monika_hair_select",
-            "change": "Can you change your hairstyle?",
+            "change": "Можешь сменить прическу?",
             # TODO: min-items
         },
         "hat": {
             "_ev": "monika_hat_select",
             "_min-items": 1,
-            "change": "Can you change your hat?",
-            "wear": "Can you wear a hat?",
+            "change": "Можешь сменить головной убор?",
+            "wear": "Можешь надеть головной убор?",
         },
         "left-hair-clip": {
             "_ev": "monika_hairclip_select",
             "_min-items": 1,
-            "change": "Can you change your hairclip?",
-            "wear": "Can you wear a hairclip?",
+            "change": "Можешь сменить заколку?",
+            "wear": "Можешь надеть заколку?",
         },
         "left-hair-flower": {
             "_ev": "monika_hairflower_select",
             "_min-items": 1,
-            "change": "Can you change the flower in your hair?",
-            "wear": "Can you wear a flower in your hair?",
+            "change": "Можешь сменить цветок в волосах?",
+            "wear": "Можешь вставить цветок в волосы?",
         },
         "necklace": {
             "_ev": "monika_necklace_select",
             "_min-items": 1,
-            "change": "Can you change your necklace?",
-            "wear": "Can you wear a necklace?",
+            "change": "Можешь сменить ожерелье?",
+            "wear": "Можешь надеть ожерелье?",
         },
         "ribbon": {
             "_ev": "monika_ribbon_select",
@@ -3483,24 +3483,24 @@ screen mas_selector_sidebar(items, mailbox, confirm, cancel, restore, remover=No
                     selected ocb_checked
 
             if mailbox.read_conf_enable():
-                textbutton _("Подтвердить"):
+                textbutton _("Выбрать"):
                     style "hkb_button"
                     xalign 0.5
                     action Jump(confirm)
             else:
-                textbutton _("Подтвердить"):
+                textbutton _("Выбрать"):
                     style "hkb_button"
                     xalign 0.5
 
             if mailbox.read_restore_enable():
-                textbutton _("Восстановить"):
+                textbutton _("Сбросить"):
                     style "hkb_button"
                     xalign 0.5
                     selected False
                     action Jump(restore)
 
             else:
-                textbutton _("Восстановить"):
+                textbutton _("Сбросить"):
                     style "hkb_button"
                     xalign 0.5
 
@@ -4008,14 +4008,14 @@ label monika_clothes_select:
     #Setup
     python:
         mailbox = store.mas_selspr.MASSelectableSpriteMailbox(
-            "Which clothes would you like me to wear?"
+            "Какую одежду ты хочешь, чтобы я надела?"
         )
         mailbox.send_outfit_checkbox_visible(True)
         mailbox.send_outfit_checkbox_checked(persistent._mas_setting_ocb)
         sel_map = {}
 
     # initial dialogue
-    m 1hua "Sure!"
+    m 1hua "Конечно!"
 
     # setup the monika expression during the selection screen
     show monika 2eua
@@ -4063,7 +4063,7 @@ label monika_clothes_select:
     # results
     if not _return:
         # user hit cancel
-        m 1eka "Oh, alright."
+        m 1eka "Ох, ладно."
 
     return
 
@@ -4088,7 +4088,7 @@ label monika_event_clothes_select:
     # setup
     python:
         mailbox = store.mas_selspr.MASSelectableSpriteMailbox(
-            "Do you want me to change?"
+            "Хочешь, чтобы я переоделась?"
         )
         # only def and the outfit in question will be available here, so outfit mode only
         mailbox.send_outfit_checkbox_visible(False)
@@ -4118,14 +4118,14 @@ label monika_event_clothes_select:
             available_clothes.sort(key=mas_selspr.selectable_key)
 
     # initial dialogue
-    m 1hua "Sure!"
+    m 1hua "Конечно!"
 
     call mas_selector_sidebar_select_clothes(available_clothes, mailbox=mailbox, select_map=sel_map)
 
     # results
     if not _return:
         # user hit cancel
-        m 1eka "Oh, alright."
+        m 1eka "Ох, ладно."
 
     if store.monika_chr.clothes == store.mas_clothes_def and not store.mas_hasSpecialOutfit():
         $ mas_lockEVL("monika_event_clothes_select", "EVE")
@@ -4156,7 +4156,7 @@ label monika_hair_select:
     python:
         sorted_hair = store.mas_selspr.HAIR_SEL_SL
         mailbox = store.mas_selspr.MASSelectableSpriteMailbox(
-            "Which hairstyle would you like me to wear?"
+            "Какую прическу ты хочешь, чтобы я сделала?"
         )
         sel_map = {}
 
@@ -4164,7 +4164,7 @@ label monika_hair_select:
         store.mas_selspr.set_compat_hair(sorted_hair, monika_chr.clothes)
 
     # initial dialogue
-    m 1hua "Sure!"
+    m 1hua "Конечно!"
 
     # setup the monika expression during the selection screen
     show monika 2eua
@@ -4175,7 +4175,7 @@ label monika_hair_select:
     # results
     if not _return:
         # user hit cancel
-        m 1eka "Oh, alright."
+        m 1eka "Ох, ладно."
 
     return
 
@@ -4240,12 +4240,12 @@ label monika_ribbon_select:
 #        m "But im going to change my clothes and hair back to normal."
 #        $ monika_chr.reset_outfit(False)
 
-    m 1eua "Sure [player]!"
+    m 1eua "Конечно [player]!"
 
     call mas_selector_sidebar_select_acs(use_acs, mailbox=mailbox, select_map=sel_map, add_remover=True, filter_map=mapping)
 
     if not _return:
-        m 1eka "Oh, alright."
+        m 1eka "Ох, ладно."
 
     $ store.mas_selspr.set_prompt("ribbon", "change")
 
@@ -4271,7 +4271,7 @@ init 5 python:
     )
 
 label monika_hairclip_select:
-    call mas_selector_generic_sidebar_select_acs("left-hair-clip", idle_dlg="Which hairclip would you like me to wear?")
+    call mas_selector_generic_sidebar_select_acs("left-hair-clip", idle_dlg="Какую заколку ты хочешь, чтобы я надела?")
     return
 
 
@@ -4306,16 +4306,16 @@ label monika_hairflower_select:
         ))
 
         mailbox = store.mas_selspr.MASSelectableSpriteMailbox(
-            "Which flower would you like me to put in my hair?"
+            "Какой цветок ты хочешь, чтобы я вставила в волосы?"
         )
         sel_map = {}
 
-    m 1eua "Sure [player]!"
+    m 1eua "Конечно, [player]!"
 
     call mas_selector_sidebar_select_acs(use_acs, mailbox=mailbox, select_map=sel_map, add_remover=True)
 
     if not _return:
-        m 1eka "Oh, alright."
+        m 1eka "Ох, ладно."
 
     # set the appropriate prompt and dialogue
     if monika_chr.get_acs_of_type("left-hair-flower"):

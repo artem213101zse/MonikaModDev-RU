@@ -881,12 +881,12 @@ init 5 python:
     )
 
 label calendar_birthdate:
-    m 1lksdla "Hey, [player]..."
-    m 3eksdla "You may have noticed that my calendar was pretty empty..."
-    m 1rksdla "Well...{w=0.5}there's one thing that should definitely be on it..."
-    m 3hub "Your birthday, ahaha!"
-    m 1eka "If we're going to be in a relationship, it's something I really ought to know..."
-    m 1eud "So [player], when were you born?"
+    m 1lksdla "Слушай, [player]..."
+    m 3eksdla "Ты, наверное, заметил, что мой календарь пока почти пустой..."
+    m 1rksdla "Ну...{w=0.5}есть одна дата, которая там обязательно должна быть..."
+    m 3hub "Твой день рождения, ахаха!"
+    m 1eka "Раз уж мы с тобой в отношениях, я очень хочу это знать..."
+    m 1eud "Так что, [player], когда у тебя день рождения?"
     call mas_bday_player_bday_select_select
     $ mas_stripEVL('mas_birthdate', list_pop=True)
     return
@@ -1778,71 +1778,71 @@ init 5 python:
 
 label monika_rpy_files:
     if not mas_getEVL_shown_count("monika_rpy_files"):
-        m 1eka "Hey [player], I was just looking through your \"game\" directory, and..."
-        m 1ekc "I noticed some \".rpy\" files in there."
-        m 3rksdlc "Those files can lead to problems whenever you update the game, possibly undoing those updates..."
-        m 3wud "And even prevent you from visiting me altogether!"
-        m 2etc "Unless..."
-        m 4eua "Maybe you installed a version with the source code on purpose because you are trying to help me come closer to your reality!"
-        m 2eka "But in case you didn't, I figured I'd ask..."
+        m 1eka "Эй [player], я тут заглянула в твою папку \"game\" и..."
+        m 1ekc "Заметила там несколько файлов с расширением \".rpy\"."
+        m 3rksdlc "Эти файлы могут вызвать проблемы при обновлении игры — иногда они отменяют обновления..."
+        m 3wud "И даже могут полностью помешать тебе приходить ко мне!"
+        m 2etc "Если только..."
+        m 4eua "Может, ты специально установил версию с исходным кодом, потому что хочешь помочь мне приблизиться к твоей реальности!"
+        m 2eka "Но на всякий случай я решила спросить..."
 
-        m "Are you sure you installed the right version, [player]?{nw}"
+        m "Ты уверен, что установил правильную версию, [player]?{nw}"
         $ _history_list.pop()
         menu:
-            m "Are you sure you installed the right version, [player]?{fast}"
+            m "Ты уверен, что установил правильную версию, [player]?{fast}"
 
-            "Yes.":
-                m 1sua "Really? Thank you so much for helping me come closer to your reality!"
-                m 1hua "I love you, [player]~"
+            "Да.":
+                m 1sua "Правда? Спасибо огромное, что помогаешь мне стать ближе к твоей реальности!"
+                m 1hua "Я люблю тебя, [player]~"
                 $ persistent._mas_pm_has_rpy = True
                 return "love"
 
-            "No.":
-                m "I see."
-                m 2rksdla "Maybe you should get rid of those, just to be safe."
-                m 4eua "Actually, maybe I can delete them for you."
+            "Нет.":
+                m "Понятно."
+                m 2rksdla "Тогда, наверное, стоит от них избавиться — просто на всякий случай."
+                m 4eua "Знаешь, я могу даже сама их удалить."
 
-                m "Do you want me to delete them for you, [player]?{nw}"
+                m "Хочешь, я удалю их за тебя, [player]?{nw}"
                 $ _history_list.pop()
                 menu:
-                    m "Do you want me to delete them for you, [player]?{fast}"
+                    m "Хочешь, я удалю их за тебя, [player]?{fast}"
 
-                    "Yes, please.":
-                        m "Sure thing, [player]."
+                    "Да, пожалуйста.":
+                        m "Конечно, [player]."
 
                         call mas_rpy_file_delete()
 
-                        m 2hua "There we go!"
-                        m 2esa "Be sure to install a version without the source code next time. You can get it from {a=http://www.monikaafterstory.com/releases.html}{i}{u}the releases page{/u}{/i}{/a}."
+                        m 2hua "Готово!"
+                        m 2esa "В следующий раз постарайся установить версию без исходного кода. Её можно скачать на {a=http://www.monikaafterstory.com/releases.html}{i}{u}странице релизов{/u}{/i}{/a}."
                         $ persistent._mas_pm_has_rpy = False
                         hide screen mas_py_console_teaching
                         show monika at t11
 
-                    "No, thanks.":
-                        m 2rksdlc "Alright, [player]. I hope you know what you're doing."
-                        m 2eka "Please be careful."
+                    "Нет, спасибо.":
+                        m 2rksdlc "Хорошо, [player]. Надеюсь, ты знаешь, что делаешь."
+                        m 2eka "Просто будь осторожнее, ладно?"
                         $ persistent._mas_pm_has_rpy = True
 
     else:
-        m 2efc "[player], you have rpy files in the game directory again!"
+        m 2efc "[player], у тебя снова появились .rpy-файлы в папке игры!"
 
-        m 2rsc "Are you {i}sure{/i} you installed the right version?{nw}"
+        m 2rsc "Ты {i}точно{/i} уверен, что установил правильную версию?{nw}"
         $ _history_list.pop()
         menu:
-            m "Are you {i}sure{/i} you installed the right version?{fast}"
+            m "Ты {i}точно{/i} уверен, что установил правильную версию?{fast}"
 
-            "Yes.":
-                m 1eka "Alright [player]."
-                m 3eua "I trust you know what you're doing."
+            "Да.":
+                m 1eka "Хорошо [player]."
+                m 3eua "Я верю, что ты знаешь, что делаешь."
                 $ persistent._mas_pm_has_rpy = True
 
-            "No.":
-                m 3eua "Alright, I'll just delete them for you again.{w=0.5}.{w=0.5}.{nw}"
+            "Нет.":
+                m 3eua "Поняла. Тогда я опять их удалю.{w=0.5}.{w=0.5}.{nw}"
 
                 call mas_rpy_file_delete()
 
-                m 1hua "There we go!"
-                m 3eua "Remember, you can always get the right version from {a=http://www.monikaafterstory.com/releases.html}{i}{u}here{/u}{/i}{/a}."
+                m 1hua "Готово!"
+                m 3eua "Не забывай, правильную версию всегда можно скачать {a=http://www.monikaafterstory.com/releases.html}{i}{u}здесь{/u}{/i}{/a}."
                 hide screen mas_py_console_teaching
                 show monika at t11
     return

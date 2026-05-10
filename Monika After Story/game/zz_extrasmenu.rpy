@@ -126,7 +126,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="mas_extra_menu_firsttime",
             prompt="Можешь рассказать про меню \"Экстра\"?",
-            category=["misc"]
+            category=["разное"]
         )
     )
 
