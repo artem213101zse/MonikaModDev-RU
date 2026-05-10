@@ -356,7 +356,7 @@ init 5 python:
     )
 
 label greeting_back:
-    $ tod = "день" if mas_globals.time_of_day_4state != "night" else "ночь"
+    $ tod = "день" if mas_globals.time_of_day_4state != "ночь" else "ночь"
     m 1eua "[player], ты вернулся!"
     m 1eka "Я уже начала по тебе скучать."
     if tod == "день":
@@ -1954,7 +1954,7 @@ label monikaroom_greeting_post:
         m 2eua_static "Now, just let me grab a table and a chair.{w=0.5}.{w=0.5}.{nw}"
         $ is_sitting = True
         show monika 1eua at ls32 zorder MAS_MONIKA_Z
-        $ today = "today" if mas_globals.time_of_day_4state != "night" else "tonight"
+        $ today = "today" if mas_globals.time_of_day_4state != "ночь" else "tonight"
         m 1eua "What shall we do [today], [mas_get_player_nickname()]?"
 
     elif mas_isMoniUpset():

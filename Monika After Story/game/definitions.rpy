@@ -6585,20 +6585,20 @@ init 2 python:
 
         #Set morning
         if 4 <= curr_hour <= 11:
-            store.mas_globals.time_of_day_4state = "morning"
-            store.mas_globals.time_of_day_3state = "morning"
+            store.mas_globals.time_of_day_4state = "утро"
+            store.mas_globals.time_of_day_3state = "утро"
 
         elif 12 <= curr_hour <= 16:
-            store.mas_globals.time_of_day_4state = "afternoon"
-            store.mas_globals.time_of_day_3state = "afternoon"
+            store.mas_globals.time_of_day_4state = "день"
+            store.mas_globals.time_of_day_3state = "день"
 
         elif 17 <= curr_hour <= 20:
-            store.mas_globals.time_of_day_4state = "evening"
-            store.mas_globals.time_of_day_3state = "evening"
+            store.mas_globals.time_of_day_4state = "вечер"
+            store.mas_globals.time_of_day_3state = "вечер"
 
         else:
-            store.mas_globals.time_of_day_4state = "night"
-            store.mas_globals.time_of_day_3state = "evening"
+            store.mas_globals.time_of_day_4state = "ночь"
+            store.mas_globals.time_of_day_3state = "вечер"
 
     def mas_seenLabels(label_list, seen_all=False):
         """
@@ -8285,13 +8285,13 @@ init -1 python in mas_randchat:
 
     ## slider map for displaying
     SLIDER_MAP_DISP = {
-        NEVER: "Never",
-        RARELY: "Rarely",
-        OCCASIONALLY: "Occasionally",
-        LESS_OFTEN: "Less Often",
-        NORMAL: "Normal",
-        OFTEN: "Often",
-        VERY_OFTEN: "Very Often"
+        NEVER: "Никогда",
+        RARELY: "Очень редко",
+        OCCASIONALLY: "Иногда",
+        LESS_OFTEN: "Редко",
+        NORMAL: "Нормально",
+        OFTEN: "Часто",
+        VERY_OFTEN: "Очень часто"
     }
 
     # current frequency times

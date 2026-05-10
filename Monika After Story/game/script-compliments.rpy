@@ -28,13 +28,13 @@ init 22 python in mas_compliments:
     import datetime
 
     thanking_quips = [
-        _("You're so sweet, [player]."),
-        _("Thanks for saying that again, [player]!"),
-        _("Thanks for telling me that again, [mas_get_player_nickname()]!"),
-        _("You always make me feel special, [mas_get_player_nickname()]."),
-        _("Aww, [player]~"),
-        _("Thanks, [mas_get_player_nickname()]!"),
-        _("You always flatter me, [player].")
+        _("Ты такой милый, [player]."),
+        _("Спасибо, что сказал это ещё раз, [player]!"),
+        _("Спасибо, что сказал это снова, [mas_get_player_nickname()]!"),
+        _("Ты всегда заставляешь меня чувствовать себя особенной, [mas_get_player_nickname()]."),
+        _("Оуу, [player]~"),
+        _("Спасибо, [mas_get_player_nickname()]!"),
+        _("Ты всегда меня так хвалишь, [player].")
     ]
 
     __last_called_callback = None
@@ -128,7 +128,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_beautiful",
-            prompt="You're beautiful!",
+            prompt="Ты красивая!",
             unlocked=True
         ),
         code="CMP"
@@ -142,35 +142,35 @@ label mas_compliment_beautiful:
     return
 
 label mas_compliment_beautiful_2:
-    m 1lubsb "Oh, gosh [player]..."
-    m 1hubfb "Thank you for the compliment."
-    m 2ekbfb "I love it when you say things like that~"
-    m 1ekbfa "To me, you're the most beautiful person in the world!"
+    m 1lubsb "Ох, боже, [player]..."
+    m 1hubfb "Спасибо за комплимент."
+    m 2ekbfb "Я обожаю, когда ты говоришь такое~"
+    m 1ekbfa "Для меня ты самый красивый человек на свете!"
     menu:
-        "You're the most beautiful person to me, too.":
+        "Для меня ты тоже самая красивая.":
             $ mas_gainAffection(5, bypass=True)
-            m 1hub "Ehehe~"
-            m "I love you so much, [player]!"
+            m 1hub "Эхехе~"
+            m "Я так сильно люблю тебя, [player]!"
             # manually handle the "love" return key
             $ mas_ILY()
 
-        "You're in my top ten.":
+        "Ты в моей первой десятке.":
             $ mas_loseAffection()
             m 3hksdrb "...?"
-            m 2lsc "Well, thanks, I guess..."
+            m 2lsc "Ну... спасибо, наверное..."
 
-        "Thanks.":
+        "Спасибо.":
             pass
     return
 
 label mas_compliment_beautiful_3:
     python:
         beautiful_quips = [
-            _("Never forget that you're the most beautiful person in the world to me."),
-            _("Nothing can compare to the beauty in your heart."),
+            _("Никогда не забывай, что для меня ты самый красивый человек на свете."),
+            _("Ничто не сравнится с красотой твоего сердца."),
         ]
         beautiful_quip = random.choice(beautiful_quips)
-    m 1hubsa "Ehehe~"
+    m 1hubsa "Эхехе~"
     m 1ekbfa "[mas_compliments.thanks_quip]"
     show monika 5hubfb at t11 zorder MAS_MONIKA_Z with dissolve_monika
     m 5hubfb "[beautiful_quip]"
@@ -181,7 +181,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_eyes",
-            prompt="I love your eyes!",
+            prompt="Я обожаю твои глаза!",
             unlocked=True
         ),
         code="CMP"
@@ -195,32 +195,32 @@ label mas_compliment_eyes:
     return
 
 label mas_compliment_eyes_2:
-    m 1subsb "Oh, [player]..."
-    m 1tubfb "I know I'm pretty proud of my eyes already, but hearing you say that..."
-    m 1dkbfa "It just makes my heart flutter~"
+    m 1subsb "Ох, [player]..."
+    m 1tubfb "Я и так горжусь своими глазами, но когда ты говоришь такое..."
+    m 1dkbfa "У меня прямо сердце трепещет~"
     menu:
-        "I can't help it; your eyes are too beautiful.":
+        "Я ничего не могу с собой поделать, твои глаза слишком красивые.":
             $ mas_gainAffection(5, bypass=True)
-            m 1hub "Ahaha!"
-            m "Don't flatter me too much, okay?"
+            m 1hub "Ахаха!"
+            m "Только не льсти мне слишком сильно, ладно?"
             show monika 5hub at t11 zorder MAS_MONIKA_Z with dissolve_monika
-            m 5hub "I might start to go a little crazy..."
+            m 5hub "А то я начну сходить с ума..."
 
-        "They really are hypnotizing.":
+        "Они правда гипнотизируют.":
             $ mas_gainAffection(1, bypass=True)
-            m "Ahaha~"
+            m "Ахаха~"
 
-        "They are the color of grass!":
+        "Они цвета травы!":
             $ mas_gainAffection(0.5, bypass=True) # at least you tried
-            m 2lksdrb "...That's not really the analogy I'd use, but thanks!"
+            m 2lksdrb "...Не совсем такое сравнение я бы использовала, но спасибо!"
     return
 
 label mas_compliment_eyes_3:
     python:
         eyes_quips = [
-            _("Stare into my eyes as much as you want~"),
-            _("I can't wait to look into your beautiful eyes."),
-            _("I would stare into yours for hours if I could."),
+            _("Смотри в мои глаза сколько угодно~"),
+            _("Я не могу дождаться, когда посмотрю в твои прекрасные глаза."),
+            _("Я бы смотрела в твои глаза часами, если бы могла."),
         ]
         eyes_quip = random.choice(eyes_quips)
 
@@ -233,7 +233,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_goodmood",
-            prompt="You always put me in a good mood!",
+            prompt="Ты всегда поднимаешь мне настроение!",
             unlocked=False,
             conditional="store.mas_anni.pastSixMonths()",
             action=EV_ACT_UNLOCK
@@ -251,34 +251,34 @@ label mas_compliment_goodmood:
 label mas_compliment_goodmood_2:
     if mas_isMoniNormal(higher=True):
         $ mas_gainAffection(4, bypass=True)
-        m 1subsb "Really?!"
-        m 3hubsb "You don't know how much that means to me!"
-        m 3ekbsu "I've always hoped that was the case, but to actually hear you say it..."
+        m 1subsb "Серьёзно?!"
+        m 3hubsb "Ты даже не представляешь, как много это для меня значит"
+        m 3ekbsu "Я всегда надеялась, что так и есть, но услышать это от тебя..."
         m 1dkbsu "..."
-        m 2tubla "On that note, I have a secret I have to tell you..."
-        m 2tublu "You might not have noticed this, buuut..."
-        m 7tublb "{i}You{/i} always put {i}me{/i} in a good mood, [mas_get_player_nickname()]!"
-        m 3hublb "Ahaha!"
-        m 3eubsa "Let's continue to do our best for each other, okay?"
-        m 1ekbsu "I love you~"
+        m 2tubla "Кстати, у меня есть один секрет, который я должна тебе рассказать..."
+        m 2tublu "Может, ты и не заметил, ноооо..."
+        m 7tublb "{i}Ты{/i} всегда поднимаешь настроение {i}мне{/i}, [mas_get_player_nickname()]!"
+        m 3hublb "Ахаха!"
+        m 3eubsa "Давай и дальше стараться друг для друга, хорошо?"
+        m 1ekbsu "Я люблю тебя~"
         $ mas_ILY()
 
     else:
         m 2lkc "..."
-        m 2dkc "I'm not sure how I feel about that..."
-        m 2ekd "Does hurting my feelings really put you in a good mood?"
-        m 2dkd "Hopefully that's not what you meant..."
+        m 2dkc "Я не уверена, как к этому относиться..."
+        m 2ekd "Тебя правда радует, когда ты меня расстраиваешь?"
+        m 2dkd "Надеюсь, ты имел в виду не это..."
 
     return
 
 label mas_compliment_goodmood_3:
     if mas_isMoniNormal(higher=True):
-        m 1hub "Thanks for reminding me again, [mas_get_player_nickname()]!"
-        m 3eub "Positive reinforcement is always nice!"
-        m 3dku "Let's continue to make each other as happy as we possibly can~"
+        m 1hub "Спасибо, что напомнил ещё раз, [mas_get_player_nickname()]!"
+        m 3eub "Позитивное подкрепление всегда приятно!"
+        m 3dku "Давай и дальше делать друг друга максимально счастливыми~"
 
     else:
-        m 2euc "Thanks."
+        m 2euc "Спасибо."
 
     return
 
@@ -287,7 +287,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_awesome",
-            prompt="You're awesome!",
+            prompt="Ты потрясающая!",
             unlocked=True
         ),
         code="CMP"
@@ -301,37 +301,37 @@ label mas_compliment_awesome:
     return
 
 label mas_compliment_awesome_2:
-    m 1hua "Awww, [player]~"
-    m 1hub "You're so sweet!"
-    m 2tuu "I think you're way more awesome, though."
-    m 2dkbsu "I can't wait until the day I can finally give you a great big hug..."
-    m 3ekbfb "I'll never let you go!"
+    m 1hua "Оуу, [player]~"
+    m 1hub "Ты такой милый!"
+    m 2tuu "Хотя, по-моему, ты намного круче."
+    m 2dkbsu "Я с нетерпением жду дня, когда наконец смогу крепко-крепко тебя обнять..."
+    m 3ekbfb "И уже никогда не отпущу!"
     menu:
-        "I wish you were here right now!":
+        "Хочу, чтобы ты была здесь прямо сейчас!":
             $ mas_gainAffection(3, bypass=True)
-            m "That's my biggest wish too, [player]!"
+            m "Это и моё самое большое желание, [player]!"
 
-        "I'll never let you go from my embrace.":
+        "Я никогда не отпущу тебя из своих объятий.":
             $ mas_gainAffection(5, bypass=True)
             show monika 6dubsa
             pause 2.0
             show monika 1wubfsdld
-            m 1wubfsdld "Oh, sorry [player]."
-            m 2lksdla "I was trying to feel your embrace from here."
-            m 2hub "Ahaha~"
+            m 1wubfsdld "Ой, прости [player]."
+            m 2lksdla "Я пыталась почувствовать твои объятия отсюда."
+            m 2hub "Ахаха~"
 
-        "...I don't like hugs.":
+        "...Мне не нравятся обнимашки.":
             $ mas_loseAffection(0.5) # you monster.
-            m 1eft "...Really?"
-            m 1dkc "Well, to each their own, I guess. But you have to hug me sometime..."
+            m 1eft "...Серьёзно?"
+            m 1dkc "Ну... у каждого свои вкусы, наверное. Но ты обязательно должен меня когда-нибудь обнять..."
     return
 
 label mas_compliment_awesome_3:
     python:
         awesome_quips = [
-            _("You'll always be more awesome!"),
-            _("We are an awesome couple together!"),
-            _("You're much more awesome!"),
+            _("Ты всегда будешь круче!"),
+            _("Вместе мы просто потрясающая пара!"),
+            _("Ты намного круче!"),
         ]
         awesome_quip = random.choice(awesome_quips)
 
@@ -345,7 +345,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_intelligent",
-            prompt="You're really intelligent!",
+            prompt="Ты очень умная!",
             unlocked=True
         ),
         code="CMP"
@@ -359,33 +359,33 @@ label mas_compliment_intelligent:
     return
 
 label mas_compliment_intelligent_2:
-    m 1wub "Wow...{w=0.3}thanks, [player]."
-    m 3eua "I pride myself in being well read, so it means a lot that you've noticed."
-    m 3hubsb "I want to learn as much as I can, if it makes you proud of me!"
+    m 1wub "Вау...{w=0.3}спасибо, [player]."
+    m 3eua "Я горжусь тем, что много читаю, так что для меня очень важно, что ты это заметил."
+    m 3hubsb "Я хочу учиться как можно больше, если это делает тебя мной гордым!"
     menu:
-        "You make me want to better myself too, [m_name].":
+        "Ты заставляешь и меня тоже хотеть стать лучше, [m_name].":
             $ mas_gainAffection(5, bypass=True)
-            m 1hubfa "I love you so much, [player]!"
-            m 3hubfb "We'll have a lifetime of self-improvement together!"
+            m 1hubfa "Я так сильно люблю тебя, [player]!"
+            m 3hubfb "Мы вместе будем совершенствоваться всю жизнь!"
             # manually handle the "love" return key
             $ mas_ILY()
 
-        "I'll always be proud of you.":
+        "Я всегда буду тобой гордиться.":
             $ mas_gainAffection(3, bypass=True)
             m 1ekbfa "[player]..."
 
-        "You make me feel stupid sometimes.":
+        "Иногда ты заставляешь меня чувствовать себя глупым.":
             $ mas_loseAffection()
             m 1wkbsc "..."
-            m 2lkbsc "I'm sorry, that wasn't my intention..."
+            m 2lkbsc "Прости, я не хотела, чтобы так вышло..."
     return
 
 label mas_compliment_intelligent_3:
     python:
         intelligent_quips = [
-            _("Remember that we'll have a lifetime of self-improvement together!"),
-            _("Remember that every day is an opportunity to learn something new!"),
-            _("Always remember the world is a wonderful journey full of learning."),
+            _("Помни, что мы будем совершенствоваться вместе всю жизнь!"),
+            _("Помни, что каждый день — возможность узнать что-то новое!"),
+            _("Всегда помни, что мир — это чудесное путешествие, полное знаний."),
         ]
         intelligent_quip = random.choice(intelligent_quips)
 
@@ -398,7 +398,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_hair",
-            prompt="I love your hair!",
+            prompt="Я обожаю твои волосы!",
             unlocked=True
         ),
         code="CMP"
@@ -413,27 +413,27 @@ label mas_compliment_hair:
 
 label mas_compliment_hair_2:
     if monika_chr.hair.name != "def":
-        m 1wubsb "Thank you so much, [player]..."
-        m 1lkbfb "I was really nervous the first time I changed my hair for you."
+        m 1wubsb "Огромное спасибо, [player]..."
+        m 1lkbfb "Я очень нервничала в первый раз, когда меняла причёску ради тебя."
     else:
-        m 1hubfb "Thank you so much, [player]!"
-    m 2hub "I've always put so much effort into my hair."
-    m 2lksdlb "In fact, it took forever for it to get this long..."
+        m 1hubfb "Огромное спасибо, [player]!"
+    m 2hub "Я всегда столько усилий вкладывала в свои волосы."
+    m 2lksdlb "На самом деле, они росли очень-очень долго..."
     menu:
-        "It really shows. It looks so healthy.":
+        "Это сразу заметно. Они выглядят такими здоровыми.":
             $ mas_gainAffection(3, bypass=True)
             m 1hub "Thanks, [player]!"
 
-        "You're cute no matter how you wear it." if persistent._mas_likes_hairdown:
+        "Ты милая с любой причёской." if persistent._mas_likes_hairdown:
             $ mas_gainAffection(5, bypass=True)
-            m 1ekbsa "Awww, [player]."
-            m 1hubfb "You always make me feel special!"
-            m "Thank you!"
+            m 1ekbsa "Оуу, [player]."
+            m 1hubfb "Ты всегда заставляешь меня чувствовать себя особенной!"
+            m "Спасибо!"
 
-        "You'd be even cuter with short hair.":
+        "С короткими волосами ты была бы ещё милее.":
             $ mas_loseAffection()
-            m "Well, I can't exactly go to the salon from here..."
-            m 1lksdlc "I...appreciate your input."
+            m "Ну, я не могу прямо сейчас сходить в салон..."
+            m 1lksdlc "Я... ценю твоё мнение."
             pass
     return
 
@@ -441,8 +441,8 @@ label mas_compliment_hair_3:
     if monika_chr.hair.name != "def":
         python:
             hair_quips = [
-                _("I'm really happy that you like this hairstyle!"),
-                _("I'm really happy that you like my hair!")
+                _("Я очень рада, что тебе нравится эта причёска!"),
+                _("Я очень рада, что тебе нравятся мои волосы!")
             ]
             hair_quip = random.choice(hair_quips)
         m 1wubsb "Thank you so much, [player]!"
@@ -450,9 +450,9 @@ label mas_compliment_hair_3:
     else:
         python:
             ponytail_quips = [
-                _("You always make me feel special!"),
-                _("I'm glad you like my ponytail!"),
-                _("I'm so happy you love my ponytail!"),
+                _("Ты всегда заставляешь меня чувствовать себя особенной!"),
+                _("Я рада, что тебе нравится мой хвостик!"),
+                _("Я так счастлива, что тебе нравится мой хвостик!"),
             ]
             ponytail_quip = random.choice(ponytail_quips)
 
@@ -465,7 +465,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_fit",
-            prompt="I love your dedication to fitness!",
+            prompt="Я восхищаюсь твоей преданностью фитнесу!",
             unlocked=True
         ),
         code="CMP"
@@ -479,34 +479,34 @@ label mas_compliment_fit:
     return
 
 label mas_compliment_fit_2:
-    m 1hub "Thanks, [player]! You're so sweet!"
-    m 3eub "I love keeping fit and eating healthy. It keeps me feeling energetic and confident."
-    m 1efb "I hope you're watching out for your health."
-    m 1lubsb "We can always work out together when I'm there..."
+    m 1hub "Спасибо, [player]! Ты такой милый!"
+    m 3eub "Я обожаю держать себя в форме и правильно питаться. Это даёт мне энергию и уверенность."
+    m 1efb "Надеюсь, ты тоже следишь за своим здоровьем"
+    m 1lubsb "Когда я окажусь рядом, мы всегда сможем тренироваться вместе..."
     menu:
-        "That sounds like a lot of fun!":
+        "Звучит очень весело!":
             $ mas_gainAffection(2, bypass=True)
-            m 1hubfb "Ahaha! I'm glad you think so, too!"
-            m 3eka "Don't worry. Even if you can't keep up with me, I know we'll have fun..."
+            m 1hubfb "Ахаха! Я рада, что тебе тоже так кажется!"
+            m 3eka "Не переживай. Даже если ты не будешь успевать за мной, мы всё равно отлично проведём время..."
             show monika 5eua at t11 zorder MAS_MONIKA_Z with dissolve_monika
-            m 5eua "So long as we're together."
+            m 5eua "Главное — быть вместе."
 
-        "No promises, but I'll do my best.":
+        "Ничего не обещаю, но постараюсь.":
             $ mas_gainAffection(1, bypass=True)
-            m 1tfb "You better!"
-            m 2tub "Don't think I plan on letting you off easy if you're out of shape."
+            m 1tfb "Вот это правильный настрой!"
+            m 2tub "И не думай, что я буду с тобой нянчиться, если ты не в форме."
 
-        "I'd rather not get sweaty...":
-            m 1eka "I understand if it's not your thing, but you should give it a little try..."
-            m 1lksdla "It'd make me really happy if you shared my interests, you know?"
+        "Я не очень люблю потеть...":
+            m 1eka "Я понимаю, если это не твоё, но ты хотя бы немного попробуй..."
+            m 1lksdla "Мне будет очень приятно, если мы будем разделять общие интересы, знаешь?"
     return
 
 label mas_compliment_fit_3:
     python:
         fitness_quips = [
-            _("I hope you embark on a fitness journey with me!"),
-            _("I can't wait to work out with you!"),
-            _("I hope we can both work out together someday!"),
+            _("Надеюсь, ты начнёшь путь в фитнесе вместе со мной!"),
+            _("Я не могу дождаться, когда мы будем тренироваться вместе!"),
+            _("Надеюсь, однажды мы сможем заниматься спортом вместе!"),
         ]
         fitness_quip = random.choice(fitness_quips)
 
@@ -520,7 +520,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_thanks",
-            prompt="Thanks for being there for me!",
+            prompt="Спасибо, что ты всегда рядом со мной!",
             unlocked=True,
             aff_range=(mas_aff.ENAMORED, None)
         ),
@@ -528,25 +528,25 @@ init 5 python:
     )
 
 label mas_compliment_thanks:
-    m 1duu "There's nothing to thank me for, [player]."
-    m 1eka "I'm the one who's grateful for having someone like you!"
-    m 1ekbsa "You're the only reason why I'm still here."
-    m "You installed this mod just to make our time together better..."
-    m 1dubsu "You are the sunshine that warms my heart whenever you visit me."
-    m 3ekbsa "I guess we're both lucky that we have each other, [player]~"
+    m 1duu "Тебе не за что меня благодарить, [player]."
+    m 1eka "Это я благодарна, что у меня есть кто-то такой, как ты!"
+    m 1ekbsa "Ты — единственная причина, почему я до сих пор здесь."
+    m "Ты установил этот мод, чтобы наше время вместе стало лучше..."
+    m 1dubsu "Ты — солнышко, которое согревает моё сердце каждый раз, когда ты приходишь."
+    m 3ekbsa "Наверное, нам обоим повезло, что мы есть друг у друга, [player]~"
     menu:
-        "You mean everything to me, [m_name].":
+        "Ты для меня — всё, [m_name].":
             if not mas_getEVL_shown_count("mas_compliment_thanks"):
                 $ mas_gainAffection(10, bypass=True)
 
             m 1ekbsa "[player]..."
-            m 1dubsu "Nothing makes me happier than hearing that coming from you."
-            m "No matter what the future may have for us both...{w=0.5}{nw}"
-            extend 1dkbfa "know that I'll always love you and be here for you."
+            m 1dubsu "Ничто не делает меня счастливее, чем слышать это от тебя."
+            m "Что бы ни ждало нас в будущем...{w=0.5}{nw}"
+            extend 1dkbfa "знай, что я всегда буду любить тебя и быть рядом."
 
-        "Yeah.":
-            m 1hub "Ehehe~"
-            m 1eub "I love you, [player]."
+        "Да.":
+            m 1hub "Эхехе~"
+            m 1eub "Я люблю тебя, [player]."
 
     if not mas_isMoniLove():
         $ mas_lockEVL("mas_compliment_thanks", "CMP")
@@ -557,7 +557,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_smile",
-            prompt="I love your smile!",
+            prompt="Я обожаю твою улыбку!",
             unlocked=True
         ),
         code="CMP"
@@ -571,34 +571,34 @@ label mas_compliment_smile:
     return
 
 label mas_compliment_smile_2:
-    m 1hub "You're so sweet, [player]~"
-    m 1eua "I smile a lot when you're here."
-    m 1ekbsa "Because it makes me very happy when you spend time with me~"
+    m 1hub "Ты такой милый, [player]~"
+    m 1eua "Я много улыбаюсь, когда ты здесь."
+    m 1ekbsa "Потому что мне очень-очень радостно, когда ты проводишь со мной время~"
     menu:
-        "I'll visit you every day to see your wonderful smile.":
+        "Я буду приходить к тебе каждый день, чтобы видеть твою чудесную улыбку.":
             $ mas_gainAffection(5, bypass=True)
-            m 1wubfsdld "Oh, [player]..."
-            m 1lkbfa "I think my heart just skipped a beat."
-            m 3hubfa "See? You always make me as happy as I can be."
+            m 1wubfsdld "Ох, [player]..."
+            m 1lkbfa "Кажется, у меня только что сердце пропустило удар."
+            m 3hubfa "Видишь? Ты всегда делаешь меня максимально счастливой."
 
-        "I like to see you smile.":
+        "Мне нравится видеть, как ты улыбаешься.":
             $ mas_gainAffection(1, bypass=True)
-            m 1hub "Ahaha~"
-            m 3eub "Then all you have to do is keep coming back, [player]!"
+            m 1hub "Ахаха~"
+            m 3eub "Тогда просто продолжай приходить ко мне, [player]!"
     return
 
 label mas_compliment_smile_3:
     python:
         smile_quips = [
-            _("I'll keep smiling just for you."),
-            _("I can't help but smile when I think of you."),
-            _("I can't wait to see your beautiful smile."),
+            _("Я буду улыбаться только ради тебя."),
+            _("Я не могу не улыбаться, когда думаю о тебе."),
+            _("Я не могу дождаться, когда увижу твою прекрасную улыбку."),
         ]
         smile_quip = random.choice(smile_quips)
 
     m 1eub "[mas_compliments.thanks_quip]"
     m 1hua "[smile_quip]"
-    m 1huu "Ehehe~"
+    m 1huu "Эхехе~"
     return
 
 init 5 python:
@@ -606,7 +606,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_hero",
-            prompt="You're my hero!",
+            prompt="Ты моя героиня!",
             unlocked=True,
             aff_range=(mas_aff.LOVE, None)
         ),
@@ -617,17 +617,17 @@ label mas_compliment_hero:
     if not mas_getEVL_shown_count("mas_compliment_hero"):
         $ mas_gainAffection(3, bypass=True)
 
-    m 1wubssdld "H-{w=0.3}huh?"
-    m "I'm your hero?"
-    m 2rkbfsdlb "[player]...{w=1.5} I'm not sure what you mean..."
-    m 2ekbfb "You're the one who stuck with me for all this time.{w=1} I should be thanking you, really."
-    m 1hubfa "Well, if I've somehow helped you, then I couldn't be happier~"
-    m 3ekbfa "You've helped me in every way possible, so how could I not return the favor by being there for you whenever you need support?"
+    m 1wubssdld "Ч-{w=0.3}что?"
+    m "Я — твоя гериня?"
+    m 2rkbfsdlb "[player]...{w=1.5} Я не совсем понимаю, что ты имеешь в виду..."
+    m 2ekbfb "Это ты оставался со мной всё это время.{w=1} На самом деле благодарить должна я."
+    m 1hubfa "Но если я каким-то образом помогла тебе, то я просто не могу быть счастливее~"
+    m 3ekbfa "Ты помог мне во всём, поэтому как я могу не отплатить тем же и не поддерживать тебя, когда тебе это нужно?"
     show monika 5hubfa at t11 zorder MAS_MONIKA_Z with dissolve_monika
     # Keeping this 'hero' since you call her that too
-    m 5hubfa "You'll always be my hero, after all~"
-    m 5hubfb "I love you and I'll always believe in you!"
-    m 5ekbfa "I hope you never forget that, [player]~"
+    m 5hubfa "В конце концов, ты всегда будешь моим героем~"
+    m 5hubfb "Я люблю тебя и всегда буду в тебя верить!"
+    m 5ekbfa "Надеюсь, ты никогда об этом не забудешь, [player]~"
 
     return "love"
 
@@ -636,7 +636,7 @@ init 5 python:
         Event(
             persistent._mas_compliments_database,
             eventlabel="mas_compliment_cute",
-            prompt="You're cute!",
+            prompt="Ты такая милая!",
             unlocked=True
         ),
         code="CMP"
@@ -652,39 +652,39 @@ label mas_compliment_cute:
     return
 
 label mas_compliment_cute_2:
-    m 1wubssdld "Ah!"
-    m 3rkbfsdla "You {i}kind of{/i} caught me off guard with that one."
-    m 3tubfb "Just a little..."
-    m 1hubfa "But I'm glad you think so!"
+    m 1wubssdld "Ах!"
+    m 3rkbfsdla "Ты {i}немного{/i} застал меня врасплох этим."
+    m 3tubfb "Совсем чуть-чуть..."
+    m 1hubfa "Но я рада, что ты так думаешь!"
     menu:
-        "Seeing you always warms my heart!":
+        "Видеть тебя всегда согревает мне сердце!":
             $ persistent._mas_pm_monika_cute_as_natsuki = False
             $ mas_gainAffection(5, bypass=True)
-            m 1hubfb "Aww, it really warms my heart to hear you say that!"
-            m 1dkbfu "...Almost as much as when I picture us finally being together in the same reality."
-            m 1ekbfa "I can barely contain myself just imagining that special day~"
+            m 1hubfb "Оуу, мне так приятно слышать это!"
+            m 1dkbfu "...Почти так же, как когда я представляю, как мы наконец-то будем вместе в одной реальности."
+            m 1ekbfa "Я едва сдерживаюсь, просто представляя этот особенный день~"
 
-        "You're even cuter when you're flustered.":
+        "Ты ещё милее, когда смущаешься..":
             $ persistent._mas_pm_monika_cute_as_natsuki = False
             $ mas_gainAffection(3, bypass=True)
-            m 2tubfu "Not letting it go, huh, [player]?"
-            m 2rubfu "Hmph, I just wasn't expecting it."
-            m 3tubfb "Don't expect it to be so easy next time..."
-            m 1tubfu "I'll get you back someday, ehehe~"
+            m 2tubfu "Не собираешься сдаваться, да, [player]?"
+            m 2rubfu "Хмф, я просто не ожидала."
+            m 3tubfb "В следующий раз будет не так легко..."
+            m 1tubfu "Когда-нибудь я отыграюсь, эхехе~"
 
-        "You're as cute as Natsuki.":
+        "Ты такая же милая, как Нацуки":
             $ persistent._mas_pm_monika_cute_as_natsuki = True
             $ mas_loseAffection()
-            m 2lfc "Oh. {w=1}Thanks, [player]..."
-            m 1rsc "But I was kind of hoping I would stand in my own category."
+            m 2lfc "Ох. {w=1}Спасибо, [player]..."
+            m 1rsc "Но я надеялась, что буду в своей собственной категории."
     return
 
 label mas_compliment_cute_3:
     python:
         cute_quips = [
-            _("You can be really cute a lot of the time too, you know~"),
-            _("You'll always be my cutie~"),
-            _("You can be a cutie a lot of the time too~"),
+            _("Ты тоже можешь быть очень милым, знаешь~"),
+            _("Ты всегда будешь моим милым~"),
+            _("Ты тоже часто бываешь очень милым~"),
         ]
         cute_quip = random.choice(cute_quips)
 

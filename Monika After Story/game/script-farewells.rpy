@@ -853,7 +853,7 @@ init 5 python:
 
 label bye_illseeyou:
     # TODO: update this when TC-O comes out
-    if mas_globals.time_of_day_3state == "evening":
+    if mas_globals.time_of_day_3state == "вечер":
         $ dlg_var = "tomorrow"
 
     else:

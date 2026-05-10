@@ -5995,7 +5995,11 @@ init 5 python:
             persistent.event_database,
             eventlabel="monika_good_tod",
             category=['разное'],
-            prompt="Доброе [mas_globals.time_of_day_3state]",
+            # prompt="Доброе [mas_globals.time_of_day_3state]",
+            prompt= _("Доброе утро" if mas_globals.time_of_day_3state == "утро" else
+                    "Добрый день" if mas_globals.time_of_day_3state == "день" else
+                    "Добрый вечер" if mas_globals.time_of_day_3state == "вечер" else
+                    "Добрый [mas_globals.time_of_day_3state]"),
             unlocked=True,
             pool=True
         ),
@@ -6006,7 +6010,7 @@ label monika_good_tod:
     $ curr_hour = datetime.datetime.now().time().hour
     $ sesh_shorter_than_30_mins = mas_getSessionLength() < datetime.timedelta(minutes=30)
 
-    if mas_globals.time_of_day_4state == "morning":
+    if mas_globals.time_of_day_4state == "утро":
         # Если зашел совсем рано (с 4 до 5 утра)
         if 4 <= curr_hour <= 5:
             m 1eua "И тебе доброго утра, [mas_get_player_nickname()]."
@@ -6042,7 +6046,7 @@ label monika_good_tod:
             m 1hub "Такие шансы и свобода просто приводят меня в восторг!"
             m 1rka "Правда, я начинаю это чувствовать только тогда, когда окончательно проснусь, ехе-хе~"
 
-    elif mas_globals.time_of_day_4state == "afternoon":
+    elif mas_globals.time_of_day_4state == "день":
         m 1eua "И тебе доброго дня, [player]."
         m 1hua "Так мило с твоей стороны выделить время посреди дня, чтобы провести его со мной~"
         m 3euc "День — довольно странная часть суток, не находишь?"
@@ -8831,7 +8835,7 @@ label monika_smoking_quit:
 
     # first time quitting
     else:
-        $ tod = "tonight" if mas_globals.time_of_day_3state == "evening" else "tomorrow"
+        $ tod = "tonight" if mas_globals.time_of_day_3state == "вечер" else "tomorrow"
         m 1sub "Really?! Oh my gosh, I'm so proud of you [player]!"
         m 3ekbsa "It's such a relief to know you quit smoking! {w=0.2}{nw}"
         extend 3dkbsu "I'll sleep much better at night knowing you're as far away as possible from that nightmare."
