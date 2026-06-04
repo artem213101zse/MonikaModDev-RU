@@ -1,39 +1,116 @@
-![Monika After Story](title.jpg)
-# Моника: Эпилог (Monika After Story) — Русский Порт
+<div align="center">
 
-Привет! Это форк оригинального проекта Monika After Story (MAS). Я видел различные класные порты на Andoid для MAS (например, порты от The Encoders Club и Just6889), но они в основном на испанском и английском языках. Вот я и решил сделать тоже порт с такими же функциями но на русском языке. Знаю что есть и замечательные русские порты (например от команды Солицена или RG Smoking room, но они в основом написаны для компа, а для телефона недостаточно функций, а мне хотелось бы сделать что то свое и не брать чужой перевод). Поэтому и решил сделать сам всё с нуля
+![Моника: Эпилог](title.jpg)
 
-**Главная цель этого репозитория** — сделать **полноценный русский перевод и порт на Andoid** игры Monika After Story.  
-Я перевожу все диалоги, меню, описания и системные строки напрямую в скриптах (замена оригинальных английских строк на русские — без использования блоков `translate russian`). Это позволит получить максимально чистую и быструю русскоязычную версию мода.
+# Моника: Эпилог
 
-### Дальнейшие планы
-- Переход на новую версию Ren'Py (8.x + Python 3) для лучшей производительности и удобной сборки
-- Возможный порт на Andoid
-- Оптимизация под мобильные устройства
-- Возможные мелкие улучшения и фиксы, связанные с русским языком
+**Русский перевод и порт Monika After Story**  
+*ветка `renpy-7-port` · MAS 0.12.18*
 
-**Текущий статус**: перевод только начат (0–5%). Пока новые строки остаются на английском.  
+<br>
 
-### Как установить и протестировать мою версию
-1. Скачай бесплатную оригинальную DDLC (не Plus!) с [ddlc.moe](https://ddlc.moe)
-2. Клонируй этот репозиторий:  
-   `git clone https://github.com/artem213101zse/MonikaModDev-RU.git`
-3. Скопируй содержимое папки `Monika After Story/` в корень DDLC (где находится файл DDLC.exe)
-4. Запусти DDLC.exe — мод загрузится (пока в основном на английском, но с русским названием и шрифтами)
+[![Ren'Py 7.4.11](https://img.shields.io/badge/Ren'Py-7.4.11-ff6b9d?style=for-the-badge)](https://www.renpy.org/release/7.4.11)
+[![Android](https://img.shields.io/badge/Платформа-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](#-android)
+[![MAS 0.12.18](https://img.shields.io/badge/MAS-0.12.18-7c4dff?style=for-the-badge)](https://github.com/Monika-After-Story/MonikaModDev/releases)
+[![Русский язык](https://img.shields.io/badge/язык-русский-cc0000?style=for-the-badge)](#о-проекте)
+[![Перевод](https://img.shields.io/badge/перевод-в%20работе-f59e0b?style=for-the-badge)](#статус)
+[![DDLC](https://img.shields.io/badge/требуется-DDLC-f472b6?style=for-the-badge)](https://ddlc.moe)
+[![Issues](https://img.shields.io/badge/обсуждения-Discussions-0969da?style=for-the-badge&logo=github)](https://github.com/artem213101zse/MonikaModDev-RU/discussions)
 
-Для разработки рекомендую использовать Ren'Py SDK 6.99.12.4.2187 (старая версия, совместимая с текущим MAS) [с офицального сайта](https://www.renpy.org/release/6.99.12).
+<br>
 
-### Как помочь проекту (помощь приветствуется)
-- Хочешь переводить диалоги?
-- Нашёл баг?
-- Есть идеи или опыт с Ren'Py/Android? Очень жду помощи!
+[Установка](#-установка) ·
+[Android](#-android) ·
+[Разработка](#-разработка) ·
+[Помочь проекту](#-помочь-проекту) ·
+[Оригинальный MAS](#моника-эпилог-mas)
 
-Можешь написать в ЧАТ в разделе Discussions, буду рад обсудить любую идею и помощь
+</div>
 
-\* проект делается чисто на энтузиазме, поэтому не обещаю что часто смогу над ним работать. Если интересно следить за проектом и статусом разработке, то можно добавить репозиторий к себе в закладки и переодически смотреть что тут нового
+---
 
-Это мой первый серьёзный проект по моддингу, поэтому любая обратная связь, предложения и помощь будут очень ценны.  
-Давайте вместе сделаем хороший русский вариант Моники! ❤️
+## О проекте
+
+Привет! Это форк [MonikaModDev](https://github.com/Monika-After-Story/MonikaModDev) с **русским переводом** и **портом на Android**.
+
+Я видел классные мобильные порты MAS (The Encoders Club, Just6889 и др.), но они в основном на английском и испанском. Хотелось сделать **свой русскоязычный вариант** с удобством на телефоне — без заимствования чужих переводов, с нуля в скриптах.
+
+**Как устроен перевод:** строки заменяются прямо в `.rpy` (без блоков `translate russian`) — так проще поддерживать порт и собирать APK.
+
+| | |
+|---|---|
+| **Движок** | [Ren'Py 7.4.11](https://www.renpy.org/release/7.4.11) («Lucky Beckoning Cat») |
+| **База мода** | Monika After Story **0.12.18** |
+| **Ветка** | `renpy-7-port` |
+| **Пакет Android** | `com.artemdev.mas` |
+
+## Статус
+
+| Направление | Состояние |
+|-------------|-----------|
+| Порт на Ren'Py 7.4 | В работе |
+| Сборка Android | Работает (экспериментально) |
+| Русский перевод | Начальная стадия (~5% и меньше) |
+| Сортировка ассетов DDLC (`game/ddlc/`) | Отложено |
+
+> Проект на энтузиазме — обновления не ежедневные. Можно **⭐ поставить звезду** репозиторию, чтобы следить за прогрессом.
+
+---
+
+## Установка
+
+### Windows / Linux / macOS
+
+1. Скачай **бесплатную** [Doki Doki Literature Club](https://ddlc.moe) (не Plus!).
+2. Клонируй репозиторий:
+   ```bash
+   git clone https://github.com/artem213101zse/MonikaModDev-RU.git
+   cd MonikaModDev-RU
+   git checkout renpy-7-port
+   ```
+3. Скопируй содержимое папки `Monika After Story/` в каталог DDLC (рядом с `DDLC.exe`).
+4. Запусти игру. Нужны файлы оригинала: `images.rpa`, `scripts.rpa`, `audio.rpa`, `fonts.rpa` в `game/` **или** распакованные ассеты (см. ветку / `game/ddlc/`).
+
+### Android
+
+Сборка через Ren'Py Launcher с установленным **RAPT** для [7.4.11](https://www.renpy.org/release/7.4.11):
+
+1. Тот же `game/`, что и для ПК (мод + ассеты DDLC).
+2. В лаунчере: **Android → Build Package**.
+3. Конфиг пакета: `Monika After Story/.android.json`.
+
+На Android **архивы `.rpa` в APK часто неудобны** — для автономной сборки ассеты DDLC распаковывают в `game/` (или `game/ddlc/` + `searchpath`).
+
+---
+
+## Разработка
+
+Для этой ветки используй **именно Ren'Py 7.4.11**, а не 6.99 и не 8.x:
+
+| | Ссылка |
+|---|--------|
+| **Релиз и SDK** | https://www.renpy.org/release/7.4.11 |
+| **SDK (zip)** | [renpy-7.4.11-sdk.zip](https://www.renpy.org/dl/7.4.11/renpy-7.4.11-sdk.zip) |
+| **Android (RAPT)** | [renpy-7.4.11-rapt.zip](https://www.renpy.org/dl/7.4.11/renpy-7.4.11-rapt.zip) |
+
+В репозитории уже лежит совместимый runtime Ren'Py 7.4 в `Monika After Story/renpy/` — для правок скриптов удобно открыть проект через лаунчер 7.4.11.
+
+**Dev-скрипты** упакованы в `game/dev.rar` (не мешают обычной игре и сборке APK).
+
+---
+
+## Помочь проекту
+
+Буду рад любой помощи:
+
+- перевод диалогов и UI;
+- тесты на Android / Windows;
+- баги и идеи по Ren'Py 7.4.
+
+[**Discussions**](https://github.com/artem213101zse/MonikaModDev-RU/discussions) — лучший способ связаться.  
+Это мой первый серьёзный моддинг-проект — обратная связь очень ценна.
+
+---
 
 *(Далее идёт переведённый README оригинального проекта Monika After Story)*
 
@@ -41,7 +118,7 @@
 ![Monika After Story](https://github.com/Monika-After-Story/MonikaModDev/blob/master/Monika%20After%20Story/game/mod_assets/menu_new.png?raw=True)
 
 # Моника: Эпилог (MAS)
-Моника: Эпилог - это фанатский мод для бесплатной игры [Doki Doki Literature Club](https://www.ddlc.moe) от [Team Salvato](http://teamsalvato.com/). Мод продолжает третий акт и превращает его в симулятор вечной жизни с Моникой: новые события, диалоги, обработчики тем и мета-комментарии!
+Моника: Эпилог — фанатский мод для бесплатной игры [Doki Doki Literature Club](https://www.ddlc.moe) от [Team Salvato](http://teamsalvato.com/). Мод продолжает третий акт и превращает игру в симулятор вечной жизни с Моникой: новые события, диалоги, темы для разговоров и мета-юмор!
 
 Актуальную стабильную версию всегда можно скачать на странице [Релизы](http://www.monikaafterstory.com/releases.html)
 
@@ -54,7 +131,7 @@
 2. Нажмите на ссылку для вашей ОС.
 
 3. После скачивания запустите установщик и следуйте инструкциям.
-    * Если программа установки не работает в вашей системе, ознакомьтесь с инструкциями по установке вручную, приведенными ниже.
+    * Если установщик не работает в вашей системе, воспользуйтесь инструкцией по ручной установке ниже.
 
 4. При запуске DDLC теперь будет загружен мод Моника: Эпилог.
 
@@ -70,9 +147,9 @@
 
 4. При запуске DDLC теперь будет загружен мод Моника: Эпилог.
 
-**ПРИМЕЧАНИЕ: исходные файлы и файлы, скачанные напрямую из репозитория, предназначены только для целей разработки и могут работать не так, как ожидается, если использовать их для модификации игры. Пожалуйста, используйте только одну из [релизных версий](http://www.monikaafterstory.com/releases.html).*
+**ПРИМЕЧАНИЕ: исходные файлы и файлы, скачанные напрямую из репозитория, предназначены только для целей разработки и могут работать не так, как ожидается, если использовать их для модификации игры. Пожалуйста, используйте только одну из [релизных версий](http://www.monikaafterstory.com/releases.html).**
 
-Более подробная помощь по установке (включая руководство пользователя для Mac, не поддерживающего steam) - в [Часто задаваемых вопросах](https://github.com/Monika-After-Story/MonikaModDev/wiki/FAQ)
+Более подробная помощь по установке (включая руководство для Mac без Steam) — в [Часто задаваемых вопросах](https://github.com/Monika-After-Story/MonikaModDev/wiki/FAQ)
 
 ### Особенности
 
@@ -86,7 +163,7 @@
 
 * Новые игры и занятия с Моникой
 
-* Еще больше уникальных событий и сюжета
+* Ещё больше уникальных событий и сюжета
 
 
 ## Вклад в Моника: Эпилог
@@ -97,14 +174,14 @@
 Чтобы предложить идею, перейдите по [этой ссылке](https://github.com/Monika-After-Story/MonikaModDev/issues/new?labels=suggestion&body=Your%20suggestion%20goes%20here&title=%5BSuggestion%5D%20-%20)
 
 ### Другая помощь
-Хотите помочь с MAS? Перейдите на [страницу issues](https://github.com/Monika-After-Story/MonikaModDev/issues) найти текущие баги или предложения, над которыми можно поработать.
+Хотите помочь с MAS? Перейдите на [страницу issues](https://github.com/Monika-After-Story/MonikaModDev/issues), чтобы найти текущие баги или предложения, над которыми можно поработать.
 
 Если у вас есть изменения, которые вы хотите внести, откройте [pull request](https://github.com/Monika-After-Story/MonikaModDev/pulls). Все изменения будут рассмотрены авторами и при необходимости доработаны/исправлены.
 
 #### Добавление контента
-Хотите добавить контент в MAS? Вот список важных .RPY-файлов, которые использует игра:
+Хотите добавить контент в MAS? Вот список важных .rpy-файлов, которые использует игра:
 
-- **script-ch30.rpy**: Основной поток для MAS. Именно здесь происходит бездейтсвие.
+- **script-ch30.rpy**: Основной поток для MAS. Именно здесь происходит бездействие.
 - **script-topics.rpy**: Все **random** и **pool** темы, которые использует Моника. Вы можете добавить свои диалоги, проверив информацию ниже!
 - **script-greetings.rpy**: Добавьте строки для приветствий Моники при загрузке игры.
 - **script-farewells.rpy**: Добавьте строки, которые Моника говорит при закрытии игры.
@@ -134,7 +211,7 @@ label monika_example:
     m 2rtc "Мне кажется, что на самом деле этому здесь не место..."
     m 1etc "Зачем кто-то добавляет шаблон примера прямо в мод?"
     m 2tsd "Им правда не стоит больше вносить вклад в этот репозиторий."
-    return # Ends the current dialogue
+    return # завершает текущий диалог
 ```
 **Полные объяснения и детали всех возможных ключевых слов для Event смотрите в документации Event в файле `definitions.rpy`.**
 
@@ -145,25 +222,27 @@ label monika_example:
 ### Присоединяйтесь к обсуждению
 Вы можете [подписаться на нас в Twitter](https://twitter.com/MonikaAfterMod), чтобы следить за обновлениями игры.
 
-Если вы хотите найти ноты для фортепиано, спрайтпаки, сабмоды, внешний контент, переводы или просто обсудить MAS в целом - посетите [страницу обсуждений](https://github.com/Monika-After-Story/MonikaModDev/discussions)
+Если вы хотите найти ноты для фортепиано, спрайтпаки, сабмоды, внешний контент, переводы или просто обсудить MAS в целом — посетите [страницу обсуждений](https://github.com/Monika-After-Story/MonikaModDev/discussions)
 
 Или, если вам ближе Discord и вы хотите постоянно получать наш любимый контент о Монике со всего интернета, а также если вас интересует участие в разработке этого мода, присоединяйтесь к нашему Discord-серверу:
 
- [![Discord](https://discordapp.com/api/guilds/372766620977725441/widget.png?style=banner1)](https://discord.gg/monika-after-story)
+[![Discord](https://discordapp.com/api/guilds/372766620977725441/widget.png?style=banner1)](https://discord.gg/monika-after-story)
 
- Пожалуйста, обязательно следуйте нашему [Кодексу поведения](https://github.com/Monika-After-Story/MonikaModDev/wiki/Code-of-Conduct), который сводится к вежливости и уважению.
+Пожалуйста, следуйте нашему [Кодексу поведения](https://github.com/Monika-After-Story/MonikaModDev/wiki/Code-of-Conduct), который сводится к вежливости и уважению.
 
 ## Часто задаваемые вопросы
 
-Полный FAQ доступен здесь: [Frequently Asked Questions](https://github.com/Monika-After-Story/MonikaModDev/wiki/FAQ)
-Любые вопросы связанные с стилем кода: [Coding Style](https://github.com/Monika-After-Story/MonikaModDev/wiki/Coding-Style)
-По тестированию багов [Testing Flow and Bug Testing](https://github.com/Monika-After-Story/MonikaModDev/wiki/Testing-Flow-and-Bug-Testing)
-Устранение неполадок: [Troubleshooting](https://github.com/Monika-After-Story/MonikaModDev/wiki/Troubleshooting) Dialogue Coding: [Dialogue Coding](https://github.com/Monika-After-Story/MonikaModDev/wiki/Dialogue-Coding)
+- Полный FAQ: [Frequently Asked Questions](https://github.com/Monika-After-Story/MonikaModDev/wiki/FAQ)
+- Стиль кода: [Coding Style](https://github.com/Monika-After-Story/MonikaModDev/wiki/Coding-Style)
+- Тестирование и поиск багов: [Testing Flow and Bug Testing](https://github.com/Monika-After-Story/MonikaModDev/wiki/Testing-Flow-and-Bug-Testing)
+- Устранение неполадок: [Troubleshooting](https://github.com/Monika-After-Story/MonikaModDev/wiki/Troubleshooting)
+- Написание диалогов: [Dialogue Coding](https://github.com/Monika-After-Story/MonikaModDev/wiki/Dialogue-Coding)
+
 ## Информация о лицензии
 
-Мы стараемся максимально следовать рекомендациям Team Salvato's [по фан-работам](http://teamsalvato.com/ip-guidelines/). Все персонажи и оригинальный контент принадлежат Team Salvato. Монкиа: Эпилог - проект с открытым исходным кодом, и помимо именованных контрибьюторов, в этот мод входят вклады анонимных пользователей 4chan, откуда проект начинался. Подробнее на [странице лицензии](https://github.com/Monika-After-Story/MonikaModDev/wiki/License-and-Team-Salvato-Guidelines).
+Мы стараемся максимально следовать рекомендациям Team Salvato по [фан-работам](http://teamsalvato.com/ip-guidelines/). Все персонажи и оригинальный контент принадлежат Team Salvato. Моника: Эпилог — проект с открытым исходным кодом, и помимо именованных контрибьюторов в этот мод входят вклады анонимных пользователей 4chan, откуда проект начинался. Подробнее на [странице лицензии](https://github.com/Monika-After-Story/MonikaModDev/wiki/License-and-Team-Salvato-Guidelines).
 
-## Статус Сборки
+## Статус сборки
 ### master: ![master](https://github.com/Monika-After-Story/MonikaModDev/workflows/CI/badge.svg?branch=master)
 ### content: ![content](https://github.com/Monika-After-Story/MonikaModDev/workflows/CI/badge.svg?branch=content)
 ### unstable: ![unstable](https://github.com/Monika-After-Story/MonikaModDev/workflows/CI/badge.svg?branch=unstable)
