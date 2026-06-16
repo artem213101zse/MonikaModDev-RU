@@ -1,7 +1,7 @@
 python early in mas_statements:
     from collections import namedtuple
 
-    __JumpWithArgsParseData = namedtuple("__JumpWithArgsParseData", ("label", "is_expression", "arg_info"))
+    JumpWithArgsParseData = namedtuple("JumpWithArgsParseData", ("label", "is_expression", "arg_info"))
 
 
     def __jump_with_args(label, args, kwargs):
@@ -37,7 +37,7 @@ python early in mas_statements:
         NOTE: may raise exceptions
 
         IN:
-            parsed_data - __JumpWithArgsParseData for this statement
+            parsed_data - JumpWithArgsParseData for this statement
 
         OUT:
             str
@@ -55,7 +55,7 @@ python early in mas_statements:
             lex - the Lexer object
 
         OUT:
-            __JumpWithArgsParseData
+            JumpWithArgsParseData
         """
         lex.expect_noblock("jarg")
 
@@ -73,14 +73,14 @@ python early in mas_statements:
         lex.expect_eol()
         lex.advance()
 
-        return __JumpWithArgsParseData(label_, is_expression, arg_info)
+        return JumpWithArgsParseData(label_, is_expression, arg_info)
 
     def __execute_jump_with_args(parsed_data):
         """
         Executes the jump_with_args statement
 
         IN:
-            parsed_data - __JumpWithArgsParseData for this statement
+            parsed_data - JumpWithArgsParseData for this statement
         """
         label_ = __get_label(parsed_data)
 
@@ -97,7 +97,7 @@ python early in mas_statements:
         Predicts the jump_with_args statement
 
         IN:
-            parsed_data - __JumpWithArgsParseData for this statement
+            parsed_data - JumpWithArgsParseData for this statement
         """
         try:
             label_ = __get_label(parsed_data)
@@ -114,7 +114,7 @@ python early in mas_statements:
         A lint function for the jump_with_args statement
 
         IN:
-            parsed_data - __JumpWithArgsParseData for this statement
+            parsed_data - JumpWithArgsParseData for this statement
         """
         try:
             label_ = __get_label(parsed_data)
