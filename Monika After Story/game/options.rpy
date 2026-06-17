@@ -124,17 +124,22 @@ init python:
     ## This is the archive of data for your mod
     #build.archive(build.name, "all")
 
+    ## "all" is required for Android APK; build.name keeps PC mod zip working.
+    mas_files = "all " + build.name
+
     #Add the pictures necessary for the scrollable menu
-    build.classify("game/gui/**",build.name)
+    build.classify("game/gui/**", mas_files)
 
     ## These files get put into your data file
-    build.classify("game/mod_assets/**",build.name)
-    #build.classify("game/**.rpy",build.name) #Optional line to include plaintext scripts
-    build.classify("game/*.rpyc",build.name) #Serialized scripts must be included
+    build.classify("game/mod_assets/**", mas_files)
+    #build.classify("game/**.rpy", mas_files) #Optional line to include plaintext scripts
+
+    build.classify("game/*.rpyc", mas_files) #Serialized scripts must be included
+    build.classify("game/**/*.rpyc", mas_files)
     build.classify("game/dev/*.*",None) #But not the dev folder
-    build.classify("README.html",build.name) #Included help file for mod installation
-    build.classify("game/python-packages/**",build.name)#Additional python pacakges
-    build.classify("CustomIcon**.**",build.name)
+    build.classify("README.html", mas_files) #Included help file for mod installation
+    build.classify("game/python-packages/**", mas_files)#Additional python pacakges
+    build.classify("CustomIcon**.**", mas_files)
 
 
     build.package(build.directory_name + "Mod",'zip',build.name,description='DDLC Compatible Mod')

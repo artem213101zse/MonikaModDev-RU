@@ -662,8 +662,13 @@ init 5 python in mas_nou:
             'Loads' sound assets from the disk
             This should be called on init, but after class creation
             """
-            nou_ma_dir = os.path.join(ASSETS, "sfx")
-            nou_sfx = os.listdir(os.path.join(config.gamedir, nou_ma_dir))
+            nou_ma_dir = os.path.join(ASSETS, "sfx").replace("\\", "/")
+            nou_ma_dir_prefix = nou_ma_dir if nou_ma_dir.endswith("/") else nou_ma_dir + "/"
+            nou_sfx = [
+                os.path.basename(f)
+                for f in renpy.list_files()
+                if f.startswith(nou_ma_dir_prefix) and f.endswith(cls.SFX_EXT)
+            ]
 
             cls._reset_sfx()
 
@@ -5327,6 +5332,7 @@ init 500 python in mas_cardgames:
     __scanDeskSprites()
 
 init -10 python in mas_cardgames:
+    import os
     import pygame
     import store
     from store import RotoZoom, ConditionSwitch, MASFilterSwitch
@@ -5348,8 +5354,13 @@ init -10 python in mas_cardgames:
         Scans the folder with the desk sprites and fills the desk sprites map
         """
         sprites_map = dict()
+        desk_prefix = DESK_SPRITES_PATH if DESK_SPRITES_PATH.endswith("/") else DESK_SPRITES_PATH + "/"
         # Get the sprites we have
-        for file in store.MASDockingStation(GAME_DIR_PATH + DESK_SPRITES_PATH).getPackageList():
+        for path in renpy.list_files():
+            if not path.startswith(desk_prefix):
+                continue
+
+            file = os.path.basename(path)
             # Remove the extension
             key = file.rpartition(".")[0]
             if key:
