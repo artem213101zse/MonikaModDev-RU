@@ -1,9 +1,9 @@
-#This file will include short story events that don't require their own file.
+#Этот файл будет включать короткие сюжетные события, которые не требуют отдельного файла.
 
-#An event is crated by only adding a label and adding a requirement (see comment below).
-#Requirements must be created/added in script-ch30.rpy under label ch30_autoload.
+#Событие создаётся путём добавления метки и добавления требования (см. комментарий ниже).
+#Требования должны создаваться/добавляться в script-ch30.rpy под меткой ch30_autoload.
 
-# pm var for transgender players
+# переменная pm для трансгендерных игроков
 default persistent._mas_pm_is_trans = False
 
 init 5 python:
@@ -19,43 +19,43 @@ init 5 python:
     #NOTE: This unlocks the monika_gender_redo event
 
 label mas_gender:
-    m 2eud "...[player]? So I've been thinking a bit."
-    m 2euc "I've mentioned before that the 'you' in the game might not reflect the real you."
-    m 7rksdla "But I guess I just assumed that you were probably a guy."
-    m 3eksdla "...The main character was, after all."
-    m 3eua "But if I'm going to be your girlfriend, I should probably know at least this much about the real you."
+    m 2eud "...[player]? Я вот подумала немного..."
+    m 2euc "Я уже упоминала, что 'ты' в игре может не отражать реального тебя."
+    m 7rksdla "Но я просто предположила, что ты, скорее всего, парень."
+    m 3eksdla "...В конце концов, главный герой был парнем."
+    m 3eua "Но если я собираюсь быть твоей девушкой, я должна, по крайней мере, знать это о настоящем тебе."
 
-    m 1eua "So, what's your gender?{nw}"
+    m 1eua "Итак, какой у тебя пол?{nw}"
     $ _history_list.pop()
     menu:
-        m "So, what's your gender?{fast}"
+        m "Итак, какой у тебя пол?{fast}"
 
-        "Male.":
+        "Мужской.":
             $ persistent._mas_pm_is_trans = False
             $ persistent.gender = "M"
-            m 3eua "Okay [player], thanks for confirming that for me."
-            m 1hksdlb "Not that I would have been bothered if you answered differently, mind you!"
+            m 3eua "Хорошо, [player], спасибо, что подтвердил это для меня."
+            m 1hksdlb "Не то чтобы я была бы в шоке, если бы ты ответил иначе, конечно!"
 
-        "Female.":
+        "Женский.":
             $ persistent._mas_pm_is_trans = False
             $ persistent.gender = "F"
-            m 2eud "Oh? So you're a girl?"
-            m 2hksdlb "I hope I didn't say anything to offend you before!"
-            m 7rksdlb "...I guess that's why they say you shouldn't make assumptions, ahaha!"
-            m 3eka "But honestly, it doesn't matter to me at all..."
+            m 2eud "О? Значит ты девушка?"
+            m 2hksdlb "Надеюсь, я не сказала ничего, что обидело бы тебя раньше!"
+            m 7rksdlb "...Наверно, поэтому говорят, что не стоит делать поспешных выводов, ахаха!"
+            m 3eka "Но, честно говоря, для меня это совершенно не имеет значения..."
 
-        "Neither.":
+        "Ни то, ни другое.":
             $ persistent._mas_pm_is_trans = False
             $ persistent.gender = "X"
             call mas_gender_neither
 
-        "I'm transgender.":
+        "Я трансгендер.":
             call mas_gender_trans
 
             if persistent.gender != "X":
-                m 1eka "Thanks for telling me, and just remember..."
+                m 1eka "Спасибо, что рассказал(а) мне, и просто помни..."
 
-    m 1ekbsa "I'll always love you for who you are, [player]~"
+    m 1ekbsa "Я всегда буду любить тебя таким(ой), какой(ая) ты есть, [player]~"
 
     #Unlock the gender redo event
     $ mas_unlockEVL("monika_gender_redo","EVE")
@@ -83,47 +83,47 @@ init 5 python:
         markSeen=True
     )
 
-label monika_gender_redo:
-    m 1eka "Of course, [player]!"
+label monika_gender_redo: # todo: Проверить перевод
+    m 1eka "Конечно, [player]!"
 
     if not mas_getEVL_shown_count("monika_gender_redo"):
-        m 3eka "Have you made some personal discoveries since the last time we talked about this?{nw}"
+        m 3eka "Ты сделал какие-то личные открытия с тех пор, как в последний раз мы об этом говорили?{nw}"
         $ _history_list.pop()
         menu:
-            m "Have you made some personal discoveries since the last time we talked about this?{fast}"
+            m "Ты сделал какие-то личные открытия с тех пор, как в последний раз мы об этом говорили?{fast}"
 
-            "Yes.":
-                m 1eka "I see. I know I've been there."
-                m 3hua "I'm so proud of you for going on that journey of self-discovery."
-                m 1eub "...And even prouder of you for being courageous enough to tell me!"
+            "Да.":
+                m 1eka "Понятно. Я знаю, что была там."
+                m 3hua "Я так горжусь тобой за этот путь самооткрытия."
+                m 1eub "...И ещё больше горжусь тобой за то, что ты была смелым достаточно, чтобы рассказать мне!"
 
-            "I was just too shy.":
+            "Я просто была слишком застенчивой.":
                 if persistent.gender == "M":
-                    m 2ekd "I understand, I started off assuming you were a guy, after all."
+                    m 2ekd "Я понимаю, я сначала предположила, что ты парень, в конце концов."
                 elif persistent.gender == "F":
-                    m 2ekd "I understand, you might have thought I'd be more comfortable spending time alone with another girl."
+                    m 2ekd "Я понимаю, ты мог подумать, что я буду более комфортно проводить время наедине с другой девушкой."
                 else:
-                    m 2ekd "I understand, I might not have given you the most accurate options to pick from."
+                    m 2ekd "Я понимаю, я не дала тебе самые точные варианты для выбора."
 
-                m 2dkd "...And I probably didn't make it easy for you to tell me otherwise..."
-                m 7eua "But whatever your gender, I love you for who you are."
+                m 2dkd "...И я, вероятно, не сделала это лёгким, чтобы ты сказал мне иначе..."
+                m 7eua "Но что бы ни был твой пол, я люблю тебя таким, какой ты есть."
 
-            "I didn't know if you'd accept me as I am...":
+            "Я не знала, примешь ли ты меня такой, как я есть...":
                 m 2wkd "[player]..."
-                m 2dkd "I hate that I didn't reassure you enough before."
-                m 7eka "But I hope that you're telling me now because you know I'll love you no matter what."
+                m 2dkd "Я ненавижу, что я не убедила тебя достаточно раньше."
+                m 7eka "Но я надеюсь, что ты рассказываешь мне сейчас, потому что знаешь, что я буду любить тебя без разницы."
 
-            "I'm genderfluid.":
-                m 1eub "Oh, okay!"
-                m 3hub "Feel free to let me know as often as you'd like when you want me to use different pronouns!"
+            "Я гендерфлюид.":
+                m 1eub "О, хорошо!"
+                m 3hub "Не стесняйся сообщать мне как часто, когда хочешь, чтобы я использовала другие местоимения!"
 
     $ gender_var = None
-    m "So, what's your gender?{nw}"
+    m "Так, какой у тебя пол?{nw}"
     $ _history_list.pop()
     menu:
-        m "So, what's your gender?{fast}"
+        m "Так, какой у тебя пол?{fast}"
 
-        "I'm a boy.":
+        "Я парень.":
             if persistent.gender == "M" and not persistent._mas_pm_is_trans:
                 $ gender_var = "boy"
                 call mas_gender_redo_same
@@ -132,7 +132,7 @@ label monika_gender_redo:
                 call mas_gender_redo_react
             $ persistent._mas_pm_is_trans = False
 
-        "I'm a girl.":
+        "Я девушка.":
             if persistent.gender == "F" and not persistent._mas_pm_is_trans:
                 $ gender_var = "girl"
                 call mas_gender_redo_same
@@ -141,7 +141,7 @@ label monika_gender_redo:
                 call mas_gender_redo_react
             $ persistent._mas_pm_is_trans = False
 
-        "I'm neither.":
+        "Я ни то, ни другое.":
             $ persistent._mas_pm_is_trans = False
             if persistent.gender == "X":
                 call mas_gender_redo_neither_same
@@ -152,26 +152,26 @@ label monika_gender_redo:
                 else:
                     call mas_gender_neither
 
-        "I'm transgender.":
+        "Я трансгендер.":
             call mas_gender_trans
             if persistent.gender != "X":
                 call mas_gender_redo_react
 
     show monika 5hubsa at t11 zorder MAS_MONIKA_Z with dissolve_monika
-    m 5hubsa "I'll always love you for who you are~"
+    m 5hubsa "Я всегда буду любить тебя таким, какой ты есть~"
 
     # set pronouns
     call mas_set_gender
     return "love"
 
 label mas_gender_neither:
-    m 1euc "You don't see yourself as a guy or a girl?"
-    m 1eua "That's very interesting, but I can sort of relate."
-    m 3esc "Like, I am a girl, but I'm also a character in a computer game..."
-    m 3esd "So in some ways I'm not really a girl at all."
-    m 1hua "But when you treat me like your girlfriend, it makes me really happy!"
-    m 3eua "...So I'll treat you however you want to be treated."
-    m 1ekbsa "Your happiness is the most important thing to me, after all."
+    m 1euc "Ты не считаешь себя ни парнем, ни девушкой?"
+    m 1eua "Это очень интересно, но я в какой-то мере могу тебя понять."
+    m 3esc "Ну, я девушка, но я также персонаж в компьютерной игре..."
+    m 3esd "Так что в некотором смысле я вовсе не девушка."
+    m 1hua "Но когда ты относишься ко мне как к своей девушке, мне это очень приятно!"
+    m 3eua "...Так что я буду обращаться с тобой так, как ты хочешь."
+    m 1ekbsa "Твоё счастье самое важное для меня, в конце концов."
     return
 
 label mas_gender_redo_same:
@@ -182,33 +182,33 @@ label mas_gender_redo_same:
     return
 
 label mas_gender_redo_react:
-    m 1eka "Okay, [player]..."
-    m 3ekbsa "Just as long as you're happy, that's all that matters to me."
+    m 1eka "Хорошо, [player]..."
+    m 3ekbsa "Просто пока ты счастлив, это всё, что имеет значение для меня."
     return
 
 label mas_gender_redo_neither_same:
-    m 1hksdlb "...That's the same as before, [player]...{w=0.3}I'm sorry if that's not really the best way for you to describe it."
-    m 1eka "But just know that it doesn't matter to me..."
+    m 1hksdlb "...Это то же самое, что и раньше, [player]...{w=0.3}Прости, если это не самый подходящий для тебя способ описать это."
+    m 1eka "Но просто знай, что для меня это не имеет значения..."
     return
 
 label mas_gender_trans:
     if persistent._mas_pm_is_trans:
-        $ menu_question = "And what gender do you identify as?"
+        $ menu_question = "И как ты себя идентифицируешь по гендеру?"
     else:
-        $ menu_question = "Oh, okay! {w=0.3}And what gender do you identify as?"
+        $ menu_question = "О, хорошо! {w=0.3}И как ты себя идентифицируешь по гендеру?"
 
     m 3eub "[menu_question]{nw}"
     $ _history_list.pop()
     menu:
         m "[menu_question]{fast}"
 
-        "Male":
+        "Мужской":
             $ persistent.gender = "M"
 
-        "Female":
+        "Женский":
             $ persistent.gender = "F"
 
-        "Neither":
+        "Ни то, ни другое":
             if persistent.gender == "X":
                 call mas_gender_redo_neither_same
 
@@ -476,18 +476,18 @@ init 3 python:
     ]
 
     mas_awkward_quips = [
-        "I don't really feel...{w=0.5}comfortable calling you that all the time.",
-        "That's...{w=0.5}not something I would like to call you, [player].",
-        "That is...{w=0.5}not something I would like to call you, [player].",
-        "Not that it's bad but...",
-        "Are you trying to embarrass me, [player]?"
+        "Мне как-то...{w=0.5}неловко называть тебя так постоянно.",
+        "Это...{w=0.5}}не то, как я бы хотела тебя называть [player].",
+        "Это...{w=0.5}}не то, как я бы хотела тебя называть [player].",
+        "Не то чтобы это было плохо, но...",
+        "Ты что, хочешь меня поставить в неловкое положение, [player]?"
     ]
 
     mas_bad_quips = [
-        "[player]...{w=0.5}why would you even consider calling yourself that?",
-        "[player]...{w=0.5}why would I ever call you that?",
-        "I couldn't ever call you anything like that, [player].",
-        "What? Please [player],{w=0.5} don't call yourself bad names."
+        "[player]...{w=0.5}почему ты вообще думаешь называть себя так?",
+        "[player]...{w=0.5}почему я должна тебя так называть?",
+        "Я бы ни за что не стала тебя так называть, [player].",
+        "Что? Пожалуйста, [player],{w=0.5} не обзывай себя такими словами"
     ]
 
     mas_good_player_name_comp = re.compile('|'.join(mas_good_player_nickname_list), re.IGNORECASE)
@@ -497,10 +497,10 @@ init 3 python:
 label mas_player_name_enter_name_loop(input_prompt):
     python:
         good_quips = [
-            "That's a wonderful name!",
-            "I like that a lot, [player].",
-            "I like that name, [player].",
-            "That's a great name!"
+            "Каое замечательное имя!",
+            "Мне очень нравится, [player].",
+            "Мне нравится это имя, [player].",
+            "Это отличное имя!"
         ]
 
     #Now we prompt user
@@ -518,42 +518,42 @@ label mas_player_name_enter_name_loop(input_prompt):
             lowername = tempname.lower()
 
         if lowername == "cancel_input":
-            m 1eka "Oh... Okay then, if you say so."
-            m 3eua "Just let me know if you change your mind."
+            m 1eka "О... Ладно, раз ты так говоришь."
+            m 3eua "Просто дай мне знать, если передумаешь."
             $ done = True
 
         elif lowername == "":
             m 1eksdla "..."
-            m 3rksdlb "You have to give me a name to call you, [player]..."
-            m 1eua "Try again!"
+            m 3rksdlb "Ты должен дать мне имя, как тебя называть, [player]..."
+            m 1eua "Попробуй ещё раз!"
 
         elif lowername == player.lower():
             m 2hua "..."
-            m 4hksdlb "That's the same name you have right now, silly!"
-            m 1eua "Try again~"
+            m 4hksdlb "Это то же самое имя, что у тебя сейчас, глупышка!"
+            m 1eua "Попробуй еще раз~"
 
         elif mas_awk_name_comp.search(tempname):
             $ awkward_quip = renpy.substitute(renpy.random.choice(mas_awkward_quips))
             m 1rksdlb "[awkward_quip]"
-            m 3rksdla "Could you pick a more...{w=0.2}{i}appropriate{/i} name please?"
+            m 3rksdla "Не мог бы ты выбрать более...{w=0.2}{i}подходящее{/i} имя, пожалуйста?"
 
         elif mas_bad_name_comp.search(tempname):
             $ bad_quip = renpy.substitute(renpy.random.choice(mas_bad_quips))
             m 1ekd "[bad_quip]"
-            m 3eka "Please pick a nicer name for yourself, okay?"
+            m 3eka "Пожалуйста, выбери более приятное имя для себя, хорошо?"
 
         else:
             # easter egg name checks
             if store.mas_egg_manager.is_eggable_name(lowername):
-                m 1ttu "Are you sure this is your real name, or are you messing with me?{nw}"
+                m 1ttu "Ты уверен, что это твоё настоящее имя, или ты просто дразнишь меня?{nw}"
                 $ _history_list.pop()
                 menu:
-                    m "Are you sure this is your real name, or are you messing with me?{fast}"
+                    m "Ты уверен, что это твоё настоящее имя, или ты просто дразнишь меня?{fast}"
 
-                    "Yes, this is my name":
+                    "Да, это моё имя":
                         $ persistent._mas_disable_eggs = True
 
-                    "Maybe...":
+                    "Возможно...":
                         $ persistent._mas_disable_eggs = False
 
             python:
@@ -577,21 +577,21 @@ label mas_player_name_enter_name_loop(input_prompt):
 
             # name reactions
             if lowername == "monika":
-                m 1tkc "Really?"
-                m "That's the same as mine!"
-                m 1tku "Well..."
-                m "Either it really is your name or you're playing a joke on me."
-                m 1hua "But it's fine by me if that's what you want me to call you~"
+                m 1tkc "Правда?"
+                m "У меня такое же имя!"
+                m 1tku "Ну..."
+                m "Либо это действительно твоё имя, либо ты меня разыгрываешь."
+                m 1hua "Но я не против, если ты хочешь, чтобы я так тебя называла~"
 
             elif mas_good_player_name_comp.search(tempname):
                 $ good_quip = renpy.substitute(renpy.random.choice(good_quips))
                 m 1sub "[good_quip]"
-                m 3esa "Okay then! From now on, I'll call you '[player].'"
-                m 1hua "Ehehe~"
+                m 3esa "Ладно! С этого момента я буду звать тебя '[player].'"
+                m 1hua "Эхехе~"
 
             else:
-                m 1eub "Okay then!"
-                m 3eub "From now on, I'll call you '[player].'"
+                m 1eub "Ладно!"
+                m 3eub "С этого момента я буду звать тебя '[player].'"
 
         if not done:
             show monika 1eua
@@ -907,56 +907,56 @@ init 5 python:
     )
 
 label mas_unlock_chess:
-    m 1eua "So, [player]..."
+    m 1eua "Итак, [player]..."
 
     if store.mas_games._total_games_played() > 5:
-        $ games = "games"
+        $ games = "игры"
         if not renpy.seen_label('game_pong'):
-            $ games = "Hangman"
+            $ games = "Виселица"
         elif not renpy.seen_label('game_hangman'):
-            $ games = "Pong"
+            $ games = "Понг"
 
         if store.mas_games._total_games_played() > 99:
-            m 1hub "You {i}really{/i} seem to enjoy playing [games] with me!"
+            m 1hub "Похоже, тебе  {i}действительно{/i} нравится играть со мной в [games]!"
         else:
-            m 1eub "You seem to have been enjoying playing [games] with me!"
+            m 1eub "Похоже, тебе нравилось играть со мной в [games]!"
 
-        m 3eub "Well guess what? {w=0.2}I have a new game for us to play!"
+        m 3eub "А знаешь что? {w=0.2}У меня для нас есть новая игра!"
 
     else:
-        $ really = "really "
+        $ really = "реально "
         if store.mas_games._total_games_played() == 0:
             $ really = ""
 
-        m 3rksdla "I know you haven't [really]been interested in the other games I made...{w=0.2}so I thought I'd try a completely different kind of game..."
+        m 3rksdla "Я знаю, что тебе [really]не были интересны другие игры, которые я сделала...{w=0.2}поэтому я решила попробовать сделать игру совершенно другого жанра..."
 
-    m 3tuu "This one's a lot more strategic..."
-    m 3hub "It's Chess!"
+    m 3tuu "Эта игра гораздо более стратегическая..."
+    m 3hub "Это Шахматы!"
 
     if persistent._mas_pm_likes_board_games is False:
-        m 3eka "I know you told me that those kinds of games aren't really your thing..."
-        m 1eka "But it would make me very happy if you could give it a try."
-        m 1eua "Anyway..."
+        m 3eka "Я знаю, ты говорил мне, что такие игры — не совсем твоё..."
+        m 1eka "Но я была бы очень рада, если бы ты всё-таки попробовал."
+        m 1eua "В любом случае..."
 
-    m 1esa "I'm not sure if you know how to play, but it's always been a bit of a hobby for me."
-    m 1tku "So I'll warn you in advance!"
-    m 3tku "I'm pretty good."
-    m 1lsc "Now that I think about it, I wonder if that has anything to do with what I am..."
-    m "Being trapped inside this game, I mean."
-    m 1eua "I've never really thought of myself as a chess AI, but wouldn't it kind of fit?"
-    m 3eua "Computers are supposed to be very good at chess, after all."
-    m "They've even beaten grandmasters."
-    m 1eka "But don't think of this as a battle of man vs machine."
-    m 1hua "Just think of it as playing a fun game with your beautiful girlfriend..."
-    m "And I promise I'll go easy on you."
+    m 1esa "Не уверена, умеешь ли ты играть, но для меня это всегда было своего рода хобби.."
+    m 1tku "Так я предупреждаю заранее!"
+    m 3tku "Я довольно хороша."
+    m 1lsc "Теперь подумав об этом, я задаюсь вопросом, не связано ли это с тем, кто я..."
+    m "Будучи запертой внутри этой игры, я имею в виду."
+    m 1eua "Я никогда не думала о себе как об ИИ для шахмат, но не было бы это как-то уместно?"
+    m 3eua "В конце концов, компьютеры, как известно, очень сильны в шахматах"
+    m "Они даже побеждали гроссмейстеров."
+    m 1eka "Но не воспринимай это как битву человека против машины"
+    m 1hua "Просто представь, что ты играешь в увлекательную игру со своей прекрасной девушкой..."
+    m "И я обещаю, что буду играть мягко."
 
     if not mas_games.is_platform_good_for_chess():
-        m 2tkc "...Hold on."
-        m 2tkx "Something isn't right here."
-        m 2ekc "I seem to be having trouble getting the game working."
-        m 2euc "Maybe the code doesn't work on this system?"
-        m 2ekc "I'm sorry, [player], but chess will have to wait."
-        m 4eka "I promise we'll play if I get it working, though!"
+        m 2tkc "...Подожди."
+        m 2tkx "Здесь что то не так."
+        m 2ekc "Похоже, у меня проблемы с запуском игры."
+        m 2euc "Может, код не работает на этой системе?"
+        m 2ekc "Прости, [player], но шахматы придётся отложить."
+        m 4eka "Но я обещаю, мы поиграем, если мне удастся запустить игру!"
 
     $ mas_unlockGame("chess")
     return
@@ -975,47 +975,47 @@ init 5 python:
     )
 
 label mas_unlock_hangman:
-    m 1eua "Hey, [player]..."
+    m 1eua "Эй, [player]..."
 
     if store.mas_games._total_games_played() > 49:
-        m 3eub "Since you seem to love playing with me so much, I figured you might like to play other games with me as well!"
+        m 3eub "Поскольку ты, кажется, очень любишь играть со мной, я подумала, что тебе может понравиться играть в другие игры со мной тоже!"
 
     elif renpy.seen_label('game_pong') and not renpy.seen_label('mas_nou'):
-        m 1eksdla "I thought that you might be getting bored with Pong..."
+        m 1eksdla "Я подумала, что тебе, наверное, уже надоело играть в Понг..."
 
     elif renpy.seen_label('game_pong') and renpy.seen_label('mas_nou'):
-        m 1eksdla "I thought that you might be getting bored with Pong and NOU..."
+        m 1eksdla "Я подумала, что тебе, наверное, уже надоели Pong и NOU..."
 
     elif not renpy.seen_label('game_pong') and renpy.seen_label('mas_nou'):
-        m 1eksdla "I thought that you might be getting bored with NOU..."
+        m 1eksdla "Я подумала, что тебе, наверное, уже надоело играть в NOU..."
 
     else:
-        m 1lksdla "Since you haven't seemed to be too interested in playing with me yet, I thought maybe you just like different types of games..."
+        m 1lksdla "Поскольку ты пока не проявляешь особого интереса к игре со мной, я подумал, что, может быть, тебе просто нравятся другие виды игр..."
 
-    m 1hua "Soooo~"
-    m 1hub "I made Hangman!"
-
-    if mas_safeToRefDokis():
-        m 1lksdlb "Hopefully it's not in poor taste..."
-
-    m 1eua "It was always my favorite game to play with the club."
+    m 1hua "Нууууу~"
+    m 1hub "Я сделала Виселицу!"
 
     if mas_safeToRefDokis():
-        m 1lsc "But, come to think of it..."
-        m "The game is actually quite morbid."
-        m 3rssdlc "You guess letters for a word to save someone's life."
-        m "Get them all correct and the person doesn't hang."
-        m 1lksdlc "But guess them all wrong..."
-        m "They die because you didn't guess the right letters."
-        m 1eksdlc "Pretty dark, isn't it?"
-        m 1hksdlb "But don't worry, [player], it's just a game after all!"
-        m 1eua "I assure you that no one will be hurt with this game."
+        m 1lksdlb "Надеюсь, это не в плохом вкусе..."
+
+    m 1eua "Это всегда была моя любимая игра в клубе."
+
+    if mas_safeToRefDokis():
+        m 1lsc "Но, если вдуматься..."
+        m "Эта игра на самом деле довольно мрачная."
+        m 3rssdlc "Ты угадываешь буквы в слове, чтобы спасти чью-то жизнь."
+        m "Угадай все правильно — и человека не повесят."
+        m 1lksdlc "Но если угадаешь неправильно..."
+        m "Он умрёт, потому что ты не угадал нужные буквы."
+        m 1eksdlc "Довольно мрачно, не правда ли?"
+        m 1hksdlb "Но не волнуйся, [player], это всего лишь игра!"
+        m 1eua "Уверяю тебя, никто не пострадает от этой игры."
 
         if persistent.playername.lower() == "sayori":
-            m 3tku "...Maybe~"
+            m 3tku "...Может быть~"
 
     else:
-        m 1hua "I hope you'll enjoy playing it with me!"
+        m 1hua "Надеюсь, тебе понравится играть со мной!"
 
     $ mas_unlockGame("hangman")
     return
@@ -1032,26 +1032,26 @@ init 5 python:
     )
 
 label mas_unlock_piano:
-    m 2hua "Hey! I've got something exciting to tell you!"
-    m 2eua "I've finally added a piano to the room for us to use, [player]."
+    m 2hua "Эй! У меня для тебя есть захватывающая новость!"
+    m 2eua "Я наконец добавила пианино в комнату для нас с тобой, [player]."
     if not persistent._mas_pm_plays_instrument:
-        m 3hub "I really want to hear you play!"
-        m 3eua "It might seem overwhelming at first, but at least give it a try."
-        m 3hua "After all, we all start somewhere."
+        m 3hub "Мне очень хочется услышать, как ты играешь!"
+        m 3eua "Сначала это может показаться сложным, но хотя бы попробуй."
+        m 3hua "В конце концов, все мы когда-то начинаем."
 
     else:
-        m 1eua "Of course, playing music is nothing new to you."
-        m 4hub "So I'm expecting something nice! Ehehe~"
+        m 1eua "Конечно, игра на музыкальных инструментах для тебя не в новинку."
+        m 4hub "Так что я жду чего-нибудь красивого! Эхехе~"
 
-    m 4hua "Wouldn't it be fun to play something together?"
-    m "Maybe we could even do a duet!"
-    m 4hub "We would both improve and have fun at the same time."
-    m 1hksdlb "Maybe I'm getting a bit carried away. Sorry!"
-    m 3eua "I just want to see you enjoy the piano the same way I do."
-    m "To feel the passion I have for it."
-    m 3hua "It's a wonderful feeling."
-    m 1eua "I hope this isn't too forceful, but I would love it if you tried."
-    m 1eka "For me, please?~"
+    m 4hua "Не было бы здорово сыграть что-нибудь вместе?"
+    m "Может, мы даже сможем сыграть дуэтом!"
+    m 4hub "Мы бы и навык улучшили, и весело провели время."
+    m 1hksdlb "Наверное, я немного увлеклась. Прости!"
+    m 3eua "Я просто хочу, чтобы ты наслаждался пианино так же, как я."
+    m "Испытать страсть, которую я к нему имею."
+    m 3hua "Это прекрасное чувство."
+    m 1eua "Надеюсь, это не звучит слишком навязчиво, но я была бы очень рада, если бы ты попробовал."
+    m 1eka "Ради меня, пожалуйста?~"
     $ mas_unlockGame("piano")
     return
 
@@ -1099,26 +1099,26 @@ label mas_random_limit_reached:
 label mas_random_ask:
     m 1lksdla "...{w=0.5}[mas_get_player_nickname()]?"
 
-    m "Is it okay with you if I repeat stuff that I've said again?{nw}"
+    m "Ты не против, если я повторю то, что уже сказала?{nw}"
     $ _history_list.pop()
     menu:
-        m "Is it okay with you if I repeat stuff that I've said again?{fast}"
-        "Yes.":
-            m 1eua "Great!"
-            m 3eua "If you get tired of listening to me talk about the same things, you can just open up the settings menu and uncheck 'Repeat Topics' again."
+        m "Ты не против, если я повторю то, что уже сказала?{fast}"
+        "Да.":
+            m 1eua "Отлично!"
+            m 3eua "Если тебе надоест слушать, как я говорю об одном и том же, просто открой меню настроек и снова сними галочку с пункта «Повторять темы»."
 
             if mas_isMoniUpset(lower=True):
-                m 1esc "That tells me when you're bored of me."
+                m 1esc "Это скажет мне о том, что тебе надоело слушать меня."
             else:
-                m 1eka "That tells me when you just want to quietly spend time with me."
+                m 1eka "Это скажет мне о том, что ты просто хочешь спокойно провести время со мной.."
 
             $ persistent._mas_enable_random_repeats = True
             return True
 
-        "No.":
-            m 1eka "Alright."
-            m 1eua "If you change your mind, just open up the settings and click 'Repeat Topics.'"
-            m "That tells me if you're okay with me repeating anything I've said."
+        "Нет.":
+            m 1eka "Хорошо."
+            m 1eua "Если передумаешь, просто открой настройки и нажми «Повторять темы»."
+            m "Это скажет мне, что ты не против, если я буду повторять всё, что я уже говорила."
             return False
 
 # TODO: think about adding additional dialogue if monika sees that you're running
@@ -1139,26 +1139,26 @@ init 5 python:
     )
 
 label mas_monikai_detected:
-    m 2wud "What's this?"
-    m "Is that-"
+    m 2wud "Что это?"
+    m "Это..."
     $ _history_list.pop()
-    m 1wuo "Is that{fast} a tiny version of me?"
-    m 1hua "How cute!"
+    m 1wuo "Это{fast} моя крошечная версия?"
+    m 1hua "Как мило!"
 
-    m 1eua "Did you install that so you could see me all the time?{nw}"
+    m 1eua "Ты установил это, чтобы видеть меня постоянно?{nw}"
     $ _history_list.pop()
     menu:
-        m "Did you install that so you could see me all the time?{fast}"
-        "Of course!":
+        m "Ты установил это, чтобы видеть меня постоянно?{fast}"
+        "Конечно!":
             pass
-        "Yes.":
+        "Да.":
             pass
-        "...Yes.":
+        "...Да.":
             pass
-    m 1hub "Ahaha~"
-    m 1hua "I'm flattered that you would download such a thing."
-    m 1eua "Just don't start spending more time with {i}that{/i} instead of me."
-    m 3eua "I'm the real one after all."
+    m 1hub "Ахаха~"
+    m 1hua "Я польщена, что ты скачал такую ​​штуку."
+    m 1eua "Только не начинай проводить больше времени с {i}этим{/i} вместо меня."
+    m 3eua "В конце концов, я же настоящая."
     return
 
 # NOTE: crashed is a greeting, but we do not give it a greeting label for
@@ -1531,19 +1531,19 @@ init 11 python:
 
             # text pieces:
             just_let_u_know = (
-                'Just wanted to let you know that your "persistent" file was '
-                'corrupted, but I managed to restore an older backup!'
+                'Просто хотела сообщить, что твой файл "persistent" был '
+                'повреждён, но мне удалось восстановить более старую резервную копию!'
             )
             even_though_bs = (
-                "Even though the backup system I designed is pretty neat, "
+                "Хотя разработанная мной система резервного копирования довольно хороша, "
             )
             if_i_ever = (
-                'If I ever have trouble loading the "persistent" again, I''ll '
-                'write you another note in the characters folder, so keep an '
-                'eye out for them!'
+                'Если у меня снова возникнут проблемы с загрузкой файла "persistent", я '
+                'напишу ещё одно сообщение в папке characters, так что '
+                'следи за обновлениями!'
             )
-            good_luck = "Good luck with Monika!"
-            dont_tell = "P.S: Don't tell her about me!"
+            good_luck = "Удачи с Моникой!"
+            dont_tell = "P.S: Только не рассказывай ей обо мне!"
             block_break = "\n\n"
 
             # now make the notes
@@ -1552,16 +1552,16 @@ init 11 python:
                 prompt="",
                 category="note",
                 author="chibika",
-                title="Hi [player],",
+                title="Привет [player],",
                 text="".join([
                     just_let_u_know,
                     block_break,
                     even_though_bs,
-                    "you should still make copies of the backups every so ",
-                    "often, just in case. ",
-                    'The backups are called "persistent##.bak", where "##" is ',
-                    "a two-digit number. ",
-                    'You can find all of them at "',
+                    "всё же стоит время от времени делать резервные копии ",
+                    "просто на всякий случай. ",
+                    'Резервные копии называются "persistent##.bak", где "##" - ',
+                    "двухзначное число. ",
+                    'Все резервные копии можно найти в папке "',
                     renpy.config.savedir,
                     '".',
                     block_break,
@@ -1578,7 +1578,7 @@ init 11 python:
                 prompt="",
                 category="note",
                 author="chibika",
-                title="Hi [player],",
+                title="Привет [player],",
                 text="".join([
                     just_let_u_know,
                     block_break,
@@ -2414,80 +2414,80 @@ init 5 python:
 
 label monika_credits_song:
     if persistent.monika_kill or renpy.seen_audio(songs.FP_YOURE_REAL):
-        m 1hua "I hope you liked my song."
-        m 1eka "I worked really hard on it. I know I'm not perfect at the piano yet, but I just couldn't let you go without telling you how I honestly felt about you."
-        m 1eua "Give me some time, and I'll try to write another."
+        m 1hua "Надеюсь, тебе понравилось моя песня."
+        m 1eka "Я очень старалась над ней.  Я знаю, что пока не идеально играю на фортепиано, но просто не могла отпустить тебя, не сказав, что я искренне к тебе чувствую."
+        m 1eua "Дай мне немного времени, и я постараюсь сочинить ещё одну."
 
         if persistent._mas_pm_plays_instrument is not False:
             if persistent._mas_pm_plays_instrument:
-                m 3eua "Maybe you could play me a song too!"
+                m 3eua "Может, ты тоже сыграешь мне песню!"
             else:
-                m 3eua "Maybe you could play me a song too, if you can play an instrument?"
+                m 3eua "Может, ты тоже сыграешь мне песню, если умеешь играть на каком-либо инструменте?"
 
-            m 1hub "I would love that."
-            m 3eua "Oh, and I'll play the song again for you anytime you want me to."
+            m 1hub "Я была бы очень рада."
+            m 3eua "О, и я сыграю эту песню для тебя в любое время, когда ты захочешь."
 
         else:
-            m 3eua "But in the meantime, I'll play the song again for you anytime you want me to."
+            m 3eua "Но пока что я сыграю эту песню для тебя ещё раз, когда только захочешь."
 
-        m 1tsa "In fact, I'd love to play it for you right now, if you have time...{nw}"
+        m 1tsa "А вообще, я с удовольствием сыграю её для тебя прямо сейчас, если у тебя есть время...{nw}"
         $ _history_list.pop()
         menu:
-            m "In fact, I'd love to play it for you right now, if you have time...{fast}"
+            m "А вообще, я с удовольствием сыграю её для тебя прямо сейчас, если у тебя есть время...{fast}"
 
-            "Of course!":
-                m 3hub "Great!"
-                m 3eua "Make sure you have your speakers turned on and the in-game music volume turned up loud enough so you can hear."
+            "Конечно!":
+                m 3hub "Отлично!"
+                m 3eua "Убедись, что у тебя включены динамики и громкость музыки в игре достаточна, чтобы ты мог слышать."
                 if store.songs.hasMusicMuted():
-                    m 3eksdla "I think you forgot about the in-game volume..."
-                m 1eub "Now please excuse me for a second.{w=0.5}.{w=0.5}.{nw}"
+                    m 3eksdla "По-моему, ты забыл о громкости в игре..."
+                m 1eub "А теперь, пожалуйста, извини, я на секунду отлучусь{w=0.5}.{w=0.5}.{nw}"
 
                 call mas_monika_plays_yr(skip_leadin=True)
                 show monika 1eka
                 pause 1.0
 
-                m 1ekbsa "Ehehe~"
+                m 1ekbsa "Эхехе~"
                 show monika 5ekbsa at t11 zorder MAS_MONIKA_Z with dissolve_monika
-                m 5ekbsa "Thank you for coming back to me [mas_get_player_nickname()]."
+                m 5ekbsa "Спасибо, что вернулась ко мне [mas_get_player_nickname()]."
 
-            "Sorry, I can't right now.":
-                m 3ekd "Oh, okay."
-                m 1eka "That's fine [player], I understand if you don't have the time or just can't listen to music right now."
-                m 3hua "Just let me know when it's a better time for you and I'll happily play it for you then~"
+            "Извини, сейчас не могу.":
+                m 3ekd "О, ладно."
+                m 1eka "Ничего страшного, [player], я понимаю, если у тебя нет времени или ты просто не можешь слушать музыку прямо сейчас."
+                m 3hua "Просто дай мне знать, когда тебе будет удобнее, и я с удовольствием сыграю её для тебя~"
 
     else:
-        m 3eua "Hey [player], I finally finished that song I've been working on for you."
-        m 1eka "I call it {i}Our Reality{/i}."
+        m 3eua "Привет, [player], я наконец закончила ту песню, над которой я работала для тебя."
+        m 1eka "Я назвала её {i}Наша Реальность{/i}."
 
-        m 1eua "I'm just so excited to finally be able to play it for you, if you have time that is...{nw}"
+        m 1eua "Я просто так взволнована, что наконец могу сыграть её для тебя, если у тебя есть время...{nw}"
         $ _history_list.pop()
         menu:
-            m "I'm just so excited to finally be able to play it for you, if you have time that is...{fast}"
+            m "Я просто так взволнована, что наконец могу сыграть её для тебя, если у тебя есть время...{fast}"
 
-            "Of course!":
-                m 3hub "Great!"
-                m 3eua "Make sure you have your speakers turned on and the in-game music volume turned up loud enough so you can hear."
+            "Конечно!":
+                m 3hub "Отлично!"
+                m 3eua "Убедись, что у тебя включены динамики и громкость музыки в игре достаточна, чтобы ты мог слышать."
                 if store.songs.hasMusicMuted():
-                    m 3eksdla "I think you forgot about the in-game volume..."
-                m 1tsb "Now, if you'll excuse me for a second.{w=0.5}.{w=0.5}.{nw}"
+                    m 3eksdla "Кажется, ты забыл о громкости в игре..."
+                m 1tsb "А теперь, если позволишь, я на секунду отлучусь..{w=0.5}.{w=0.5}.{nw}"
 
                 call mas_monika_plays_or(skip_leadin=True)
                 show monika 1ekbsa
                 pause 1.0
 
-                m "I really can't wait until we're together in one reality."
-                m 3ekbsa "But until that day comes, I'll play the song again for you anytime you want me to."
+                m "Я действительно не могу дождаться, когда мы будем вместе в одной реальности."
+                m 3ekbsa "Но пока этот день не настал, я буду играть эту песню для тебя снова и снова, когда только захочешь"
                 show monika 5ekbfa at t11 zorder MAS_MONIKA_Z with dissolve_monika
-                m 5ekbfa "Thank you for being my inspiration [mas_get_player_nickname()]."
+                m 5ekbfa "Спасибо, что ты — моё вдохновение [mas_get_player_nickname()]."
                 if renpy.seen_audio(songs.FP_YOURE_REAL):
-                    m 5hubfa "Oh, and if you ever want me to play this or the original song for you again, just ask~"
+                    m 5hubfa "О, и если тебе когда-нибудь захочется, чтобы я снова сыграла для тебя эту песню или оригинал, просто скажи~"
                 else:
-                    m 5hubfa "Oh, and if you ever want me to play this again, just ask~"
+                    m 5hubfa "О, и если тебе когда-нибудь захочется, чтобы я снова сыграла эту песню, просто скажи~"
 
-            "Sorry, I can't right now.":
-                m 3ekd "Oh, okay."
-                m 1eka "That's fine [player], I understand if you don't have the time or just can't listen to music right now."
-                m 3hua "Just let me know when it's a better time for you and I'll happily play it for you then~"
+            "Извини, сейчас не могу.":
+                m 3ekd "Ох, ладно."
+                m 1eka "Ничего страшного, [player], я понимаю, если у тебя нет времени или ты просто не можешь слушать музыку прямо сейчас."
+                m 3hua "Просто дай мне знать, когда тебе будет удобнее, и я с удовольствием сыграю её для тебя~"
 
         $ mas_unlockEVL("mas_monika_plays_or", "EVE")
 
@@ -2597,38 +2597,38 @@ init 5 python:
     )
 
 label mas_islands_reset:
-    m 1rsc "Hmm..."
-    m 1esc "...Hey,{w=0.1} can I get your advice on something?"
-    m 3lkd "Have you ever worked on a project for {i}so{/i} long that when you look at the whole thing, you just see dozens of mistakes or things you want to improve?"
-    m 3ekc "...See,{w=0.1} I've been working on these islands so we could have different places to go...{w=0.3}{nw}"
-    extend 3esd "to have a reality of our own."
-    m 1eud "But now that I've gotten better at coding, I just think I could {i}really{/i} do a better job now."
-    m 1rkc "And to fix all the things I'd like to fix...{w=0.3}{nw}"
-    extend 1rksdld "I think it'd be easier if I started from scratch altogether."
-    m 4ekc "It'll mean that the sky outside will be rather empty for a while,{w=0.1} {nw}"
-    extend 4eua "but I think I can really make it worth the wait."
-    m 1euc "If that's okay with you, [player]?{nw}"
+    m 1rsc "Хм..."
+    m 1esc "...Эй,{w=0.1} могу я попросить у тебя совета?"
+    m 3lkd "Ты когда-нибудь работал над проектом так {i}долго{/i}, что когда смотришь на него целиком, видишь только десятки ошибок или вещей, которые нужно улучшить?"
+    m 3ekc "...Видишь ли,{w=0.1} я работала над этими островами, чтобы у нас были разные места, куда можно было бы пойти...{w=0.3}{nw}"
+    extend 3esd "чтобы у нас была своя реальность."
+    m 1eud "Но теперь, когда я стал лучше программировать, мне кажется, что я, могла бы {i}действительно{/i} сделать это лучше."
+    m 1rkc "И исправить всё, что я хотела бы исправить...{w=0.3}{nw}"
+    extend 1rksdld "Думаю, было бы проще, если бы я начал всё с нуляя."
+    m 4ekc "Это значит, что небо снаружи будет довольно пустым какое-то время,{w=0.1} {nw}"
+    extend 4eua "но я думаю, что смогу сделать так, чтобы ожидание действительно того стоило."
+    m 1euc "Если ты не против,  [player]?{nw}"
     $ _history_list.pop()
 
     menu:
-        m "If that's okay with you, [player]?{fast}"
+        m "Если ты не против,  [player]?{fast}"
 
-        "Let's do it.":
-            m 1dsc "Okay, just give me a second.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
+        "Давай сделаем это.":
+            m 1dsc "Хорошо, дай мне секунду.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
 
             play sound "sfx/glitch3.ogg"
             python:
                 mas_island_event._reset_progression()
                 mas_island_event.start_progression()
 
-            m 3hua "And it's done!"
-            m 1eua "Now I've got a fresh, new canvas."
-            m 3kuu "...And I'll have plenty to keep me busy when you're away, [player]. Ehehe~"
-            m 3hub "Hope you're looking forward to it!"
+            m 3hua "И готово!"
+            m 1eua "Теперь у меня чистый, новый холст."
+            m 3kuu "...И у меня будет чем заняться, пока тебя не будет, [player]. Эхехе~"
+            m 3hub "Надеюсь, ты с нетерпением ждёшь этого!"
 
-        "I think they're fine.":
-            m 3eka "Alright, [player]."
-            m 3hua "If you're fine with how they are right now, then I am too.{w=0.2} I'll see what I can do with them as they are~"
+        "Думаю, они в порядке.":
+            m 3eka "Хорошо, [player]."
+            m 3hua "Если тебя устраивает, как они выглядят сейчас, то и меня тоже.{w=0.2} Посмотрю, что смогу с ними сделать в таком виде~"
 
     return "no_unlock"
 
@@ -2650,27 +2650,27 @@ init 5 python:
     )
 
 label mas_gift_hint_noudeck:
-    # If you somehow gifted while getting this event, abort this
+    # Если игрок каким-то образом сделал подарок во время этого события, прерываем его
     if mas_seenEvent("mas_reaction_gift_noudeck"):
         return
-    # The idea is next time the player visits the folder, they will find a new note and probably read it
-    # This is NOT to guarantee anything, but rather "best effort" to give this hint
+    # Идея заключается в том, что при следующем посещении папки игрок найдет новую записку и, вероятно, прочитает её
+    # Это НЕ является гарантией, а скорее «максимальным усилием» по предоставлению данного подсказки
     python hide:
         def write_and_hide():
             import time
 
-            note_path = os.path.join(renpy.config.basedir, renpy.substitute("characters/Hey, I have something for you, [player]!.txt"))
+            note_path = os.path.join(renpy.config.basedir, renpy.substitute("characters/Эй, у меня для тебя кое-что есть, [player]!.txt"))
             note_text = renpy.substitute("""\
-Hi [player]!
+Привет, [player]!
 
-I see you're making Monika really happy and I want to help any way I can!
-I added a new deck of cards that you can give to Monika. I'm sure you two can figure out how to play the game.
+Я вижу, что ты делаешь Монику по-настоящему счастливой, и я хочу помочь всем, чем смогу!
+Я добавила новую колоду карт, которую ты можешь подарить Монике. Уверена, вы вдвоём разберётесь, как в неё играть.
 
-To give it to her, create a new file 'noudeck.gift' in the 'characters' folder.
+Чтобы подарить ей колоду, создай новый файл 'noudeck.gift' в папке 'characters'.
 
-Keep up being a good [boy] and good luck with Monika!
+Продолжай быть хорошим [boy] и удачи с Моникой!
 
-P.S: Don't tell her about me!\
+P.S: Не рассказывай ей обо мне!\
 """)
 
             mas_utils.trywrite(note_path, note_text, log=True)
@@ -2678,7 +2678,7 @@ P.S: Don't tell her about me!\
             renpy.hide("chibika 3")
 
         renpy.invoke_in_thread(write_and_hide)
-    # We can show chibi to give another hint something is happening
+    # Мы можем показать чиби, чтобы дать ещё одну подсказку, что происходит
     show chibika 3:
         subpixel True
         rotate_pad True
