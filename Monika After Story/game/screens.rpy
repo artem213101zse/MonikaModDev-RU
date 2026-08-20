@@ -682,6 +682,28 @@ screen talk_choice(items):
         for i in items:
             textbutton i.caption action i.action
 
+    # Image button; hitbox is TALK_SIZE so it cannot cover the talk list.
+    # Swap TALK_IDLE / TALK_HOVER / TALK_SIZE in mas_os when custom art is ready.
+    if not mas_in_finalfarewell_mode:
+        $ _os_w, _os_h = store.mas_os.TALK_SIZE
+        button:
+            style "mas_os_talk_btn"
+            xpos 36
+            ypos 36
+            xysize (_os_w, _os_h)
+            idle_background store.mas_os.TALK_IDLE
+            hover_background store.mas_os.TALK_HOVER
+            selected_background store.mas_os.TALK_HOVER
+            action Show(
+                screen="mas_os_confirm",
+                message=store.mas_os.RETURN_CONFIRM,
+                yes_action=Function(store.mas_os.return_to_shell),
+                no_action=Hide("mas_os_confirm")
+            )
+
+            if store.mas_os.TALK_LABEL:
+                text store.mas_os.TALK_LABEL style "mas_os_talk_btn_text"
+
 
 ## When this is true, menu captions will be spoken by the narrator. When false,
 ## menu captions will be displayed as empty buttons.
@@ -916,6 +938,16 @@ screen navigation():
 
         elif not main_menu:
             textbutton _("Главное меню") action NullAction(), Show(screen="dialog", message="Не нужно туда возвращаться.\nТы всё равно окажешься здесь, так что не переживай.", ok_action=Hide("dialog"))
+
+        # Port shell. Lives in the game menu (not talk/extras): it's a system
+        # exit, same place players look for Settings / fake Main Menu.
+        if not mas_in_finalfarewell_mode:
+            textbutton _("MAS OS") action Show(
+                screen="mas_os_confirm",
+                message=store.mas_os.RETURN_CONFIRM,
+                yes_action=Function(store.mas_os.return_to_shell),
+                no_action=Hide("mas_os_confirm")
+            )
 
         textbutton _("Настройки") action [ShowMenu("preferences"), SensitiveIf(renpy.get_screen("preferences") == None)]
 

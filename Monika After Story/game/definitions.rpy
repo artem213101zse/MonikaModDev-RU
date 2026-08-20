@@ -272,6 +272,10 @@ python early:
                     store.mas_sprites.generate_images(name[1])
                     #Try to get the img again
                     target = renpy.display.image.images[name]
+                    # Фикс чтобы не было ошибки со спрайтом при запуске новой игры
+                    # Exact match after generation: leftover prefix-search attrs
+                    # must not be passed into Transform._duplicate.
+                    args = []
 
                 #If we somehow failed, show the exception and return False
                 except:

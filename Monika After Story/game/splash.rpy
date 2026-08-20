@@ -166,6 +166,11 @@ image tos2 = "bg/warning2.png"
 
 
 label splashscreen:
+    # MAS OS must run BEFORE session/affection startup.
+    # Visiting the shell is not a MAS session.
+    if store.mas_os.can_show():
+        call mas_os_shell
+
     python:
         _mas_AffStartup()
 
@@ -332,53 +337,16 @@ label before_main_menu:
     return
 
 label quit:
+    # Closed MAS OS without launching the game: do not write session,
+    # playtime, or affection. Otherwise Monika treats it as a visit.
+    if not store.mas_os.game_entered:
+        python:
+            try:
+                store.mas_logging.logging.shutdown()
+            except Exception:
+                pass
+        return
+
     python:
-        store.mas_calendar.saveCalendarDatabase(CustomEncoder)
-        persistent.sessions['last_session_end']=datetime.datetime.now()
-        today_time = (
-            persistent.sessions["last_session_end"]
-            - persistent.sessions["current_session_start"]
-        )
-        new_time = today_time + persistent.sessions["total_playtime"]
-
-        # prevent out of boudns time
-        if datetime.timedelta(0) < new_time <= mas_maxPlaytime():
-            persistent.sessions['total_playtime'] = new_time
-
-        # set the monika size
-        store.mas_dockstat.setMoniSize(persistent.sessions["total_playtime"])
-
-        # save selectables
-        store.mas_selspr.save_selectables()
-
-        # save current hair / clothes / acs
-        monika_chr.save()
-
-        # save weather options
-        store.mas_weather.saveMWData()
-
-        # save bgs
-        store.mas_background.saveMBGData()
-
-        #remove o31 cgs
-        store.mas_o31_event.removeImages()
-
-        # delayed action stuff
-        mas_runDelayedActions(MAS_FC_END)
-        store.mas_delact.saveDelayedActionMap()
-
-        _mas_AffSave()
-
-        # delete the monika file if we aren't leaving
-        if not persistent._mas_dockstat_going_to_leave:
-            store.mas_utils.trydel(mas_docking_station._trackPackage("monika"))
-
-        # clear image caches
-        store.mas_sprites._clear_caches()
-
-        # xp calc
-        store.mas_xp.grant()
-
-        # finish logs
-        store.mas_logging.logging.shutdown()
+        store.mas_os.end_game_session()
     return
