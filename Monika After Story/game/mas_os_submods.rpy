@@ -1051,14 +1051,15 @@ screen mas_os_submods():
                         input:
                             value store.mas_os.sm_url_iv
                             copypaste True
+                            length 4000
                             color store.mas_os.theme_color("input")
                             size 16
-                            xsize 780
+                            xsize 640
                             yalign 0.5
                     else:
                         button:
                             style "mas_os_gift_field"
-                            xsize 780
+                            xsize 640
                             ysize 40
                             action [
                                 Function(store.mas_os.start_sm_url_typing),
@@ -1070,6 +1071,12 @@ screen mas_os_submods():
                                 size 14
                                 yalign 0.5
                                 substitute False
+
+                    textbutton _("Вставить"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 140
+                        action Function(store.mas_os.paste_url_into, "sm_url")
 
                     textbutton _("Обновить"):
                         style "mas_os_nav_btn"
@@ -1090,14 +1097,15 @@ screen mas_os_submods():
                         input:
                             value store.mas_os.sm_direct_iv
                             copypaste True
+                            length 4000
                             color store.mas_os.theme_color("input")
                             size 16
-                            xsize 780
+                            xsize 640
                             yalign 0.5
                     else:
                         button:
                             style "mas_os_gift_field"
-                            xsize 780
+                            xsize 640
                             ysize 40
                             action [
                                 Function(store.mas_os.start_sm_direct_typing),
@@ -1111,10 +1119,16 @@ screen mas_os_submods():
                                     yalign 0.5
                                     substitute False
                             else:
-                                text _("Нажми и вставь ссылку"):
+                                text _("Нажми или Вставить"):
                                     style "mas_os_hint"
                                     size 15
                                     yalign 0.5
+
+                    textbutton _("Вставить"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 140
+                        action Function(store.mas_os.paste_url_into, "sm_direct")
 
                     textbutton _("Установить"):
                         style "mas_os_nav_btn"

@@ -951,23 +951,15 @@ screen mas_os_store():
                         input:
                             value store.mas_os.dl_iv
                             copypaste True
+                            length 4000
                             color store.mas_os.theme_color("input")
                             size 18
-                            xsize 520
+                            xsize 400
                             yalign 0.5
-
-                        textbutton _("Готово"):
-                            style "mas_os_nav_btn"
-                            text_style "mas_os_nav_btn_text"
-                            xsize 110
-                            action [
-                                store.mas_os.dl_iv.Disable(),
-                                Function(store.mas_os.stop_dl_typing),
-                            ]
                     else:
                         button:
                             style "mas_os_gift_field"
-                            xsize 640
+                            xsize 400
                             ysize 44
                             action [
                                 Function(store.mas_os.start_dl_typing),
@@ -981,10 +973,26 @@ screen mas_os_store():
                                     yalign 0.5
                                     substitute False
                             else:
-                                text _("Нажми и вставь ссылку"):
+                                text _("Нажми или Вставить"):
                                     style "mas_os_hint"
                                     size 16
                                     yalign 0.5
+
+                    textbutton _("Вставить"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 140
+                        action Function(store.mas_os.paste_url_into, "dl")
+
+                    if typing:
+                        textbutton _("Готово"):
+                            style "mas_os_nav_btn"
+                            text_style "mas_os_nav_btn_text"
+                            xsize 110
+                            action [
+                                store.mas_os.dl_iv.Disable(),
+                                Function(store.mas_os.stop_dl_typing),
+                            ]
 
                 textbutton _("Скачать"):
                     style "mas_os_nav_btn"

@@ -512,7 +512,7 @@ init -10 python in mas_os:
         for row in all_font_packs():
             if row[0] == fid:
                 path = ensure_font_usable(row[2])
-                if path:
+                if path and _font_can_open(path):
                     return path
         return "gui/font/Aller_Rg.ttf"
 
@@ -523,13 +523,21 @@ init -10 python in mas_os:
             ("mod_assets/font/SourceHanSansSC-Regular.otf", 0x4e00, 0x9faf),
             ("mod_assets/font/mplus-2p-regular.ttf", 0x3000, 0x4dff),
         )
+        latin_path = ensure_font_usable(latin_path) or "gui/font/Aller_Rg.ttf"
+        if _is_abs_fs(latin_path) or not _font_can_open(latin_path):
+            latin_path = "gui/font/Aller_Rg.ttf"
         for rel, start, end in cjk:
             try:
                 p = asset_open_path(rel) or rel
+                if _is_abs_fs(p) or not _font_can_open(p):
+                    continue
                 fg = fg.add(p, start, end)
             except Exception:
                 pass
-        return fg.add(latin_path, 0x0000, 0xffff)
+        try:
+            return fg.add(latin_path, 0x0000, 0xffff)
+        except Exception:
+            return fg.add("gui/font/Aller_Rg.ttf", 0x0000, 0xffff)
 
     def _set_styles_font(names, font_obj):
         for name in names:
@@ -569,10 +577,12 @@ init -10 python in mas_os:
         variable fonts and APK-only loadable() misses are common there.
         """
         dlg_path = font_latin_path("dialogue")
+        if _is_abs_fs(dlg_path) or not _font_can_open(dlg_path):
+            dlg_path = "gui/font/Aller_Rg.ttf"
         try:
             dlg_fg = _fontgroup(dlg_path)
         except Exception:
-            dlg_fg = dlg_path
+            dlg_fg = "gui/font/Aller_Rg.ttf"
 
         old_dlg = _font_prev.get("dialogue")
         if old_dlg is None:
@@ -1270,6 +1280,31 @@ init -10 python in mas_os:
                 pass
         return None
 
+    def asset_rel_from_fs(full):
+        """Turn an absolute overlay path back into game-relative (load_face needs this)."""
+        full = _norm(full)
+        if not full:
+            return None
+        full_l = full.lower()
+        for root in asset_dirs():
+            rootn = _norm(root)
+            if not rootn:
+                continue
+            if full == rootn or full.startswith(rootn + "/"):
+                return full[len(rootn):].lstrip("/")
+            if full_l == rootn.lower() or full_l.startswith(rootn.lower() + "/"):
+                return full[len(rootn):].lstrip("/")
+        return None
+
+    def _is_abs_fs(path):
+        if not path:
+            return False
+        if path.startswith("/") or path.startswith("\\"):
+            return True
+        if len(path) > 1 and path[1] == ":":
+            return True
+        return False
+
     def asset_exists(rel):
         rel = (rel or "").replace("\\", "/")
         try:
@@ -1281,8 +1316,9 @@ init -10 python in mas_os:
 
     def asset_open_path(rel):
         """
-        Path Ren'Py can open: archive-relative if loadable, else absolute
-        disk path (Android overlay / Склад downloads).
+        Path Ren'Py can open. Fonts MUST stay game-relative: load_face() on
+        Android does not accept /data/data/... absolute paths.
+        Images can use relative (preferred) or absolute as a last resort.
         """
         rel = (rel or "").replace("\\", "/")
         try:
@@ -1292,6 +1328,9 @@ init -10 python in mas_os:
             pass
         fs = asset_fs_path(rel)
         if fs:
+            back = asset_rel_from_fs(fs)
+            if back:
+                return back
             return fs
         return None
 
@@ -1326,19 +1365,46 @@ init -10 python in mas_os:
 
     _font_resolved = {}
 
+    def _font_rel(path):
+        if not path:
+            return None
+        path = path.replace("\\", "/")
+        if _is_abs_fs(path):
+            return asset_rel_from_fs(path)
+        return path
+
+    def _font_can_open(path):
+        if not path or _is_abs_fs(path):
+            return False
+        try:
+            if store.renpy.loadable(path):
+                return True
+        except Exception:
+            pass
+        if asset_fs_path(path):
+            return True
+        try:
+            handle = store.renpy.file(path)
+            handle.close()
+            return True
+        except Exception:
+            return False
+
     def ensure_font_usable(rel):
         """
-        Android AssetManager breaks on commas in names (Shantell Variable
-        filenames). Copy to a sanitized overlay file when needed and prefer
-        a real filesystem path over loadable().
+        Return a game-relative font path load_face() can open.
+        Comma filenames are copied to a sanitized overlay name.
+        Never return /data/data/... — that crashes Android on next launch.
         """
+        fallback = "gui/font/Aller_Rg.ttf"
         rel = (rel or "").replace("\\", "/")
         cached = _font_resolved.get(rel)
-        if cached:
+        if cached and _font_can_open(cached):
             return cached
-        opened = asset_open_path(rel)
+
+        opened = _font_rel(asset_open_path(rel) or "")
         base = os.path.basename(rel)
-        if opened and "," not in base:
+        if opened and "," not in base and _font_can_open(opened):
             _font_resolved[rel] = opened
             return opened
 
@@ -1362,9 +1428,10 @@ init -10 python in mas_os:
                 if match:
                     break
 
-        if match and "," not in os.path.basename(match):
-            _font_resolved[rel] = match
-            return match
+        match_rel = _font_rel(match) if match else None
+        if match_rel and "," not in os.path.basename(match_rel) and _font_can_open(match_rel):
+            _font_resolved[rel] = match_rel
+            return match_rel
 
         data = _read_game_bytes(rel)
         if not data and match:
@@ -1374,38 +1441,43 @@ init -10 python in mas_os:
                 handle.close()
             except Exception:
                 data = None
-        if not data:
-            if opened:
-                _font_resolved[rel] = opened
-                return opened
-            return match or opened
 
-        safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_", base)
-        if not safe_name.lower().endswith(".ttf") and not safe_name.lower().endswith(".otf"):
-            safe_name += ".ttf"
-        dest_rel = "mod_assets/font/" + safe_name
-        dest = _norm(os.path.join(writable_gamedir(), dest_rel.replace("/", os.sep)))
-        try:
-            folder = os.path.dirname(dest)
-            if folder and not os.path.isdir(folder):
-                os.makedirs(folder)
-            if not os.path.isfile(dest):
-                handle = open(dest, "wb")
-                handle.write(data)
-                handle.close()
-            _font_resolved[rel] = dest
-            return dest
-        except Exception:
-            if opened:
-                _font_resolved[rel] = opened
-                return opened
-            return match or opened
+        if data:
+            safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_", base)
+            if not safe_name.lower().endswith(".ttf") and not safe_name.lower().endswith(".otf"):
+                safe_name += ".ttf"
+            dest_rel = "mod_assets/font/" + safe_name
+            dest = _norm(os.path.join(writable_gamedir(), dest_rel.replace("/", os.sep)))
+            try:
+                folder = os.path.dirname(dest)
+                if folder and not os.path.isdir(folder):
+                    os.makedirs(folder)
+                if not os.path.isfile(dest):
+                    handle = open(dest, "wb")
+                    handle.write(data)
+                    handle.close()
+                if _font_can_open(dest_rel):
+                    _font_resolved[rel] = dest_rel
+                    return dest_rel
+            except Exception:
+                pass
+
+        if opened and _font_can_open(opened):
+            _font_resolved[rel] = opened
+            return opened
+        if match_rel and _font_can_open(match_rel):
+            _font_resolved[rel] = match_rel
+            return match_rel
+        return fallback
 
     def extra_font_rows():
         rows = []
         seen = set()
+        pack_stems = set()
         for _fid, _title, path in FONT_PACKS:
-            seen.add(os.path.basename(path).lower())
+            base = os.path.basename(path).lower()
+            seen.add(base)
+            pack_stems.add(re.sub(r"[^a-z0-9]+", "", os.path.splitext(base)[0]))
         skip_prefix = (
             "sourcehansans", "mplus-2p", "mplus-1mn", "orig_m1",
         )
@@ -1421,6 +1493,8 @@ init -10 python in mas_os:
                     continue
                 if low in seen:
                     continue
+                if re.sub(r"[^a-z0-9]+", "", os.path.splitext(low)[0]) in pack_stems:
+                    continue
                 if any(low.startswith(p) for p in skip_prefix):
                     continue
                 seen.add(low)
@@ -1431,6 +1505,131 @@ init -10 python in mas_os:
 
     def all_font_packs():
         return list(FONT_PACKS) + extra_font_rows()
+
+    def clipboard_text():
+        """
+        Read the OS clipboard. Android IME paste is capped at 32 chars by
+        SDL_TextInputEvent; this path bypasses it.
+        """
+        raw = None
+        try:
+            import pygame_sdl2.scrap as scrap
+            try:
+                scrap.init()
+            except Exception:
+                pass
+            kind = getattr(scrap, "SCRAP_TEXT", None) or "text/plain"
+            raw = scrap.get(kind)
+            if not raw:
+                try:
+                    raw = scrap.get("text/plain")
+                except Exception:
+                    raw = None
+        except Exception:
+            raw = None
+        if not raw:
+            try:
+                import pygame
+                pygame.scrap.init()
+                raw = pygame.scrap.get(pygame.SCRAP_TEXT)
+            except Exception:
+                raw = None
+        if not raw:
+            try:
+                from jnius import autoclass
+                activity = None
+                for cls_name in (
+                    "org.renpy.android.PythonSDLActivity",
+                    "org.renpy.android.PythonActivity",
+                ):
+                    try:
+                        klass = autoclass(cls_name)
+                        activity = getattr(klass, "mActivity", None)
+                        if activity is not None:
+                            break
+                    except Exception:
+                        continue
+                if activity is not None:
+                    Context = autoclass("android.content.Context")
+                    cm = activity.getSystemService(Context.CLIPBOARD_SERVICE)
+                    clip = cm.getPrimaryClip()
+                    if clip is not None and clip.getItemCount() > 0:
+                        raw = clip.getItemAt(0).coerceToText(activity).toString()
+            except Exception:
+                raw = None
+        if not raw:
+            return ""
+        if isinstance(raw, unicode):
+            text = raw
+        else:
+            try:
+                text = raw.decode("utf-8")
+            except Exception:
+                try:
+                    text = raw.decode("utf-8", "replace")
+                except Exception:
+                    text = unicode(raw)
+        text = text.replace("\x00", "").replace("\r", "")
+        if "\n" in text:
+            text = text.split("\n")[0]
+        return text.strip()[:4000]
+
+    def paste_url_into(field):
+        """
+        field: 'dl' | 'sm_direct' | 'sm_url'
+        """
+        text = clipboard_text()
+        if not text:
+            msg = "Буфер пуст. Скопируй ссылку в браузере, потом нажми Вставить."
+            if field == "dl":
+                global dl_status
+                dl_status = msg
+            else:
+                global sm_status
+                sm_status = msg
+            return None
+        if field == "dl":
+            global dl_url
+            dl_url = text
+            iv = getattr(store.mas_os, "dl_iv", None)
+            if iv is not None:
+                try:
+                    iv.Disable()
+                except Exception:
+                    pass
+            try:
+                stop_dl_typing()
+            except Exception:
+                pass
+            dl_status = "Вставлено {0} символов.".format(len(text))
+        elif field == "sm_direct":
+            global sm_direct
+            sm_direct = text
+            iv = getattr(store.mas_os, "sm_direct_iv", None)
+            if iv is not None:
+                try:
+                    iv.Disable()
+                except Exception:
+                    pass
+            try:
+                stop_sm_direct_typing()
+            except Exception:
+                pass
+            sm_status = "Вставлено {0} символов.".format(len(text))
+        elif field == "sm_url":
+            set_catalog_url(text)
+            iv = getattr(store.mas_os, "sm_url_iv", None)
+            if iv is not None:
+                try:
+                    iv.Disable()
+                except Exception:
+                    pass
+            try:
+                stop_sm_url_typing()
+            except Exception:
+                pass
+            sm_status = "Вставлено {0} символов.".format(len(text))
+        return None
 
     def font_picker_rows():
         rows = []
