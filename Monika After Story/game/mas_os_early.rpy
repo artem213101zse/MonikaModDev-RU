@@ -5,6 +5,37 @@
 python early:
     import os
 
+    def _mas_os_early_overlay_searchpath():
+        """
+        Android keeps APK assets off-disk. User files live in basedir/game
+        and are invisible to renpy.loadable() unless that folder is on
+        config.searchpath.
+        """
+        try:
+            overlay = os.path.normpath(os.path.join(renpy.config.basedir, "game"))
+        except Exception:
+            return
+        if not overlay:
+            return
+        try:
+            if not os.path.isdir(overlay):
+                os.makedirs(overlay)
+        except Exception:
+            pass
+        sp = getattr(renpy.config, "searchpath", None)
+        if sp is None:
+            return
+        try:
+            if overlay not in sp:
+                sp.append(overlay)
+        except Exception:
+            pass
+
+    try:
+        _mas_os_early_overlay_searchpath()
+    except Exception:
+        pass
+
     def _mas_os_early_park_submods():
         based = os.path.normpath(renpy.config.basedir)
         src = os.path.join(based, "game", "Submods")

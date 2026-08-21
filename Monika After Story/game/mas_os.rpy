@@ -44,6 +44,7 @@ default persistent._mas_os_intro_skip = "off"
 
 init -10 python in mas_os:
     import os
+    import re
     import store
     import renpy
 
@@ -319,11 +320,9 @@ init -10 python in mas_os:
 
     def launch_logo_path():
         for path in ("mod_assets/menu_new.png", "bg/splash.png"):
-            try:
-                if store.renpy.loadable(path):
-                    return path
-            except Exception:
-                pass
+            opened = asset_open_path(path)
+            if opened:
+                return opened
         return None
 
     def flag(name, default=True):
@@ -372,11 +371,9 @@ init -10 python in mas_os:
             path = "gui/textbox_d.png"
         else:
             path = "gui/textbox_d_{0}.png".format(color)
-        try:
-            if store.renpy.loadable(path):
-                return path
-        except Exception:
-            pass
+        opened = asset_open_path(path)
+        if opened:
+            return opened
         return "gui/textbox_d.png"
 
     def apply_textbox():
@@ -391,10 +388,17 @@ init -10 python in mas_os:
             )
         except Exception:
             pass
-        monika = dark.replace("textbox_d", "textbox_monika_d")
+        if dark.replace("\\", "/").endswith("textbox_d.png") or "/textbox_d." in dark.replace("\\", "/"):
+            monika_rel = "gui/textbox_monika_d.png"
+        else:
+            monika_rel = None
+            base = os.path.basename(dark)
+            cand = base.replace("textbox_d", "textbox_monika_d")
+            monika_rel = "gui/" + cand
         try:
-            if not store.renpy.loadable(monika):
-                monika = "gui/textbox_monika_d.png"
+            monika = asset_open_path(monika_rel) if monika_rel else None
+            if not monika:
+                monika = asset_open_path("gui/textbox_monika_d.png") or "gui/textbox_monika_d.png"
             store.style.window_monika_dark.background = store.Image(
                 monika, xalign=0.5, yalign=1.0
             )
@@ -498,31 +502,34 @@ init -10 python in mas_os:
                 persist_key = key
                 break
         fid = getattr(store.persistent, persist_key, default) or default
-        for row in FONT_PACKS:
+        for row in all_font_packs():
             if row[0] == fid:
                 return fid
         return default
 
     def font_latin_path(slot="dialogue"):
         fid = font_id(slot)
-        for row in FONT_PACKS:
+        for row in all_font_packs():
             if row[0] == fid:
-                path = row[2]
-                try:
-                    if store.renpy.loadable(path):
-                        return path
-                except Exception:
-                    pass
+                path = ensure_font_usable(row[2])
+                if path:
+                    return path
         return "gui/font/Aller_Rg.ttf"
 
     def _fontgroup(latin_path):
-        return (
-            store.FontGroup()
-            .add("mod_assets/font/SourceHanSansK-Regular.otf", 0xac00, 0xd7a3)
-            .add("mod_assets/font/SourceHanSansSC-Regular.otf", 0x4e00, 0x9faf)
-            .add("mod_assets/font/mplus-2p-regular.ttf", 0x3000, 0x4dff)
-            .add(latin_path, 0x0000, 0xffff)
+        fg = store.FontGroup()
+        cjk = (
+            ("mod_assets/font/SourceHanSansK-Regular.otf", 0xac00, 0xd7a3),
+            ("mod_assets/font/SourceHanSansSC-Regular.otf", 0x4e00, 0x9faf),
+            ("mod_assets/font/mplus-2p-regular.ttf", 0x3000, 0x4dff),
         )
+        for rel, start, end in cjk:
+            try:
+                p = asset_open_path(rel) or rel
+                fg = fg.add(p, start, end)
+            except Exception:
+                pass
+        return fg.add(latin_path, 0x0000, 0xffff)
 
     def _set_styles_font(names, font_obj):
         for name in names:
@@ -558,12 +565,14 @@ init -10 python in mas_os:
     def apply_font():
         """
         Apply all font slots. CJK fallbacks stay in the FontGroup.
+        On Android a FontGroup failure must not abort the whole apply:
+        variable fonts and APK-only loadable() misses are common there.
         """
         dlg_path = font_latin_path("dialogue")
         try:
             dlg_fg = _fontgroup(dlg_path)
         except Exception:
-            return
+            dlg_fg = dlg_path
 
         old_dlg = _font_prev.get("dialogue")
         if old_dlg is None:
@@ -581,7 +590,7 @@ init -10 python in mas_os:
         try:
             menu_fg = _fontgroup(menu_path)
         except Exception:
-            menu_fg = dlg_fg
+            menu_fg = menu_path
         _retarget_font(_font_prev.get("menu"), menu_fg)
         _set_styles_font(_FONT_STYLES["menu"], menu_fg)
         _font_prev["menu"] = menu_fg
@@ -590,7 +599,7 @@ init -10 python in mas_os:
         try:
             ui_fg = _fontgroup(ui_path)
         except Exception:
-            ui_fg = dlg_fg
+            ui_fg = ui_path
         _retarget_font(_font_prev.get("ui"), ui_fg)
         _set_styles_font(_FONT_STYLES["ui"], ui_fg)
         _font_prev["ui"] = ui_fg
@@ -610,7 +619,7 @@ init -10 python in mas_os:
             pass
 
     def set_font(fid, slot="dialogue"):
-        ids = [row[0] for row in FONT_PACKS]
+        ids = [row[0] for row in all_font_packs()]
         persist_key = "_mas_os_font"
         default = "aller"
         for sid, title, hint, key, def_id in FONT_SLOTS:
@@ -631,40 +640,46 @@ init -10 python in mas_os:
         if not name:
             return None
         path = ICON_ROOT + name + ".png"
-        try:
-            if store.renpy.loadable(path):
-                return path
-        except Exception:
-            pass
-        return None
+        return asset_open_path(path)
 
     WP_REL = "mod_assets/mas_os/wallpapers"
     WP_EXTS = (".png", ".jpg", ".jpeg")
+    WP_BUNDLED = ("splash.png", "menu.png")
 
     def wallpaper_dir():
-        return os.path.join(game_dir(), "game", "mod_assets", "mas_os", "wallpapers")
+        return os.path.join(writable_gamedir(), "mod_assets", "mas_os", "wallpapers")
 
     def list_wallpapers():
         rows = [("solid", "Сплошной цвет", None)]
-        folder = wallpaper_dir()
-        if not os.path.isdir(folder):
-            return rows
-        try:
-            names = sorted(os.listdir(folder))
-        except Exception:
-            return rows
-        for name in names:
-            ext = os.path.splitext(name)[1].lower()
-            if ext not in WP_EXTS:
+        seen = set(["solid"])
+
+        def _add(name, rel):
+            key = (name or "").lower()
+            if not name or key in seen:
+                return
+            if not asset_exists(rel):
+                return
+            seen.add(key)
+            title = os.path.splitext(name)[0].replace("_", " ").replace("-", " ")
+            rows.append((name, title, asset_open_path(rel) or rel))
+
+        for name in WP_BUNDLED:
+            _add(name, WP_REL + "/" + name)
+        for folder in (
+            os.path.join(root, "mod_assets", "mas_os", "wallpapers")
+            for root in asset_dirs()
+        ):
+            if not os.path.isdir(folder):
                 continue
-            rel = WP_REL + "/" + name
             try:
-                if not store.renpy.loadable(rel):
-                    continue
+                names = sorted(os.listdir(folder))
             except Exception:
                 continue
-            title = os.path.splitext(name)[0].replace("_", " ").replace("-", " ")
-            rows.append((name, title, rel))
+            for name in names:
+                ext = os.path.splitext(name)[1].lower()
+                if ext not in WP_EXTS:
+                    continue
+                _add(name, WP_REL + "/" + name)
         return rows
 
     def wallpaper_grid_cells(cols=2):
@@ -680,18 +695,15 @@ init -10 python in mas_os:
         if not wid or wid == "solid":
             return "solid"
         rel = WP_REL + "/" + wid
-        try:
-            if store.renpy.loadable(rel):
-                return wid
-        except Exception:
-            pass
+        if asset_exists(rel):
+            return wid
         return "solid"
 
     def wallpaper_rel():
         wid = wallpaper_id()
         if wid == "solid":
             return None
-        return WP_REL + "/" + wid
+        return asset_open_path(WP_REL + "/" + wid)
 
     def wallpaper_disp():
         rel = wallpaper_rel()
@@ -1192,6 +1204,245 @@ init -10 python in mas_os:
     def game_dir():
         return _norm(renpy.config.basedir)
 
+    def asset_dirs():
+        """
+        Folders that may contain game assets on disk.
+        Android APK files are NOT listed here; those stay in loadable().
+        """
+        dirs = []
+        for raw in (
+            getattr(renpy.config, "gamedir", None),
+            os.path.join(getattr(renpy.config, "basedir", "") or "", "game"),
+        ):
+            n = _norm(raw)
+            if n and n not in dirs:
+                dirs.append(n)
+        return dirs
+
+    _writable_gamedir = None
+
+    def _can_write_dir(path):
+        if not path:
+            return False
+        try:
+            if not os.path.isdir(path):
+                os.makedirs(path)
+            probe = os.path.join(path, ".mas_os_write")
+            handle = open(probe, "w")
+            handle.write("1")
+            handle.close()
+            try:
+                os.remove(probe)
+            except Exception:
+                pass
+            return True
+        except Exception:
+            return False
+
+    def writable_gamedir():
+        """
+        Disk folder we can actually create files in.
+        On Android config.gamedir is often the APK (read-only); basedir/game
+        is the private overlay shown in the file manager.
+        """
+        global _writable_gamedir
+        if _writable_gamedir:
+            return _writable_gamedir
+        for path in asset_dirs():
+            if _can_write_dir(path):
+                _writable_gamedir = path
+                return path
+        fallback = _norm(os.path.join(save_dir() or game_dir(), "mas_os_game"))
+        _can_write_dir(fallback)
+        _writable_gamedir = fallback
+        return fallback
+
+    def asset_fs_path(rel):
+        rel = (rel or "").replace("\\", "/").lstrip("/")
+        if not rel:
+            return None
+        for root in asset_dirs():
+            full = _norm(os.path.join(root, rel.replace("/", os.sep)))
+            try:
+                if os.path.isfile(full):
+                    return full
+            except Exception:
+                pass
+        return None
+
+    def asset_exists(rel):
+        rel = (rel or "").replace("\\", "/")
+        try:
+            if store.renpy.loadable(rel):
+                return True
+        except Exception:
+            pass
+        return asset_fs_path(rel) is not None
+
+    def asset_open_path(rel):
+        """
+        Path Ren'Py can open: archive-relative if loadable, else absolute
+        disk path (Android overlay / Склад downloads).
+        """
+        rel = (rel or "").replace("\\", "/")
+        try:
+            if store.renpy.loadable(rel):
+                return rel
+        except Exception:
+            pass
+        fs = asset_fs_path(rel)
+        if fs:
+            return fs
+        return None
+
+    def _read_game_bytes(rel):
+        rel = (rel or "").replace("\\", "/")
+        try:
+            handle = store.renpy.file(rel)
+            data = handle.read()
+            handle.close()
+            if data:
+                return data
+        except Exception:
+            pass
+        fs = asset_fs_path(rel)
+        if fs:
+            try:
+                handle = open(fs, "rb")
+                data = handle.read()
+                handle.close()
+                return data
+            except Exception:
+                pass
+        return None
+
+    def _font_dirs():
+        out = []
+        for root in asset_dirs():
+            path = os.path.join(root, "mod_assets", "font")
+            if os.path.isdir(path) and path not in out:
+                out.append(path)
+        return out
+
+    _font_resolved = {}
+
+    def ensure_font_usable(rel):
+        """
+        Android AssetManager breaks on commas in names (Shantell Variable
+        filenames). Copy to a sanitized overlay file when needed and prefer
+        a real filesystem path over loadable().
+        """
+        rel = (rel or "").replace("\\", "/")
+        cached = _font_resolved.get(rel)
+        if cached:
+            return cached
+        opened = asset_open_path(rel)
+        base = os.path.basename(rel)
+        if opened and "," not in base:
+            _font_resolved[rel] = opened
+            return opened
+
+        match = asset_fs_path(rel)
+        if not match:
+            stem = os.path.splitext(base)[0]
+            stem_key = re.sub(r"[^A-Za-z0-9]+", "", stem).lower()
+            for folder in _font_dirs():
+                try:
+                    names = os.listdir(folder)
+                except Exception:
+                    continue
+                for name in names:
+                    ext = os.path.splitext(name)[1].lower()
+                    if ext not in (".ttf", ".otf"):
+                        continue
+                    key = re.sub(r"[^A-Za-z0-9]+", "", os.path.splitext(name)[0]).lower()
+                    if key == stem_key or name.lower() == base.lower():
+                        match = _norm(os.path.join(folder, name))
+                        break
+                if match:
+                    break
+
+        if match and "," not in os.path.basename(match):
+            _font_resolved[rel] = match
+            return match
+
+        data = _read_game_bytes(rel)
+        if not data and match:
+            try:
+                handle = open(match, "rb")
+                data = handle.read()
+                handle.close()
+            except Exception:
+                data = None
+        if not data:
+            if opened:
+                _font_resolved[rel] = opened
+                return opened
+            return match or opened
+
+        safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_", base)
+        if not safe_name.lower().endswith(".ttf") and not safe_name.lower().endswith(".otf"):
+            safe_name += ".ttf"
+        dest_rel = "mod_assets/font/" + safe_name
+        dest = _norm(os.path.join(writable_gamedir(), dest_rel.replace("/", os.sep)))
+        try:
+            folder = os.path.dirname(dest)
+            if folder and not os.path.isdir(folder):
+                os.makedirs(folder)
+            if not os.path.isfile(dest):
+                handle = open(dest, "wb")
+                handle.write(data)
+                handle.close()
+            _font_resolved[rel] = dest
+            return dest
+        except Exception:
+            if opened:
+                _font_resolved[rel] = opened
+                return opened
+            return match or opened
+
+    def extra_font_rows():
+        rows = []
+        seen = set()
+        for _fid, _title, path in FONT_PACKS:
+            seen.add(os.path.basename(path).lower())
+        skip_prefix = (
+            "sourcehansans", "mplus-2p", "mplus-1mn", "orig_m1",
+        )
+        for folder in _font_dirs():
+            try:
+                names = sorted(os.listdir(folder))
+            except Exception:
+                continue
+            for name in names:
+                low = name.lower()
+                ext = os.path.splitext(low)[1]
+                if ext not in (".ttf", ".otf"):
+                    continue
+                if low in seen:
+                    continue
+                if any(low.startswith(p) for p in skip_prefix):
+                    continue
+                seen.add(low)
+                fid = "disk_" + re.sub(r"[^a-z0-9]+", "_", os.path.splitext(low)[0])[:40]
+                title = os.path.splitext(name)[0]
+                rows.append((fid, title, "mod_assets/font/" + name))
+        return rows
+
+    def all_font_packs():
+        return list(FONT_PACKS) + extra_font_rows()
+
+    def font_picker_rows():
+        rows = []
+        for fid, title, rel in all_font_packs():
+            rows.append((
+                fid,
+                title,
+                rel,
+                ensure_font_usable(rel) or "gui/font/Aller_Rg.ttf",
+            ))
+        return rows
+
     def save_dir():
         return _norm(renpy.config.savedir)
 
@@ -1202,7 +1453,7 @@ init -10 python in mas_os:
         return _norm(os.path.join(renpy.config.basedir, "characters"))
 
     def submods_dir():
-        return _norm(os.path.join(renpy.config.basedir, "game", "Submods"))
+        return _norm(os.path.join(writable_gamedir(), "Submods"))
 
     def log_dir():
         return _norm(os.path.join(renpy.config.basedir, "log"))

@@ -210,7 +210,7 @@ init -5 python in mas_os:
         if kind == "wallpaper":
             if wallpaper_id() == name:
                 try:
-                    if store.renpy.loadable(WP_REL + "/splash.png"):
+                    if asset_exists(WP_REL + "/splash.png"):
                         set_wallpaper("splash.png")
                     else:
                         set_wallpaper("solid")
@@ -282,14 +282,15 @@ init -5 python in mas_os:
 
     def _dl_folder(kind):
         based = game_dir()
+        root = writable_gamedir()
         mapping = {
-            "wallpaper": os.path.join(based, "game", "mod_assets", "mas_os", "wallpapers"),
-            "font": os.path.join(based, "game", "mod_assets", "font"),
+            "wallpaper": os.path.join(root, "mod_assets", "mas_os", "wallpapers"),
+            "font": os.path.join(root, "mod_assets", "font"),
             "music": os.path.join(based, "custom_bgm"),
-            "submod": os.path.join(based, "game", "Submods"),
+            "submod": os.path.join(root, "Submods"),
             "gift": os.path.join(based, "characters"),
-            "textbox": os.path.join(based, "game", "gui"),
-            "other": os.path.join(based, "game", "mod_assets", "mas_os", "import"),
+            "textbox": os.path.join(root, "gui"),
+            "other": os.path.join(root, "mod_assets", "mas_os", "import"),
         }
         return mapping.get(kind) or mapping["other"]
 

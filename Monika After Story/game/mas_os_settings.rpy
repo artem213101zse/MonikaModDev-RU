@@ -67,6 +67,10 @@ init -5 python in mas_os:
 
 screen mas_os_font_slot(slot, caption, hint):
     $ f_cur = store.mas_os.font_id(slot)
+    $ packs = store.mas_os.font_picker_rows()
+    $ f_rows = (len(packs) + 1) // 2
+    if f_rows < 1:
+        $ f_rows = 1
 
     vbox:
         spacing 6
@@ -78,11 +82,11 @@ screen mas_os_font_slot(slot, caption, hint):
         text hint:
             style "mas_os_hint"
 
-        grid 2 4:
+        grid 2 f_rows:
             spacing 8
             xsize 760
 
-            for fid, ftitle, fpath in store.mas_os.FONT_PACKS:
+            for fid, ftitle, fpath, preview in packs:
                 button:
                     style "mas_os_side_btn"
                     xsize 370
@@ -93,7 +97,7 @@ screen mas_os_font_slot(slot, caption, hint):
                     action Function(store.mas_os.set_font, fid, slot)
 
                     text ftitle:
-                        font fpath
+                        font preview
                         size 16
                         color store.mas_os.theme_color("body")
                         outlines []
@@ -101,7 +105,8 @@ screen mas_os_font_slot(slot, caption, hint):
                         yalign 0.5
                         substitute False
 
-            null
+            if len(packs) % 2:
+                null
 
 
 screen mas_os_onoff(caption, hint, flag_name, default=True):
@@ -413,7 +418,7 @@ screen mas_os_settings():
                     text _("Обои MAS OS"):
                         style "mas_os_subtitle"
 
-                    text _("Картинки из папки game/mod_assets/mas_os/wallpapers. PNG или JPG. После скачивания со Склада перезапусти оболочку, если новое не видно."):
+                    text _("Картинки из папки game/mod_assets/mas_os/wallpapers. PNG или JPG. На Android файлы из APK и скачанные со Склада подхватываются с диска автоматически."):
                         style "mas_os_hint"
 
                     use mas_os_onoff(
