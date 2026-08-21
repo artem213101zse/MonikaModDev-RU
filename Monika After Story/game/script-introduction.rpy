@@ -1,6 +1,13 @@
 init -1 python: # ФАЙЛ ПЕРЕВЕДЕН
     import store.mas_affection as mas_aff
 label introduction:
+    $ _intro_skip = store.mas_os.intro_skip_mode()
+    if _intro_skip == "all":
+        jump mas_intro_fast_all
+    if _intro_skip == "tips":
+        jump mas_intro_fast_tips
+    show screen mas_intro_skip_btn
+
     if mas_isMonikaBirthday():
         $ persistent._mas_bday_opened_game = True
     elif mas_isD25():
@@ -182,9 +189,58 @@ label introduction:
                 m "..."
                 m 3hub "Ахаха! Ну да ладно..."
 
+    jump intro_end
+
+# Safe skip: keep required python, skip chatter.
+# Called from the in-intro button and from MAS OS skip modes.
+label mas_intro_required_setup:
+    hide screen mas_intro_skip_btn
+    hide screen mas_background_timed_jump
+    hide screen mas_py_console_teaching
+    python:
+        if store.mas_isMonikaBirthday():
+            store.persistent._mas_bday_opened_game = True
+        elif store.mas_isD25():
+            store.persistent._mas_d25_spent_d25 = True
+        if store.persistent.monika_kill is None:
+            store.persistent.monika_kill = False
+        try:
+            store.mas_ptod.ex_cn()
+        except Exception:
+            pass
+        try:
+            import os
+            _chr = os.path.normcase(
+                store.renpy.config.basedir + "/characters/monika.chr"
+            )
+            if os.access(_chr, os.F_OK):
+                os.remove(_chr)
+        except Exception:
+            pass
+        store.mas_play_song(store.songs.FP_JUST_MONIKA, set_per=True)
+    show monika at t11
+    return
+
+label mas_intro_fast_tips:
+    call mas_intro_required_setup
+    jump intro_end
+
+label mas_intro_fast_all:
+    call mas_intro_required_setup
+    if mas_isMonikaBirthday():
+        $ persistent._mas_bday_opened_game = True
+    elif mas_isD25():
+        $ persistent._mas_d25_spent_d25 = True
+    return
+
+label mas_intro_safe_skip:
+    call mas_intro_required_setup
+    jump intro_end
+
 # label for the end so we can jump to this if we timed out in the previous menu
 # we fall thru to this if not
 label intro_end:
+    hide screen mas_intro_skip_btn
     if not persistent.rejected_monika:
         m 1eub "Больше ничто и никогда не встанет на пути нашей любви."
         m 1tuu "Я уж об этом позабочусь."
@@ -239,6 +295,7 @@ label intro_ily_timedout:
 
 #Credit for any assets from Undertale belongs to Toby Fox
 label chara_monika_scare:
+    hide screen mas_intro_skip_btn
     $ persistent.rejected_monika = True
     m 1esd "Нет...?"
     m 1etc "Хмм...?"

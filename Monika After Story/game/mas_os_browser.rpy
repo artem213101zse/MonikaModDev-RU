@@ -305,16 +305,17 @@ init -5 python in mas_os:
 
 label mas_os_browser:
     $ store.mas_os.current_site = None
-    call screen mas_os_browser
+    call screen mas_os_browser with mas_os_trans
     $ store.renpy.hide_screen("mas_os_toast")
     jump mas_os_home
 
 
 transform mas_os_toast_slide:
     xoffset 420
-    easein 0.35 xoffset 0
+    alpha 0.0
+    easein 0.38 xoffset 0 alpha 1.0
     pause 4.0
-    easeout 0.35 xoffset 420
+    easeout 0.32 xoffset 420 alpha 0.0
 
 
 screen mas_os_toast():
@@ -357,9 +358,9 @@ screen mas_os_browser():
     $ url = site["url"] if site else "mas-os://home"
     $ page_body = (site.get("intro") or store.mas_os.LOREM) if site else ""
 
-    add Solid("#14070d")
+    use mas_os_bg
 
-    text _("Браузер"):
+    text _("Браузер") at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
         ypos 22

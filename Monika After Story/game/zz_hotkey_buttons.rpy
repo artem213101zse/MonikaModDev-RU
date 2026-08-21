@@ -113,21 +113,80 @@ style hkb_button_dark is generic_button_dark:
 
 style hkb_button_text is generic_button_text_light:
     kerning 0.2
+    size 16
+    align (0.5, 0.5)
+    text_align 0.5
+    layout "subtitle"
 
 style hkb_button_text_dark is generic_button_text_dark:
     kerning 0.2
+    size 16
+    align (0.5, 0.5)
+    text_align 0.5
+    layout "subtitle"
+
+style hkb_button:
+    variant "small"
+    xysize (168, 48)
+    padding (6, 8, 6, 8)
+
+style hkb_button_dark:
+    variant "small"
+    xysize (168, 48)
+    padding (6, 8, 6, 8)
+
+style hkb_button:
+    variant "touch"
+    xysize (168, 48)
+    padding (6, 8, 6, 8)
+
+style hkb_button_dark:
+    variant "touch"
+    xysize (168, 48)
+    padding (6, 8, 6, 8)
+
+style hkb_button_text:
+    variant "small"
+    size 15
+    align (0.5, 0.5)
+    text_align 0.5
+    layout "subtitle"
+
+style hkb_button_text_dark:
+    variant "small"
+    size 15
+    align (0.5, 0.5)
+    text_align 0.5
+    layout "subtitle"
+
+style hkb_button_text:
+    variant "touch"
+    size 15
+    align (0.5, 0.5)
+    text_align 0.5
+    layout "subtitle"
+
+style hkb_button_text_dark:
+    variant "touch"
+    size 15
+    align (0.5, 0.5)
+    text_align 0.5
+    layout "subtitle"
 
 screen hkb_overlay():
 
     zorder 50
     style_prefix "hkb"
 
+    $ _hkb_mobile = renpy.variant("small") or renpy.variant("touch") or renpy.mobile
+
     vbox:
         xpos 0.05
-#        xalign 0.05
         yanchor 1.0
-        ypos 715
-#        yalign 0.95
+        if _hkb_mobile:
+            ypos 0.86
+        else:
+            ypos 715
 
         if store.hkb_button.talk_enabled:
             textbutton _("Общение") action Function(show_dialogue_box)

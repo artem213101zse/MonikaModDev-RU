@@ -530,7 +530,7 @@ init 1 python:
 label mas_os_docs:
     $ store.mas_os.stop_doc_search()
     $ store.mas_os.ensure_active_doc()
-    call screen mas_os_docs
+    call screen mas_os_docs with mas_os_trans
     jump mas_os_home
 
 
@@ -543,7 +543,7 @@ screen mas_os_doc_image(path, caption=None, max_w=740, max_h=320):
 
         frame:
             xysize (max_w, max_h)
-            background Solid("#2A1018")
+            background Solid(store.mas_os.theme_color("panel2"))
             xalign 0.5
             clipping True
 
@@ -583,9 +583,9 @@ screen mas_os_docs():
     $ slide, slide_i, slide_n = store.mas_os.active_slide()
     $ slide_pos = "{0} / {1}".format(slide_i + 1, slide_n)
 
-    add Solid("#14070d")
+    use mas_os_bg
 
-    text _("Документация"):
+    text _("Документация") at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
         ypos 14
@@ -600,7 +600,7 @@ screen mas_os_docs():
                 value store.mas_os.doc_iv
                 length 40
                 copypaste True
-                color "#FFF0F7"
+                color store.mas_os.theme_color("input")
                 size 20
                 xsize 420
                 yalign 0.5
@@ -686,7 +686,7 @@ screen mas_os_docs():
                         selected (page["id"] == doc_id)
                         action Function(store.mas_os.set_active_doc, page["id"])
 
-    frame:
+    frame at store.mas_os.t_pop(0.06):
         style "mas_os_panel"
         xpos 410
         ypos 156

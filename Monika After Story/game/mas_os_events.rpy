@@ -1,5 +1,7 @@
 # MAS OS — upcoming events, synced with the wall calendar.
 
+default persistent._mas_os_events_read = []
+
 init -5 python in mas_os:
     import datetime
     import store
@@ -292,11 +294,57 @@ init -5 python in mas_os:
         rows.sort(key=lambda row: (row["days"], row["title"]))
         return rows
 
+    events_tab = "unread"
+
+    def _read_idents():
+        return list(getattr(store.persistent, "_mas_os_events_read", None) or [])
+
+    def event_is_read(ident):
+        return ident in _read_idents()
+
+    def unread_events(today=None):
+        return [row for row in upcoming_events(today) if not event_is_read(row["ident"])]
+
+    def read_events(today=None):
+        return [row for row in upcoming_events(today) if event_is_read(row["ident"])]
+
+    def tab_events(today=None):
+        if events_tab == "read":
+            return read_events(today)
+        return unread_events(today)
+
+    def unread_event_count():
+        return len(unread_events())
+
     def events_button_label():
-        n = len(upcoming_events())
+        n = unread_event_count()
         if n:
             return "События ({0})".format(n)
         return "События"
+
+    def set_events_tab(tab):
+        global events_tab
+        if tab not in ("unread", "read"):
+            tab = "unread"
+        events_tab = tab
+        ensure_active_event()
+        return None
+
+    def mark_event_read(ident):
+        global events_tab
+        if not ident:
+            return None
+        lst = _read_idents()
+        if ident not in lst:
+            lst.append(ident)
+            store.persistent._mas_os_events_read = lst
+            try:
+                store.renpy.save_persistent()
+            except Exception:
+                pass
+        events_tab = "read"
+        set_active_event(ident)
+        return None
 
     def set_active_event(ident):
         global _active_event
@@ -305,10 +353,11 @@ init -5 python in mas_os:
             if row["ident"] == ident:
                 _active_event = row
                 return
+        return None
 
     def ensure_active_event():
         global _active_event
-        rows = upcoming_events()
+        rows = tab_events()
         if not rows:
             _active_event = None
             return
@@ -324,37 +373,123 @@ init -5 python in mas_os:
     def active_event():
         return _active_event
 
+    def open_os_calendar():
+        """
+        Open the in-game MAS calendar without starting a session.
+        Returns 'calendar' so the events label can call it.
+        """
+        return "calendar"
+
 
 label mas_os_events:
     $ store.mas_os.ensure_active_event()
-    call screen mas_os_events
+    call screen mas_os_events with mas_os_trans
+    if _return == "calendar":
+        call mas_os_calendar_view
+        jump mas_os_events
     jump mas_os_home
 
 
+label mas_os_calendar_view:
+    python:
+        try:
+            store.mas_calendar.loadCalendarDatabase()
+        except Exception:
+            pass
+        if getattr(store, "mas_current_background", None) is None:
+            _os_cal_def = getattr(store, "mas_background_def", None)
+            if _os_cal_def is not None:
+                store.mas_current_background = _os_cal_def
+        try:
+            store.ui.add(store.MASCalendar(False))
+            store.ui.interact()
+        except Exception:
+            pass
+    return
+
+
 screen mas_os_events():
-    $ rows = store.mas_os.upcoming_events()
+    $ tab = store.mas_os.events_tab
+    $ rows = store.mas_os.tab_events()
+    $ unread_n = store.mas_os.unread_event_count()
+    $ read_n = len(store.mas_os.read_events())
     $ ev = store.mas_os.active_event()
     $ ev_id = ev["ident"] if ev else None
+    $ ev_unread = bool(ev) and (not store.mas_os.event_is_read(ev_id))
     $ ev_title = ev["title"] if ev else _("События")
     $ ev_meta = _("{0} · {1}").format(ev["date_s"], ev["when"]) if ev else ""
-    $ ev_body = ev["body"] if ev else _("Ближайших праздников в календаре нет.\n\nЗагляни сюда за неделю до Рождества, дня рождения Моники, Валентина или годовщины. Свои пометки с календаря тоже появятся здесь.")
+    $ empty_unread = _("Сейчас нет непрочитанных событий.\n\nКогда в календаре появится праздник, он окажется здесь с красной точкой.")
+    $ empty_read = _("Прочитанных пока нет.\n\nОткрой событие слева и нажми «Прочитать».")
+    $ empty_none = _("Ближайших праздников в календаре нет.\n\nЗагляни сюда за неделю до Рождества, дня рождения Моники, Валентина или годовщины.")
+    $ ev_body = ev["body"] if ev else (empty_none if (not unread_n and not read_n) else (empty_unread if tab == "unread" else empty_read))
+    $ cal_ic = store.mas_os.icon_path("events")
+    $ cal_wall = "mod_assets/calendar/calendar_button_normal.png"
+    $ cal_img = cal_wall if renpy.loadable(cal_wall) else cal_ic
 
-    add Solid("#14070d")
+    use mas_os_bg
 
-    text _("События"):
+    text _("События") at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
-        ypos 28
+        ypos 16
 
-    text _("Календарь на стене. Слева список, справа что делать."):
+    text _("Непрочитанное и прочитанное. Календарь — тот же, что на стене у Моники."):
         style "mas_os_hint"
         xpos 48
-        ypos 74
+        ypos 58
+
+    button:
+        xpos 1160
+        ypos 12
+        xysize (72, 72)
+        background None
+        action Return("calendar")
+        hover_sound store.mas_os.os_hover()
+        activate_sound store.mas_os.os_activate()
+
+        if cal_img:
+            add store.mas_os.fit_image(cal_img, 64, 64):
+                xalign 0.5
+                yalign 0.5
+
+    hbox:
+        xpos 48
+        ypos 88
+        spacing 8
+
+        button:
+            style "mas_os_cat_btn"
+            xsize 200
+            selected (tab == "unread")
+            action Function(store.mas_os.set_events_tab, "unread")
+
+            hbox:
+                spacing 8
+                xalign 0.5
+                yalign 0.5
+
+                if unread_n:
+                    frame:
+                        xysize (10, 10)
+                        background Solid("#FF3B5C")
+                        yalign 0.5
+
+                text _("Непрочитанное ({0})").format(unread_n):
+                    style "mas_os_cat_btn_text"
+
+        button:
+            style "mas_os_cat_btn"
+            xsize 200
+            selected (tab == "read")
+            action Function(store.mas_os.set_events_tab, "read")
+
+            text _("Прочитанное ({0})").format(read_n):
+                style "mas_os_cat_btn_text"
 
     viewport:
         xpos 48
-        ypos 110
-        xysize (340, 500)
+        ypos 140
+        xysize (340, 470)
         draggable True
         mousewheel True
         scrollbars "vertical"
@@ -364,35 +499,74 @@ screen mas_os_events():
 
             if rows:
                 for row in rows:
-                    textbutton "{0}\n{1}".format(row["title"], row["when"]):
+                    $ is_unread = not store.mas_os.event_is_read(row["ident"])
+                    button:
                         style "mas_os_side_btn"
-                        text_style "mas_os_side_btn_text"
                         selected (row["ident"] == ev_id)
                         action Function(store.mas_os.set_active_event, row["ident"])
+                        hover_sound store.mas_os.os_hover()
+                        activate_sound store.mas_os.os_activate()
+
+                        hbox:
+                            spacing 8
+                            yalign 0.5
+                            xoffset 10
+
+                            if is_unread:
+                                frame:
+                                    xysize (10, 10)
+                                    background Solid("#FF3B5C")
+                                    yalign 0.5
+                            else:
+                                null:
+                                    xsize 10
+                                    ysize 10
+
+                            vbox:
+                                spacing 0
+
+                                text row["title"]:
+                                    style "mas_os_side_btn_text"
+                                    substitute False
+
+                                text row["when"]:
+                                    style "mas_os_hint"
+                                    size 13
+                                    substitute False
             else:
                 text _("Пока пусто"):
                     style "mas_os_hint"
 
-    frame:
+    frame at store.mas_os.t_pop(0.06):
         style "mas_os_panel"
         xpos 410
-        ypos 110
-        xysize (822, 500)
-        padding (24, 20)
+        ypos 140
+        xysize (822, 470)
+        padding (24, 18)
 
         vbox:
             spacing 8
             xfill True
 
-            text ev_title:
-                style "mas_os_subtitle"
+            hbox:
+                spacing 8
+
+                if ev_unread:
+                    frame:
+                        xysize (12, 12)
+                        background Solid("#FF3B5C")
+                        yalign 0.5
+
+                text ev_title:
+                    style "mas_os_subtitle"
+                    substitute False
 
             if ev_meta:
                 text ev_meta:
                     style "mas_os_hint"
 
             viewport:
-                xysize (774, 400)
+                xysize (774, 320)
                 draggable True
                 mousewheel True
                 scrollbars "vertical"
@@ -401,12 +575,24 @@ screen mas_os_events():
                     style "mas_os_body"
                     xsize 740
 
-    textbutton _("Назад"):
-        style "mas_os_nav_btn"
-        text_style "mas_os_nav_btn_text"
+            if ev and ev_unread:
+                textbutton _("Прочитать"):
+                    style "mas_os_nav_btn"
+                    text_style "mas_os_nav_btn_text"
+                    xsize 220
+                    action Function(store.mas_os.mark_event_read, ev_id)
+
+    hbox:
         xpos 48
         ypos 640
-        action Return("back")
+        spacing 12
+
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            action Return("back")
+
+        use mas_os_ibutton(_("Календарь"), Return("calendar"), "Кл", "#C94A7A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, icon="events")
 
     key "K_ESCAPE" action Return("back")
     key "K_AC_BACK" action Return("back")

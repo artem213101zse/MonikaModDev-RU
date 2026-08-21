@@ -168,6 +168,8 @@ image tos2 = "bg/warning2.png"
 label splashscreen:
     # MAS OS must run BEFORE session/affection startup.
     # Visiting the shell is not a MAS session.
+    if store.mas_os.needs_setup():
+        call mas_os_setup
     if store.mas_os.can_show():
         call mas_os_shell
 

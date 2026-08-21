@@ -126,13 +126,41 @@ init -5 python in mas_os:
         ext = os.path.splitext(name)[1].lower()
         return ext in TEXT_EXTS or ext == ""
 
+    def fm_icon_for(name, is_dir):
+        if is_dir:
+            return "files"
+        ext = os.path.splitext(name or "")[1].lower()
+        if ext in (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"):
+            return "gallery"
+        if ext in (".mp3", ".ogg", ".wav", ".opus", ".flac"):
+            return "sound"
+        if ext in (".ttf", ".otf"):
+            return "font"
+        if ext in (".zip", ".rpa", ".rpyc"):
+            return "data"
+        if ext == ".gift":
+            return "gifts"
+        if ext in (".rpy", ".py"):
+            return "submods"
+        if fm_is_text(name):
+            return "file-text"
+        return "file-text"
+
     def fm_list():
         cwd = fm_cwd or game_dir()
         items = []
         try:
             names = os.listdir(cwd)
         except Exception as err:
-            return [{"name": "..", "dir": True, "label": _(".. (вверх)"), "meta": "", "path": cwd}]
+            return [{
+                "name": "..",
+                "dir": True,
+                "label": _(".. (вверх)"),
+                "meta": "",
+                "path": cwd,
+                "icon": "folder-up",
+                "ipath": icon_path("folder-up"),
+            }]
 
         for name in names:
             path = os.path.join(cwd, name)
@@ -143,14 +171,16 @@ init -5 python in mas_os:
                     meta = _fmt_size(os.path.getsize(path))
                 except Exception:
                     meta = "?"
-            kind = "D" if is_dir else "F"
             ui_name = name.replace("[", "[[").replace("{", "{{")
+            iname = fm_icon_for(name, is_dir)
             items.append({
                 "name": name,
                 "dir": is_dir,
                 "path": _abs(path),
                 "meta": meta,
-                "label": "{0}  {1}".format(kind, ui_name),
+                "icon": iname,
+                "ipath": icon_path(iname),
+                "label": ui_name,
             })
         items.sort(key=lambda row: (not row["dir"], row["name"].lower()))
         return items
@@ -494,10 +524,12 @@ screen mas_os_files():
     $ cwd_label = store.mas_os.fm_rel()
     $ status = store.mas_os.fm_status
     $ at_root = store.mas_os.fm_is_root()
+    $ del_icon = store.mas_os.icon_path("delete")
+    $ up_icon = store.mas_os.icon_path("folder-up")
 
-    add Solid("#14070d")
+    use mas_os_bg
 
-    text _("Файлы"):
+    text _("Файлы") at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
         ypos 16
@@ -561,12 +593,24 @@ screen mas_os_files():
         ypos 136
         spacing 8
 
-        textbutton _(".. вверх"):
+        button:
             style "mas_os_nav_btn"
-            text_style "mas_os_nav_btn_text"
-            xsize 140
+            xsize 160
+            ysize 44
             sensitive (not at_root)
             action MASOSFn(store.mas_os.fm_go_parent)
+
+            hbox:
+                spacing 8
+                xalign 0.5
+                yalign 0.5
+
+                if up_icon:
+                    add store.mas_os.fit_image(up_icon, 22, 22):
+                        yalign 0.5
+                text _("вверх"):
+                    style "mas_os_nav_btn_text"
+                    yalign 0.5
 
         textbutton _("Папка"):
             style "mas_os_nav_btn"
@@ -599,31 +643,57 @@ screen mas_os_files():
                     hbox:
                         spacing 8
 
-                        textbutton item["label"]:
+                        button:
                             style "mas_os_side_btn"
-                            text_style "mas_os_side_btn_text"
-                            xsize 900
-                            ysize 44
-                            substitute False
+                            xsize 980
+                            ysize 48
+                            padding (8, 6)
                             action MASOSFMOpen(item["name"], item["dir"])
 
-                        if item["meta"]:
-                            text item["meta"]:
-                                style "mas_os_hint"
+                            hbox:
+                                spacing 12
                                 yalign 0.5
-                                xsize 80
+                                xoffset 8
 
-                        textbutton _("X"):
+                                if item["ipath"]:
+                                    add store.mas_os.fit_image(item["ipath"], 32, 32):
+                                        yalign 0.5
+                                else:
+                                    frame:
+                                        xysize (32, 32)
+                                        background Solid("#3A1524")
+                                        yalign 0.5
+
+                                text item["label"]:
+                                    style "mas_os_side_btn_text"
+                                    yalign 0.5
+                                    substitute False
+
+                                if item["meta"]:
+                                    text item["meta"]:
+                                        style "mas_os_hint"
+                                        yalign 0.5
+
+                        button:
                             style "mas_os_nav_btn"
-                            text_style "mas_os_nav_btn_text"
-                            xsize 50
-                            ysize 44
+                            xsize 48
+                            ysize 48
                             action Show(
                                 "mas_os_confirm",
                                 message="Удалить {0}?".format(item["name"].replace("[", "[[").replace("{", "{{")),
                                 yes_action=[MASOSFn(store.mas_os.fm_delete, item["name"]), Hide("mas_os_confirm")],
                                 no_action=Hide("mas_os_confirm")
                             )
+
+                            if del_icon:
+                                add store.mas_os.fit_image(del_icon, 24, 24):
+                                    xalign 0.5
+                                    yalign 0.5
+                            else:
+                                text _("X"):
+                                    style "mas_os_nav_btn_text"
+                                    xalign 0.5
+                                    yalign 0.5
 
     if status:
         text status:
@@ -647,9 +717,9 @@ screen mas_os_fm_prompt():
     modal True
     zorder 320
 
-    add Solid("#000000B2")
+    add Solid("#000000B2") at mas_os_dim
 
-    frame:
+    frame at store.mas_os.t_modal():
         style "mas_os_panel"
         xalign 0.5
         yalign 0.5
@@ -673,7 +743,7 @@ screen mas_os_fm_prompt():
                 value MASOSAttrInputValue("fm_name")
                 length 40
                 copypaste True
-                color "#FFF0F7"
+                color store.mas_os.theme_color("input")
                 size 22
                 xalign 0.5
 
@@ -702,9 +772,9 @@ screen mas_os_fm_view():
     $ status = store.mas_os.fm_status
     $ fname = store.mas_os.fm_edit_name or _("файл")
 
-    add Solid("#14070d")
+    use mas_os_bg
 
-    text fname:
+    text fname at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
         ypos 16
@@ -788,9 +858,9 @@ screen mas_os_fm_edit():
     $ line_no = (idx + 1) if idx >= 0 else 0
     $ line_hint = _("Строка {0} из {1}. Нажми строку, потом поле ввода.").format(line_no, nlines)
 
-    add Solid("#14070d")
+    use mas_os_bg
 
-    text fname:
+    text fname at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
         ypos 16
@@ -851,7 +921,7 @@ screen mas_os_fm_edit():
                         input:
                             value store.mas_os.fm_line_iv
                             copypaste True
-                            color "#FFF0F7"
+                            color store.mas_os.theme_color("input")
                             size 18
                             xsize 620
                             yalign 0.5

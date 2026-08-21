@@ -423,7 +423,7 @@ label mas_os_data:
     $ store.mas_os.data_status = ""
     if not store.mas_os.data_selected:
         $ store.mas_os.data_selected = "persistent"
-    call screen mas_os_data
+    call screen mas_os_data with mas_os_trans
     jump mas_os_home
 
 
@@ -445,9 +445,9 @@ screen mas_os_data():
     $ d_last = ("Последняя: " + sel["last"]) if sel else ""
     $ d_file = ("Файл: " + sel["mtime"] + "  " + sel["size"]) if sel else ""
 
-    add Solid("#14070d")
+    use mas_os_bg
 
-    text _("Данные"):
+    text _("Данные") at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
         ypos 18

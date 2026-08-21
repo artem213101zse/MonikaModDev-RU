@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Проверенные сабмоды MAS OS",
+  "updated": "2026-08-21",
+  "items": [
+    {
+      "id": "example-submod",
+      "name": "Example Submod",
+      "author": "Author",
+      "version": "1.0.0",
+      "description": "Пример записи. url — прямая ссылка на zip (GitHub archive или release).",
+      "mas": "0.12.18",
+      "url": "https://github.com/user/repo/archive/refs/heads/main.zip",
+      "kind": "auto",
+      "notes": "kind: auto | overlay | submod. overlay = в zip есть папка game/ (Submods, mod_assets, python-packages)."
+    }
+  ]
+}

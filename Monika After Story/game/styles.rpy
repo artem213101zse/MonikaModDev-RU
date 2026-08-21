@@ -222,6 +222,16 @@ init python:
         # Reset the global flag
         mas_globals.change_textbox = True
 
+        try:
+            store.mas_os.apply_textbox()
+        except Exception:
+            pass
+
+        try:
+            store.mas_os.apply_font()
+        except Exception:
+            pass
+
         style.rebuild()
 
 # START: Settings menu helpers
@@ -290,6 +300,20 @@ style generic_button_text_base:
     size gui.text_size
     align (0.5, 0.1)
     outlines []
+
+style generic_button_text_base:
+    variant "small"
+    size 16
+    align (0.5, 0.5)
+    text_align 0.5
+    layout "subtitle"
+
+style generic_button_text_base:
+    variant "touch"
+    size 16
+    align (0.5, 0.5)
+    text_align 0.5
+    layout "subtitle"
 
 style generic_button_text_light is generic_button_text_base:
     idle_color mas_ui.light_button_text_idle_color

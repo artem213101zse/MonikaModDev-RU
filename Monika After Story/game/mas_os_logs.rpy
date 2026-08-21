@@ -142,7 +142,7 @@ init -5 python in mas_os:
 
 label mas_os_logs:
     $ store.mas_os.ensure_active_log()
-    call screen mas_os_logs
+    call screen mas_os_logs with mas_os_trans
     jump mas_os_home
 
 
@@ -158,9 +158,9 @@ screen mas_os_logs():
     $ log_text = log["text"] if log else _("Логов пока нет.")
     $ log_chunks = store.mas_os.log_chunks(log_text)
 
-    add Solid("#14070d")
+    use mas_os_bg
 
-    text _("Логи"):
+    text _("Логи") at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
         ypos 22
