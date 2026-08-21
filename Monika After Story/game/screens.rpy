@@ -542,14 +542,6 @@ style say_dialogue is default:
     justify False
     adjust_spacing False
 
-style say_dialogue:
-    variant "small"
-    size 22
-
-style say_dialogue:
-    variant "touch"
-    size 22
-
 style say_thought is say_dialogue
 
 image ctc:
@@ -673,42 +665,6 @@ screen rigged_choice(items):
 style talk_choice_vbox is choice_vbox:
     xcenter 960
 
-style talk_choice_vbox:
-    variant "small"
-    xcenter 0.72
-    ypos 250
-    spacing 6
-
-style talk_choice_vbox:
-    variant "touch"
-    xcenter 0.72
-    ypos 250
-    spacing 6
-
-style choice_button:
-    variant "small"
-    xysize (520, None)
-    padding (28, 8, 28, 8)
-
-style choice_button_dark:
-    variant "small"
-    xysize (520, None)
-    padding (28, 8, 28, 8)
-
-style choice_button_text:
-    variant "small"
-    size 18
-    align (0.5, 0.5)
-    text_align 0.5
-    layout "subtitle"
-
-style choice_button_text_dark:
-    variant "small"
-    size 18
-    align (0.5, 0.5)
-    text_align 0.5
-    layout "subtitle"
-
 style talk_choice_button is choice_button
 
 style talk_choice_button_dark is choice_button_dark
@@ -733,8 +689,8 @@ screen talk_choice(items):
         button:
             style "mas_os_talk_btn"
             xpos 36
-            ypos (24 if (renpy.variant("small") or renpy.mobile) else 36)
-            xysize ((168, 48) if (renpy.variant("small") or renpy.mobile) else (_os_w, _os_h))
+            ypos 36
+            xysize (_os_w, _os_h)
             idle_background store.mas_os.TALK_IDLE
             hover_background store.mas_os.TALK_HOVER
             selected_background store.mas_os.TALK_HOVER
@@ -774,10 +730,7 @@ screen quick_menu():
             style_prefix "quick"
 
             xalign 0.5
-            if renpy.variant("small") or renpy.variant("touch") or renpy.mobile:
-                yalign 0.92
-            else:
-                yalign 0.995
+            yalign 0.995
 
             #textbutton _("Back") action Rollback()
 
@@ -818,20 +771,6 @@ style quick_button_dark:
 style quick_button_text:
     properties gui.button_text_properties("quick_button")
     outlines []
-    size 14
-    align (0.5, 0.5)
-
-style quick_button_text:
-    variant "small"
-    size 13
-    outlines []
-    align (0.5, 0.5)
-
-style quick_button_text:
-    variant "touch"
-    size 13
-    outlines []
-    align (0.5, 0.5)
 
 style quick_button_text_dark:
     properties gui.button_text_properties("quick_button_dark")

@@ -449,8 +449,12 @@ init -10 python in mas_os:
         "dialogue": (
             "default", "normal", "say_dialogue", "gui_text",
             "button_text", "button_text_dark",
+            "generic_button_text_base",
+            "generic_button_text_light", "generic_button_text_dark",
+            "quick_button_text", "quick_button_text_dark",
             "choice_button_text", "choice_button_text_dark",
             "talk_choice_button_text", "talk_choice_button_text_dark",
+            "hkb_button_text", "hkb_button_text_dark",
             "label_text", "label_text_dark",
             "mas_os_title", "mas_os_subtitle", "mas_os_hint", "mas_os_body",
             "mas_os_stat_state", "mas_os_launch_text", "mas_os_tile_text",
@@ -551,94 +555,26 @@ init -10 python in mas_os:
                 except Exception:
                     pass
 
-    _COMPACT_STYLES = (
-        "hkb_button_text", "hkb_button_text_dark",
-        "mas_os_talk_btn_text",
-        "quick_button_text", "quick_button_text_dark",
-        "generic_button_text_base",
-        "generic_button_text_light", "generic_button_text_dark",
-    )
-
     def apply_font():
         """
         Apply all font slots. CJK fallbacks stay in the FontGroup.
-        Tight in-game buttons (hkb 120×35, quick menu) keep a latin-only
-        font: FontGroup CJK metrics overflow those boxes on phones.
         """
         dlg_path = font_latin_path("dialogue")
-        mobile = False
-        try:
-            mobile = is_touch()
-        except Exception:
-            mobile = False
-        if mobile and "variable" in (dlg_path or "").lower():
-            dlg_path = "gui/font/Aller_Rg.ttf"
         try:
             dlg_fg = _fontgroup(dlg_path)
         except Exception:
             return
 
-        compact_font = dlg_path
-        if mobile and "variable" in (compact_font or "").lower():
-            compact_font = "gui/font/Aller_Rg.ttf"
-
         old_dlg = _font_prev.get("dialogue")
         if old_dlg is None:
             old_dlg = store.gui.default_font
         _retarget_font(old_dlg, dlg_fg)
+        _retarget_font("gui/font/Aller_Rg.ttf", dlg_fg)
         store.gui.default_font = dlg_fg
         store.gui.interface_font = dlg_fg
-        store.gui.button_text_font = compact_font
+        store.gui.button_text_font = dlg_fg
         store.gui.choice_button_text_font = dlg_fg
         _set_styles_font(_FONT_STYLES["dialogue"], dlg_fg)
-        _set_styles_font(_COMPACT_STYLES, compact_font)
-        for name, size in (
-            ("hkb_button_text", 16),
-            ("hkb_button_text_dark", 16),
-            ("mas_os_talk_btn_text", 14),
-        ):
-            st = getattr(store.style, name, None)
-            if st is None:
-                continue
-            try:
-                st.size = size
-                st.align = (0.5, 0.5)
-            except Exception:
-                pass
-        if mobile:
-            for name, size in (
-                ("hkb_button_text", 15),
-                ("hkb_button_text_dark", 15),
-                ("mas_os_talk_btn_text", 13),
-                ("quick_button_text", 13),
-                ("quick_button_text_dark", 13),
-                ("generic_button_text_base", 16),
-                ("generic_button_text_light", 16),
-                ("generic_button_text_dark", 16),
-            ):
-                st = getattr(store.style, name, None)
-                if st is None:
-                    continue
-                try:
-                    st.size = size
-                    st.align = (0.5, 0.5)
-                    st.text_align = 0.5
-                except Exception:
-                    pass
-            for name in ("hkb_button", "hkb_button_dark"):
-                st = getattr(store.style, name, None)
-                if st is None:
-                    continue
-                try:
-                    st.xysize = (168, 48)
-                    st.padding = (6, 8, 6, 8)
-                except Exception:
-                    pass
-            try:
-                if getattr(store.gui, "text_size", 24) > 24:
-                    store.gui.text_size = 22
-            except Exception:
-                pass
         _font_prev["dialogue"] = dlg_fg
 
         menu_path = font_latin_path("menu")
@@ -2075,20 +2011,6 @@ style mas_os_talk_btn_text:
     outlines []
     text_align 0.5
     align (0.5, 0.5)
-    layout "subtitle"
-
-style mas_os_talk_btn_text:
-    variant "small"
-    size 13
-    align (0.5, 0.5)
-    text_align 0.5
-    layout "subtitle"
-
-style mas_os_talk_btn_text:
-    variant "touch"
-    size 13
-    align (0.5, 0.5)
-    text_align 0.5
     layout "subtitle"
 
 style mas_os_button is generic_button_dark:

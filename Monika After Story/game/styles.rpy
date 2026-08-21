@@ -301,20 +301,6 @@ style generic_button_text_base:
     align (0.5, 0.1)
     outlines []
 
-style generic_button_text_base:
-    variant "small"
-    size 16
-    align (0.5, 0.5)
-    text_align 0.5
-    layout "subtitle"
-
-style generic_button_text_base:
-    variant "touch"
-    size 16
-    align (0.5, 0.5)
-    text_align 0.5
-    layout "subtitle"
-
 style generic_button_text_light is generic_button_text_base:
     idle_color mas_ui.light_button_text_idle_color
     hover_color mas_ui.light_button_text_hover_color
