@@ -1,5 +1,54 @@
 # MAS OS — Settings (category sidebar) and About (link cards).
 
+init python:
+    class MASOSTintBarValue(BarValue):
+        def __init__(self, channel):
+            self.channel = channel
+
+        def get_adjustment(self):
+            if self.channel == 3:
+                return ui.adjustment(
+                    value=store.mas_os.tb_strength(),
+                    range=100,
+                    changed=store.mas_os.set_tb_strength,
+                    step=1,
+                )
+            rgb = store.mas_os.tb_rgb()
+            ch = self.channel
+
+            def _changed(value, channel=ch):
+                store.mas_os.set_tb_rgb_channel(channel, value)
+
+            return ui.adjustment(
+                value=rgb[ch] if ch in (0, 1, 2) else 0,
+                range=255,
+                changed=_changed,
+                step=1,
+            )
+
+
+screen mas_os_rgb_bar(caption, channel, shown, rng):
+    vbox:
+        spacing 4
+        xfill True
+
+        hbox:
+            xfill True
+
+            text caption:
+                style "mas_os_hint"
+
+            text "{0}".format(shown):
+                style "mas_os_hint"
+                xalign 1.0
+
+        bar:
+            value MASOSTintBarValue(channel)
+            xsize 760
+            ysize 20
+            style "mas_os_bar"
+
+
 init -5 python in mas_os:
     import store
 
@@ -216,17 +265,18 @@ screen mas_os_settings():
 
     use mas_os_bg
 
-    text _("Настройки") at store.mas_os.t_pop(0.0):
+    text _("Настройки"):
         style "mas_os_title"
         xpos 48
         ypos 16
 
-    text _("Слева разделы, справа параметры. То, что уже работает в оболочке.") at store.mas_os.t_pop(0.04):
+    text _("Слева разделы, справа параметры. То, что уже работает в оболочке."):
         style "mas_os_hint"
         xpos 48
         ypos 58
 
     viewport:
+        id "mas_os_settings_cats"
         xpos 48
         ypos 100
         xysize (340, 510)
@@ -268,7 +318,7 @@ screen mas_os_settings():
                             style "mas_os_side_btn_text"
                             yalign 0.5
 
-    frame at store.mas_os.t_pop(0.06):
+    frame:
         style "mas_os_panel"
         xpos 410
         ypos 100
@@ -276,6 +326,8 @@ screen mas_os_settings():
         padding (20, 16)
 
         viewport:
+            id "mas_os_settings_body"
+            yadjustment store.mas_os.settings_scroll()
             xysize (782, 478)
             draggable True
             mousewheel True
@@ -310,6 +362,14 @@ screen mas_os_settings():
                         _("Подтверждение на главной, когда жмёшь «Выключение» или назад."),
                         "_mas_os_quit_confirm",
                     )
+
+                    text _("Заставка MAS OS"):
+                        style "mas_os_subtitle"
+
+                    text _("Ролик при входе в оболочку. «Тест» показывает его и возвращает сюда. На заглушках уже крутится — свои PNG просто перезапиши."):
+                        style "mas_os_hint"
+
+                    use mas_os_boot_splash_picker(width=760)
 
                     text _("Первое вступление Моники"):
                         style "mas_os_subtitle"
@@ -473,7 +533,7 @@ screen mas_os_settings():
                     text _("Цвет текстбокса"):
                         style "mas_os_subtitle"
 
-                    text _("Меняется и в оболочке, и у Моники. Светлая тема пока без отдельных файлов."):
+                    text _("Готовые картинки или свой цвет ниже — без Photoshop. Меняется у Моники и в оболочке."):
                         style "mas_os_hint"
 
                     $ tb_cur = store.mas_os.textbox_id()
@@ -505,6 +565,82 @@ screen mas_os_settings():
 
                     use mas_os_store_link("textbox", "settings")
 
+                    text _("Свой цвет поверх текстбокса"):
+                        style "mas_os_subtitle"
+
+                    text _("Ren'Py красит стандартную картинку по контуру (прозрачность PNG). Photoshop больше не нужен. Кнопки в игре могут взять тот же цвет."):
+                        style "mas_os_hint"
+
+                    use mas_os_onoff(
+                        _("Включить свой цвет"),
+                        _("Наложить выбранный цвет на обычный текстбокс."),
+                        "_mas_os_tb_tint_on",
+                    )
+
+                    use mas_os_onoff(
+                        _("Кнопки и UI в цвет текстбокса"),
+                        _("Общение / Экстра / меню выбора / имя в текстбоксе."),
+                        "_mas_os_ui_match",
+                    )
+
+                    $ tb_hex = store.mas_os.tb_hex()
+                    $ tb_str = store.mas_os.tb_strength()
+                    $ tb_rgb = store.mas_os.tb_rgb()
+                    $ tb_prev = store.mas_os.textbox_preview()
+
+                    frame:
+                        style "mas_os_panel"
+                        background Solid(store.mas_os.theme_color("panel2"))
+                        xsize 760
+                        ysize 92
+                        padding (8, 8)
+                        clipping True
+
+                        add Transform(tb_prev, zoom=0.55):
+                            xalign 0.5
+                            yalign 1.0
+
+                    text _("Палитра"):
+                        style "mas_os_hint"
+
+                    grid 6 2:
+                        spacing 8
+                        xsize 760
+
+                        for hexc, title in store.mas_os.TINT_PRESETS:
+                            button:
+                                style "mas_os_nav_btn"
+                                xysize (118, 44)
+                                selected (hexc == tb_hex and store.mas_os.tb_tint_on())
+                                hover_sound store.mas_os.os_hover()
+                                activate_sound store.mas_os.os_activate()
+                                action Function(store.mas_os.set_tb_tint, hexc)
+
+                                hbox:
+                                    spacing 6
+                                    xalign 0.5
+                                    yalign 0.5
+
+                                    frame:
+                                        xysize (16, 16)
+                                        background Solid(hexc)
+                                        yalign 0.5
+
+                                    text title:
+                                        style "mas_os_nav_btn_text"
+                                        size 13
+                                        yalign 0.5
+                                        substitute False
+
+                    use mas_os_rgb_bar(_("R"), 0, tb_rgb[0], 255)
+                    use mas_os_rgb_bar(_("G"), 1, tb_rgb[1], 255)
+                    use mas_os_rgb_bar(_("B"), 2, tb_rgb[2], 255)
+                    use mas_os_rgb_bar(_("Сила"), 3, tb_str, 100)
+
+                    text _("Текущий цвет {0}  ·  сила {1}%").format(tb_hex, tb_str):
+                        style "mas_os_hint"
+                        substitute False
+
                     text _("Шрифты"):
                         style "mas_os_subtitle"
 
@@ -525,7 +661,7 @@ screen mas_os_settings():
 
                     use mas_os_onoff(
                         _("Кнопка MAS OS в «Эй, Моника…»"),
-                        _("Картинка-кнопка слева сверху на экране разговора."),
+                        _("Радужная кнопка слева сверху на экране разговора."),
                         "_mas_os_talk_btn",
                     )
 
@@ -702,6 +838,28 @@ screen mas_os_about():
                 xsize 360
                 spacing 8
 
+                hbox:
+                    spacing 12
+
+                    fixed at mas_os_logo_breathe:
+                        xysize (56, 56)
+                        use mas_os_logo_mark(max_w=56, max_h=56)
+
+                    vbox:
+                        spacing 2
+                        yalign 0.5
+
+                        text store.mas_os.STUDIO:
+                            style "mas_os_studio_title"
+                            substitute False
+
+                        text store.mas_os.STUDIO_LONG:
+                            style "mas_os_hint"
+                            size 13
+                            substitute False
+
+                        use mas_os_powered_line(size=13)
+
                 text _("Сборка"):
                     style "mas_os_subtitle"
 
@@ -710,9 +868,6 @@ screen mas_os_about():
 
                 text _("Сенсорный ввод: [touch]"):
                     style "mas_os_body"
-
-                text _("Картинки на кнопках — заглушки из игры. Позже заменишь своими."):
-                    style "mas_os_hint"
 
                 textbutton _("Открыть логи"):
                     style "mas_os_nav_btn"

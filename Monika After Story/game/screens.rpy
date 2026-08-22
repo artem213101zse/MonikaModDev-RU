@@ -682,30 +682,9 @@ screen talk_choice(items):
         for i in items:
             textbutton i.caption action i.action
 
-    # Image button; hitbox is TALK_SIZE so it cannot cover the talk list.
-    # Swap TALK_IDLE / TALK_HOVER / TALK_SIZE in mas_os when custom art is ready.
+    # Kurokawa chip + rainbow frame. Art lives in mod_assets/mas_os/brand/.
     if not mas_in_finalfarewell_mode and store.mas_os.flag("_mas_os_talk_btn", True):
-        $ _os_w, _os_h = store.mas_os.TALK_SIZE
-        button:
-            style "mas_os_talk_btn"
-            xpos 36
-            ypos 36
-            xysize (_os_w, _os_h)
-            idle_background store.mas_os.TALK_IDLE
-            hover_background store.mas_os.TALK_HOVER
-            selected_background store.mas_os.TALK_HOVER
-            if store.mas_os.flag("_mas_os_return_confirm", True):
-                action Show(
-                    screen="mas_os_confirm",
-                    message=store.mas_os.RETURN_CONFIRM,
-                    yes_action=Function(store.mas_os.return_to_shell),
-                    no_action=Hide("mas_os_confirm")
-                )
-            else:
-                action Function(store.mas_os.return_to_shell)
-
-            if store.mas_os.TALK_LABEL:
-                text store.mas_os.TALK_LABEL style "mas_os_talk_btn_text"
+        use mas_os_return_chip(xpos=28, ypos=28)
 
 
 ## When this is true, menu captions will be spoken by the narrator. When false,
@@ -945,15 +924,9 @@ screen navigation():
         # Port shell. Lives in the game menu (not talk/extras): it's a system
         # exit, same place players look for Settings / fake Main Menu.
         if not mas_in_finalfarewell_mode and store.mas_os.flag("_mas_os_menu_btn", True):
-            if store.mas_os.flag("_mas_os_return_confirm", True):
-                textbutton _("MAS OS") action Show(
-                    screen="mas_os_confirm",
-                    message=store.mas_os.RETURN_CONFIRM,
-                    yes_action=Function(store.mas_os.return_to_shell),
-                    no_action=Hide("mas_os_confirm")
-                )
-            else:
-                textbutton _("MAS OS") action Function(store.mas_os.return_to_shell)
+            textbutton _("MAS OS"):
+                text_style "navigation_mas_os_button_text"
+                action store.mas_os.return_to_shell_action()
 
         textbutton _("Настройки") action [ShowMenu("preferences"), SensitiveIf(renpy.get_screen("preferences") == None)]
 
@@ -1007,6 +980,12 @@ style navigation_button_text_dark is gui_button_text_dark:
     outlines [(4, "#DE367E", 0, 0), (2, "#DE367E", 2, 2)]
     hover_outlines [(4, "#FF80B7", 0, 0), (2, "#FF80B7", 2, 2)]
     insensitive_outlines [(4, "#FFB2D4", 0, 0), (2, "#FFB2D4", 2, 2)]
+
+style navigation_mas_os_button_text is navigation_button_text:
+    color "#FFF4C8"
+    outlines [(4, "#5A1A8A", 0, 0), (2, "#FF4FA3", 2, 2)]
+    hover_outlines [(4, "#146868", 0, 0), (2, "#3DFFF0", 2, 2)]
+    insensitive_outlines [(4, "#8A6A4A", 0, 0), (2, "#8A6A4A", 2, 2)]
 
 ## Main Menu screen ############################################################
 ##

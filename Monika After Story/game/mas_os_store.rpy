@@ -38,6 +38,11 @@ init -5 python in mas_os:
     except Exception:
         zlib = None
 
+    try:
+        import struct
+    except Exception:
+        struct = None
+
     DL_MAX = 32 * 1024 * 1024
     DL_TIMEOUT = 90
     DL_UA = (
@@ -411,6 +416,271 @@ init -5 python in mas_os:
             return True
         return False
 
+    def _bytes_io(data):
+        """
+        Binary buffer for ZipFile. Python 2 StringIO.StringIO is text-mode
+        and seek() on GitHub zips yields 'Bad magic number for file header'.
+        io.BytesIO / cStringIO keep raw bytes.
+        """
+        try:
+            from io import BytesIO
+            return BytesIO(data)
+        except Exception:
+            pass
+        try:
+            import cStringIO
+            return cStringIO.StringIO(data)
+        except Exception:
+            pass
+        import StringIO
+        return StringIO.StringIO(data)
+
+    def _open_zip(data):
+        if zipfile is None:
+            raise Exception("zip не поддерживается")
+        payload = data
+        fixer = globals().get("_zip_payload")
+        if fixer is not None:
+            try:
+                payload = fixer(data)
+            except Exception:
+                payload = data
+        return zipfile.ZipFile(_bytes_io(payload), allowZip64=True)
+
+    def _zip_read_info(zf, info):
+        try:
+            try:
+                return zf.read(info)
+            except Exception:
+                return zf.read(info.filename)
+        except Exception:
+            return _zip_read_raw(zf, info)
+
+    def _zip_read_raw(zf, info):
+        if struct is None or getattr(zf, "fp", None) is None:
+            raise Exception("не прочитать файл из zip")
+        fp = zf.fp
+        fp.seek(info.header_offset)
+        hdr = fp.read(30)
+        if len(hdr) < 30 or hdr[:4] != "PK\x03\x04":
+            raise Exception("zip повреждён (локальный заголовок)")
+        fnlen, extra_len = struct.unpack("<HH", hdr[26:30])
+        fp.read(fnlen + extra_len)
+        payload = fp.read(info.compress_size)
+        if info.compress_type in (0, getattr(zipfile, "ZIP_STORED", 0)):
+            return payload
+        if info.compress_type in (8, getattr(zipfile, "ZIP_DEFLATED", 8)):
+            if zlib is None:
+                raise Exception("нет zlib для распаковки zip")
+            return zlib.decompress(payload, -15)
+        raise Exception("метод сжатия zip {0} не поддерживается".format(info.compress_type))
+
+    def _zip_inflate(method, payload):
+        if method in (0, getattr(zipfile, "ZIP_STORED", 0) if zipfile else 0):
+            return payload
+        if method in (8, getattr(zipfile, "ZIP_DEFLATED", 8) if zipfile else 8):
+            if zlib is None:
+                raise Exception("нет zlib для распаковки zip")
+            return zlib.decompress(payload, -15)
+        raise Exception("метод сжатия zip {0} не поддерживается".format(method))
+
+    def _zip_scan_members(data, log=None):
+        """
+        Walk local file headers in order. Python 2.7 ZipFile mis-parses
+        GitHub extras (0x7875 ux + 0x5455 UT) and then header_offset is wrong.
+        """
+        if struct is None or not data:
+            return []
+        out = []
+        pos = 0
+        n = len(data)
+        while pos + 30 <= n:
+            sig = data[pos:pos + 4]
+            if sig in ("PK\x01\x02", "PK\x05\x06", "PK\x06\x06"):
+                break
+            if sig != "PK\x03\x04":
+                nxt = data.find("PK\x03\x04", pos + 1)
+                if nxt < 0:
+                    break
+                pos = nxt
+                continue
+            flags = struct.unpack_from("<H", data, pos + 6)[0]
+            method = struct.unpack_from("<H", data, pos + 8)[0]
+            csize = struct.unpack_from("<I", data, pos + 18)[0]
+            fnlen, extra_len = struct.unpack_from("<HH", data, pos + 26)
+            fn_start = pos + 30
+            if fn_start + fnlen > n:
+                break
+            raw_name = data[fn_start:fn_start + fnlen]
+            try:
+                name = raw_name.decode("utf-8")
+            except Exception:
+                try:
+                    name = raw_name.decode("latin-1")
+                except Exception:
+                    name = raw_name
+            name = name.replace("\\", "/").lstrip("/")
+            payload_start = fn_start + fnlen + extra_len
+            if flags & 0x8 and csize == 0:
+                nxt = data.find("PK\x03\x04", payload_start)
+                cd = data.find("PK\x01\x02", payload_start)
+                stop = n
+                if nxt >= 0:
+                    stop = min(stop, nxt)
+                if cd >= 0:
+                    stop = min(stop, cd)
+                desc = data.find("PK\x07\x08", payload_start)
+                if desc >= 0 and desc < stop:
+                    payload = data[payload_start:desc]
+                    pos = desc + 16
+                else:
+                    payload = data[payload_start:stop]
+                    pos = stop
+            else:
+                if payload_start + csize > n:
+                    break
+                payload = data[payload_start:payload_start + csize]
+                pos = payload_start + csize
+                if flags & 0x8:
+                    if data[pos:pos + 4] == "PK\x07\x08":
+                        pos += 16
+                    else:
+                        pos += 12
+            if not name or name.endswith("/"):
+                continue
+            try:
+                raw = _zip_inflate(method, payload)
+            except Exception:
+                continue
+            out.append((name, raw))
+        if log:
+            try:
+                log("скан zip: {0} файлов".format(len(out)))
+            except Exception:
+                pass
+        return out
+
+    def _zip_parse_zip64_extra(extra, usize, csize, local_off):
+        if not extra or struct is None:
+            return usize, csize, local_off
+        pos = 0
+        n = len(extra)
+        while pos + 4 <= n:
+            tp, ln = struct.unpack_from("<HH", extra, pos)
+            pos += 4
+            payload = extra[pos:pos + ln]
+            pos += ln
+            if tp != 1:
+                continue
+            off = 0
+            if usize == 0xFFFFFFFF and off + 8 <= len(payload):
+                usize = struct.unpack_from("<Q", payload, off)[0]
+                off += 8
+            if csize == 0xFFFFFFFF and off + 8 <= len(payload):
+                csize = struct.unpack_from("<Q", payload, off)[0]
+                off += 8
+            if local_off == 0xFFFFFFFF and off + 8 <= len(payload):
+                local_off = struct.unpack_from("<Q", payload, off)[0]
+        return usize, csize, local_off
+
+    def _zip_from_central_dir(data, log=None):
+        """
+        Parse EOCD + central directory. GitHub zips often leave local
+        compress_size=0; Python 2 ZipFile then seeks to the wrong place.
+        CD has the real sizes; local header is only used to skip name/extra.
+        """
+        if struct is None or not data:
+            return []
+        eocd = data.rfind("PK\x05\x06")
+        if eocd < 0 or eocd + 22 > len(data):
+            return []
+        cd_size, cd_off = struct.unpack_from("<II", data, eocd + 12)
+        if cd_off + 4 > len(data):
+            return []
+        pos = cd_off
+        end = min(len(data), cd_off + cd_size) if cd_size else len(data)
+        out = []
+        while pos + 46 <= end:
+            if data[pos:pos + 4] != "PK\x01\x02":
+                break
+            method = struct.unpack_from("<H", data, pos + 10)[0]
+            csize = struct.unpack_from("<I", data, pos + 20)[0]
+            usize = struct.unpack_from("<I", data, pos + 24)[0]
+            fnlen, extra_len, comm_len = struct.unpack_from("<HHH", data, pos + 28)
+            local_off = struct.unpack_from("<I", data, pos + 42)[0]
+            name_start = pos + 46
+            raw_name = data[name_start:name_start + fnlen]
+            extra = data[name_start + fnlen:name_start + fnlen + extra_len]
+            pos = name_start + fnlen + extra_len + comm_len
+            usize, csize, local_off = _zip_parse_zip64_extra(
+                extra, usize, csize, local_off
+            )
+            try:
+                name = raw_name.decode("utf-8")
+            except Exception:
+                try:
+                    name = raw_name.decode("latin-1")
+                except Exception:
+                    name = raw_name
+            name = name.replace("\\", "/").lstrip("/")
+            if not name or name.endswith("/"):
+                continue
+            if local_off + 30 > len(data) or data[local_off:local_off + 4] != "PK\x03\x04":
+                continue
+            l_fnlen, l_extra = struct.unpack_from("<HH", data, local_off + 26)
+            payload_start = local_off + 30 + l_fnlen + l_extra
+            if csize == 0:
+                l_csize = struct.unpack_from("<I", data, local_off + 18)[0]
+                if l_csize:
+                    csize = l_csize
+            if payload_start + csize > len(data):
+                continue
+            payload = data[payload_start:payload_start + csize]
+            try:
+                raw = _zip_inflate(method, payload)
+            except Exception:
+                continue
+            out.append((name, raw))
+        if log:
+            try:
+                log("central directory: {0} файлов".format(len(out)))
+            except Exception:
+                pass
+        return out
+
+    def _zip_list_members(data, log=None):
+        """
+        List (relative_name, bytes) from a zip.
+        """
+        def _lg(msg):
+            if log:
+                try:
+                    log(msg)
+                except Exception:
+                    pass
+
+        data = _zip_payload(data) if globals().get("_zip_payload") else data
+        members = _zip_from_central_dir(data, log=log)
+        if members:
+            return members
+        _lg("central directory пуст, пробую локальные заголовки")
+        scanned = _zip_scan_members(data, log=log)
+        if scanned:
+            return scanned
+        try:
+            zf = _open_zip(data)
+            fallback = []
+            for info in zf.infolist():
+                name = info.filename.replace("\\", "/").lstrip("/")
+                if not name or name.endswith("/"):
+                    continue
+                fallback.append((name, _zip_read_info(zf, info)))
+            if fallback:
+                return fallback
+        except Exception as err:
+            _lg("ZipFile запасной путь: {0}".format(err))
+        raise Exception("не удалось разобрать zip")
+
     def _maybe_gunzip(data, log=None):
         if not data or zlib is None:
             return data
@@ -697,7 +967,7 @@ init -5 python in mas_os:
         tops = []
         seen = set()
         try:
-            zf = zipfile.ZipFile(StringIO.StringIO(data))
+            zf = _open_zip(data)
             for info in zf.infolist():
                 name = info.filename.replace("\\", "/").lstrip("/")
                 if not name or ".." in name.split("/"):
@@ -712,25 +982,22 @@ init -5 python in mas_os:
         return tops
 
     def _extract_zip(data, dest):
-        if zipfile is None:
-            raise Exception("zip не поддерживается")
-        import StringIO
-        zf = zipfile.ZipFile(StringIO.StringIO(data))
         dest = os.path.normpath(dest)
         count = 0
-        for info in zf.infolist():
-            name = info.filename.replace("\\", "/")
-            if name.endswith("/") or ".." in name.split("/"):
+        for name, raw in _zip_list_members(data):
+            name = name.replace("\\", "/").lstrip("/")
+            if not name or name.endswith("/") or ".." in name.split("/"):
                 continue
             target = os.path.normpath(os.path.join(dest, name))
-            if not target.startswith(dest):
+            dest_n = dest if dest.endswith(os.sep) else dest + os.sep
+            if not (target == dest or target.startswith(dest_n)):
                 continue
             folder = os.path.dirname(target)
             if folder and not os.path.isdir(folder):
                 os.makedirs(folder)
-            if info.file_size:
+            if raw:
                 with open(target, "wb") as handle:
-                    handle.write(zf.read(info))
+                    handle.write(raw)
                 count += 1
         return count
 
@@ -747,7 +1014,10 @@ init -5 python in mas_os:
                 if not href:
                     raise Exception("Яндекс.Диск не отдал файл. Ссылка должна быть публичной.")
                 raw = href
-            data, header_name, meta = _http_get(raw)
+            max_bytes = DL_MAX
+            if kind == "submod":
+                max_bytes = globals().get("SM_ZIP_MAX") or (96 * 1024 * 1024)
+            data, header_name, meta = _http_get(raw, max_bytes=max_bytes)
             if not data:
                 raise Exception("пустой ответ")
             head = data[:200].lstrip().lower()
@@ -756,16 +1026,21 @@ init -5 python in mas_os:
                     "пришла веб-страница, не файл. Для Google Drive: доступ «все у кого есть ссылка», файл не огромный."
                 )
             name = dl_guess_name(raw, header_name)
+            if kind == "submod" and _looks_like_zip(data) and not (name or "").lower().endswith(".zip"):
+                name = (os.path.splitext(name or "submod")[0] or "submod") + ".zip"
             row = dl_kind_row(kind)
             ext = os.path.splitext(name)[1].lower()
-            if ext not in row[3]:
+            is_zip = ext == ".zip" or _looks_like_zip(data)
+            if kind == "submod" and is_zip:
+                ext = ".zip"
+            if ext not in row[3] and not (kind == "submod" and is_zip):
                 raise Exception("для «{0}» нужен файл {1}, а пришёл {2}".format(
                     row[1], ", ".join(row[3]), ext or "без расширения"
                 ))
             folder = _dl_folder(kind)
             if not os.path.isdir(folder):
                 os.makedirs(folder)
-            if kind == "submod" and ext == ".zip":
+            if kind == "submod" and is_zip:
                 installer = getattr(store.mas_os, "install_submod_zip", None)
                 if installer is not None:
                     ok, msg, _paths = installer(data, name, "auto")
@@ -941,7 +1216,7 @@ screen mas_os_store():
                 text row[1]:
                     style "mas_os_subtitle"
 
-                text _("Принимает: {0}. Максимум 32 МБ.").format(", ".join(row[3])):
+                text _("Принимает: {0}. Максимум 96 МБ для сабмодов, 32 МБ для остального.").format(", ".join(row[3])):
                     style "mas_os_hint"
 
                 hbox:

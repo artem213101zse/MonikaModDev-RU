@@ -472,6 +472,39 @@ init -5 python in mas_os:
                 return True
         return False
 
+    def _peel_zip_rel(name):
+        """
+        Extra Plus etc. wrap files in 'ExtraPlus 1.1.1 - MAS 12.6 and above/game/...'.
+        Return a path starting at game/, submods/, mod_assets/ or python-packages/.
+        """
+        pl = (name or "").replace("\\", "/").lstrip("/")
+        if not pl:
+            return ""
+        low = pl.lower()
+        for marker in (
+            "/game/submods/",
+            "/game/mod_assets/",
+            "/game/python-packages/",
+        ):
+            idx = low.find(marker)
+            if idx >= 0:
+                return pl[idx + 1:]
+        for marker in (
+            "game/submods/",
+            "game/mod_assets/",
+            "game/python-packages/",
+        ):
+            if low.startswith(marker):
+                return pl
+        for marker in ("/submods/", "/mod_assets/", "/python-packages/"):
+            idx = low.find(marker)
+            if idx >= 0:
+                return pl[idx + 1:]
+        for marker in ("submods/", "mod_assets/", "python-packages/"):
+            if low.startswith(marker):
+                return pl
+        return pl
+
     def _zip_payload(data):
         if not data:
             return data
@@ -496,99 +529,110 @@ init -5 python in mas_os:
                 except Exception:
                     pass
 
-        if zipfile is None:
+        if zipfile is None and struct is None:
             return False, "zip не поддерживается", []
-        import StringIO
         data = _zip_payload(data)
         _log("открываю zip: {0}, {1}".format(display_name, _magic_desc(data)))
         try:
-            zf = zipfile.ZipFile(StringIO.StringIO(data))
+            members = _zip_list_members(data, log=_log)
         except Exception as err:
             msg = "это не zip: {0} ({1})".format(err, _magic_desc(data))
             _log(msg)
             return False, msg, []
         infos = []
         total = 0
-        for info in zf.infolist():
-            name = info.filename.replace("\\", "/").lstrip("/")
+        for name, raw in members:
+            name = name.replace("\\", "/").lstrip("/")
             if not name or name.endswith("/"):
                 continue
             if ".." in name.split("/"):
                 return False, "в архиве путь с .. — отказ", []
-            if info.file_size > SM_FILE_MAX:
-                return False, "файл в архиве больше 12 МБ: {0}".format(name), []
-            total += info.file_size
+            size = len(raw or "")
+            if size > SM_FILE_MAX:
+                return False, "файл в архиве больше {0} МБ: {1}".format(
+                    SM_FILE_MAX / (1024 * 1024), name
+                )
+            total += size
             if total > SM_TOTAL_MAX:
                 return False, "архив слишком большой в распаковке", []
-            infos.append((info, name))
+            infos.append((name, raw))
             if len(infos) > SM_FILES_MAX:
                 return False, "слишком много файлов в архиве", []
         if not infos:
             return False, "архив пустой", []
-        raw_paths = [n for _i, n in infos]
-        prefix = _zip_prefix(raw_paths)
-        rels = []
-        for _info, name in infos:
-            rel = name
-            if prefix and rel.startswith(prefix):
-                rel = rel[len(prefix):]
+        peeled = []
+        for name, raw in infos:
+            rel = _peel_zip_rel(name)
             if not rel:
-                continue
-            rels.append(rel)
+                rel = name.replace("\\", "/").lstrip("/")
+            peeled.append((rel, raw, name))
+        rels = [r for r, _raw, _orig in peeled if r]
+        prefix = _zip_prefix(rels)
+        if prefix:
+            new_rels = []
+            new_peeled = []
+            for rel, raw, orig in peeled:
+                if rel.startswith(prefix):
+                    rel = rel[len(prefix):]
+                if not rel:
+                    continue
+                new_rels.append(rel)
+                new_peeled.append((rel, raw, orig))
+            rels = new_rels
+            peeled = new_peeled
         layout = _classify_paths(rels)
         if kind_hint == "overlay" and layout == "loose":
             layout = "overlay"
         _log("в архиве {0} файлов, префикс «{1}», раскладка {2}".format(
-            len(infos), prefix.rstrip("/") if prefix else "нет", layout
+            len(peeled), prefix.rstrip("/") if prefix else "нет", layout
         ))
         sample = rels[:8]
         for rel in sample:
             _log("  в архиве: {0}".format(rel))
         if len(rels) > 8:
             _log("  … ещё {0} путей".format(len(rels) - 8))
-        based = game_dir()
-        gamed = os.path.join(based, "game")
-        _log("basedir={0}".format(based))
-        _log("game={0}".format(gamed))
+        root = os.path.normpath((writable_gamedir() or os.path.join(game_dir(), "game")).replace("/", os.sep))
+        _log("пишем в game={0}".format(root))
         written = []
         skipped = 0
         count = 0
-        for info, name in infos:
-            rel = name
-            if prefix and rel.startswith(prefix):
-                rel = rel[len(prefix):]
+        dest_folders = []
+        for rel, raw, _orig in peeled:
             if not rel:
                 continue
             if layout == "overlay":
                 if not _overlay_ok(rel):
                     skipped += 1
                     continue
-                if rel.lower().startswith("game/"):
-                    target = os.path.normpath(os.path.join(based, rel))
-                else:
-                    target = os.path.normpath(os.path.join(gamed, rel))
-                root = os.path.normpath(gamed)
+                rest = rel[5:] if rel.lower().startswith("game/") else rel
+                target = os.path.normpath(os.path.join(root, rest.replace("/", os.sep)))
             elif layout == "submods_root":
                 if not rel.lower().startswith("submods/"):
                     skipped += 1
                     continue
-                target = os.path.normpath(os.path.join(gamed, rel))
-                root = os.path.normpath(os.path.join(gamed, "Submods"))
+                target = os.path.normpath(os.path.join(root, rel.replace("/", os.sep)))
             else:
                 folder = os.path.splitext(os.path.basename(display_name or "submod"))[0]
                 folder = re.sub(r"[^A-Za-z0-9._\-]+", "_", folder)[:40] or "submod"
-                target = os.path.normpath(os.path.join(gamed, "Submods", folder, rel))
-                root = os.path.normpath(os.path.join(gamed, "Submods"))
-            if not target.startswith(os.path.normpath(gamed) + os.sep) and target != os.path.normpath(gamed):
+                target = os.path.normpath(os.path.join(root, "Submods", folder, rel.replace("/", os.sep)))
+            root_l = root.lower()
+            target_l = target.lower()
+            if not (target_l == root_l or target_l.startswith(root_l + os.sep.lower())):
                 skipped += 1
                 continue
             folder = os.path.dirname(target)
             if folder and not os.path.isdir(folder):
                 os.makedirs(folder)
             with open(target, "wb") as handle:
-                handle.write(zf.read(info.filename))
+                handle.write(raw)
             count += 1
             written.append(target)
+            top = rel.replace("\\", "/")
+            if top.lower().startswith("game/"):
+                top = top[5:]
+            top = top.split("/")[0]
+            if top and top not in dest_folders:
+                dest_folders.append(top)
             if count <= 20:
                 _log("  + {0}".format(target))
             elif count == 21:
@@ -602,8 +646,9 @@ init -5 python in mas_os:
             _log("пропущено {0} файлов вне Submods/mod_assets/python-packages".format(skipped))
         _record_install(display_name, layout, written)
         _inventory_add("submod", [os.path.basename(p) for p in written[:8]])
-        msg = "Установлено {0} файлов ({1}).{2} Перезапусти оболочку.".format(
-            count, layout, extra
+        where = (", ".join(dest_folders[:6]) if dest_folders else "game")
+        msg = "Установлено {0} файлов ({1}) → {2}.{3} Перезапусти оболочку.".format(
+            count, layout, where, extra
         )
         _log(msg)
         return True, msg, written
@@ -1229,7 +1274,7 @@ screen mas_os_submods():
                 spacing 12
                 xsize 1140
 
-                text _("Если сабмод валит загрузку, Ren'Py падает до оболочки. Безопасный режим перед следующим стартом уносит game/Submods в папку Submods_disabled рядом с game (не внутри — иначе .rpy всё равно скомпилируются)."):
+                text _("Если сабмод валит загрузку, Ren'Py падает до оболочки. Безопасный режим (и автозащита после краша) уносит game/Submods в папку Submods_disabled рядом с game — не внутри, иначе .rpy всё равно скомпилируются. После установки, если игра не встанет — запусти её ещё раз: оболочка отключит сабмоды сама."):
                     style "mas_os_body"
                     xsize 1140
 

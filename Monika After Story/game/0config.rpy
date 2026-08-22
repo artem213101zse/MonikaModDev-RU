@@ -7,6 +7,133 @@
 
 ## Basics ######################################################################
 python early:
+    # MAS OS boot guard MUST run in this file: Ren'Py parses scripts in
+    # unicode path order, python early runs before the *next* file.
+    # game/Submods/ sorts after 0*.rpy and before mas_os_early.rpy, so a
+    # broken submod .rpy would abort the load before the old guard ran.
+    import os as _mas_os_early_os
+
+    def _mas_os_early_overlay_searchpath():
+        try:
+            overlay = _mas_os_early_os.path.normpath(
+                _mas_os_early_os.path.join(renpy.config.basedir, "game")
+            )
+        except Exception:
+            return
+        if not overlay:
+            return
+        try:
+            if not _mas_os_early_os.path.isdir(overlay):
+                _mas_os_early_os.makedirs(overlay)
+        except Exception:
+            pass
+        sp = getattr(renpy.config, "searchpath", None)
+        if sp is None:
+            return
+        try:
+            if overlay not in sp:
+                sp.append(overlay)
+        except Exception:
+            pass
+
+    def _mas_os_early_paths():
+        based = _mas_os_early_os.path.normpath(renpy.config.basedir)
+        srcs = [_mas_os_early_os.path.join(based, "game", "Submods")]
+        try:
+            gamed = _mas_os_early_os.path.normpath(renpy.config.gamedir)
+            extra = _mas_os_early_os.path.join(gamed, "Submods")
+            if extra not in srcs:
+                srcs.append(extra)
+        except Exception:
+            pass
+        return {
+            "srcs": srcs,
+            "dst": _mas_os_early_os.path.join(based, "Submods_disabled"),
+            "lock": _mas_os_early_os.path.join(based, "mas_os_boot_lock"),
+            "auto": _mas_os_early_os.path.join(based, "mas_os_auto_safe"),
+            "oneshot": _mas_os_early_os.path.join(based, "mas_os_safe_mode"),
+            "sticky": _mas_os_early_os.path.join(based, "mas_os_safe_mode_on"),
+        }
+
+    def _mas_os_early_park_one(src, dst):
+        if not src or not _mas_os_early_os.path.isdir(src):
+            return False
+        try:
+            if not _mas_os_early_os.path.isdir(dst):
+                _mas_os_early_os.makedirs(dst)
+        except Exception:
+            return False
+        moved = False
+        try:
+            for name in _mas_os_early_os.listdir(src):
+                s = _mas_os_early_os.path.join(src, name)
+                d = _mas_os_early_os.path.join(dst, name)
+                if _mas_os_early_os.path.exists(d):
+                    base, ext = _mas_os_early_os.path.splitext(name)
+                    n = 2
+                    while _mas_os_early_os.path.exists(d):
+                        d = _mas_os_early_os.path.join(
+                            dst,
+                            "{0}_off{1}{2}".format(base, n, ext),
+                        )
+                        n += 1
+                try:
+                    _mas_os_early_os.rename(s, d)
+                    moved = True
+                except Exception:
+                    pass
+            try:
+                _mas_os_early_os.rmdir(src)
+            except Exception:
+                pass
+        except Exception:
+            pass
+        return moved
+
+    def _mas_os_early_park_submods(reason="safe"):
+        p = _mas_os_early_paths()
+        for src in p["srcs"]:
+            _mas_os_early_park_one(src, p["dst"])
+        if _mas_os_early_os.path.isfile(p["oneshot"]):
+            try:
+                _mas_os_early_os.remove(p["oneshot"])
+            except Exception:
+                pass
+        if reason == "crash":
+            try:
+                handle = open(p["auto"], "w")
+                handle.write("crash\n")
+                handle.close()
+            except Exception:
+                pass
+
+    def _mas_os_early_boot_guard():
+        p = _mas_os_early_paths()
+        forced = (
+            _mas_os_early_os.path.isfile(p["oneshot"])
+            or _mas_os_early_os.path.isfile(p["sticky"])
+        )
+        crashed = _mas_os_early_os.path.isfile(p["lock"])
+        if forced:
+            _mas_os_early_park_submods("safe")
+        elif crashed:
+            _mas_os_early_park_submods("crash")
+        try:
+            handle = open(p["lock"], "w")
+            handle.write("1\n")
+            handle.close()
+        except Exception:
+            pass
+
+    try:
+        _mas_os_early_overlay_searchpath()
+    except Exception:
+        pass
+    try:
+        _mas_os_early_boot_guard()
+    except Exception:
+        pass
+
     ## A human-readable name of the game. This is used to set the default window
     ## title, and shows up in the interface and error reports.
     ##

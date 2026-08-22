@@ -31,6 +31,10 @@ default persistent._mas_os_music_shuffle = False
 default persistent._mas_os_return_confirm = True
 default persistent._mas_os_quit_confirm = True
 default persistent._mas_os_textbox = "pink"
+default persistent._mas_os_tb_tint_on = False
+default persistent._mas_os_tb_tint = "#C94A7A"
+default persistent._mas_os_tb_strength = 55
+default persistent._mas_os_ui_match = True
 default persistent._mas_os_font = "aller"
 default persistent._mas_os_font_menu = "riffic"
 default persistent._mas_os_font_ui = "halogen"
@@ -54,6 +58,7 @@ init -10 python in mas_os:
     _active_doc = None
     _active_event = None
     settings_cat = "boot"
+    settings_yadj = None
     _active_log = None
     gift_input = ""
     gift_status = ""
@@ -112,6 +117,10 @@ init -10 python in mas_os:
         ("_mas_os_return_confirm", True),
         ("_mas_os_quit_confirm", True),
         ("_mas_os_textbox", "pink"),
+        ("_mas_os_tb_tint_on", False),
+        ("_mas_os_tb_tint", "#C94A7A"),
+        ("_mas_os_tb_strength", 55),
+        ("_mas_os_ui_match", True),
         ("_mas_os_font", "aller"),
         ("_mas_os_font_menu", "riffic"),
         ("_mas_os_font_ui", "halogen"),
@@ -120,6 +129,7 @@ init -10 python in mas_os:
         ("_mas_os_wp_dim", True),
         ("_mas_os_theme", "dark"),
         ("_mas_os_intro_skip", "off"),
+        ("_mas_os_boot_splash", "logo"),
     )
 
     def reset_os_settings():
@@ -194,10 +204,59 @@ init -10 python in mas_os:
             return False
         return True
 
+    boot_warning = ""
+
+    def boot_lock_path():
+        return os.path.join(game_dir(), "mas_os_boot_lock")
+
+    def auto_safe_path():
+        return os.path.join(game_dir(), "mas_os_auto_safe")
+
+    def mark_boot_ok():
+        """
+        Init finished: splash ran. Clear the crash watchdog lock.
+        """
+        path = boot_lock_path()
+        if os.path.isfile(path):
+            try:
+                os.remove(path)
+            except Exception:
+                pass
+        return None
+
+    def auto_safe_pending():
+        return os.path.isfile(auto_safe_path())
+
+    def consume_auto_safe():
+        global sm_status, sm_tab, boot_warning
+        path = auto_safe_path()
+        if not os.path.isfile(path):
+            return None
+        try:
+            os.remove(path)
+        except Exception:
+            pass
+        sm_tab = "safe"
+        boot_warning = (
+            "Прошлый запуск не дошёл до оболочки — скорее всего сабмод. "
+            "Папка Submods отключена (Submods_disabled рядом с game). "
+            "Включи рабочие по одному или удали сломанный, потом перезапуск."
+        )
+        sm_status = boot_warning
+        return None
+
+    def clear_boot_warning():
+        global boot_warning
+        boot_warning = ""
+        return None
+
     def can_show():
         """
         True if the pre-game shell should run on this boot.
         """
+        if auto_safe_pending():
+            return True
+
         if getattr(store.persistent, "_mas_os_reopen", False):
             store.persistent._mas_os_reopen = False
             return True
@@ -315,7 +374,12 @@ init -10 python in mas_os:
 
     def finish_launch_anim():
         if launch_preview:
-            return "preview"
+            try:
+                store.renpy.hide_screen("mas_os_launch_anim")
+            except Exception:
+                pass
+            end_launch_preview()
+            return None
         return "launch"
 
     def launch_logo_path():
@@ -334,10 +398,44 @@ init -10 python in mas_os:
             store.renpy.save_persistent()
         except Exception:
             pass
+        if name in ("_mas_os_tb_tint_on", "_mas_os_ui_match"):
+            try:
+                apply_textbox()
+            except Exception:
+                pass
+
+    def settings_scroll():
+        global settings_yadj
+        if settings_yadj is None:
+            adj = None
+            try:
+                adj = store.ui.adjustment()
+            except Exception:
+                adj = None
+            if adj is None:
+                try:
+                    adj = store.renpy.ui.adjustment()
+                except Exception:
+                    adj = store.renpy.display.behavior.Adjustment()
+            settings_yadj = adj
+        return settings_yadj
+
+    def reset_settings_scroll():
+        adj = settings_yadj
+        if adj is None:
+            return
+        try:
+            adj.change(0)
+        except Exception:
+            try:
+                adj.value = 0
+            except Exception:
+                pass
 
     def set_settings_cat(cat_id):
         global settings_cat
         settings_cat = cat_id or "boot"
+        reset_settings_scroll()
 
     def os_hover():
         if flag("_mas_os_sfx", True):
@@ -357,6 +455,28 @@ init -10 python in mas_os:
         ("purple", "Фиолетовый", "gui/textbox_d_purple.png"),
         ("green", "Зелёный", "gui/textbox_d_green.png"),
     )
+    TEXTBOX_HEX = {
+        "pink": "#C94A7A",
+        "blue": "#4A7EC9",
+        "purple": "#8A4AA0",
+        "green": "#3D9A6A",
+    }
+    TINT_PRESETS = (
+        ("#C94A7A", "Розовый"),
+        ("#4A7EC9", "Синий"),
+        ("#8A4AA0", "Фиолетовый"),
+        ("#3D9A6A", "Зелёный"),
+        ("#C94A4A", "Красный"),
+        ("#E07A3A", "Оранжевый"),
+        ("#C9A03A", "Жёлтый"),
+        ("#3AAAA0", "Бирюза"),
+        ("#5A6AAA", "Индиго"),
+        ("#C989A8", "Пудра"),
+        ("#F0F0F0", "Светлый"),
+        ("#2A1520", "Тёмный"),
+    )
+    _tint_cache = {}
+    _BTN_BORDERS = None
 
     def textbox_id():
         color = getattr(store.persistent, "_mas_os_textbox", "pink") or "pink"
@@ -376,32 +496,305 @@ init -10 python in mas_os:
             return opened
         return "gui/textbox_d.png"
 
+    def tb_tint_on():
+        return bool(getattr(store.persistent, "_mas_os_tb_tint_on", False))
+
+    def tb_strength():
+        try:
+            v = int(getattr(store.persistent, "_mas_os_tb_strength", 55) or 0)
+        except Exception:
+            v = 55
+        if v < 0:
+            v = 0
+        if v > 100:
+            v = 100
+        return v
+
+    def tb_hex():
+        if tb_tint_on():
+            raw = getattr(store.persistent, "_mas_os_tb_tint", None) or "#C94A7A"
+            raw = unicode(raw).strip()
+            if not raw.startswith("#"):
+                raw = "#" + raw
+            if len(raw) == 4:
+                raw = "#" + raw[1] * 2 + raw[2] * 2 + raw[3] * 2
+            if len(raw) != 7:
+                return "#C94A7A"
+            return raw.upper()
+        return TEXTBOX_HEX.get(textbox_id(), "#C94A7A")
+
+    def tb_rgb():
+        h = tb_hex().replace("#", "")
+        try:
+            return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+        except Exception:
+            return (201, 74, 122)
+
+    def _hex_from_rgb(r, g, b):
+        def _c(v):
+            try:
+                v = int(v)
+            except Exception:
+                v = 0
+            if v < 0:
+                v = 0
+            if v > 255:
+                v = 255
+            return v
+        return "#{0:02X}{1:02X}{2:02X}".format(_c(r), _c(g), _c(b))
+
+    def _lighten_hex(hex_color, amt=0.25):
+        r, g, b = tb_rgb() if hex_color == tb_hex() else (
+            int((hex_color or "C94A7A").replace("#", "C94A7A")[0:2], 16),
+            int((hex_color or "C94A7A").replace("#", "C94A7A")[2:4], 16),
+            int((hex_color or "C94A7A").replace("#", "C94A7A")[4:6], 16),
+        )
+        try:
+            h = (hex_color or "#C94A7A").replace("#", "")
+            r = int(h[0:2], 16)
+            g = int(h[2:4], 16)
+            b = int(h[4:6], 16)
+        except Exception:
+            r, g, b = 201, 74, 122
+        r = int(r + (255 - r) * amt)
+        g = int(g + (255 - g) * amt)
+        b = int(b + (255 - b) * amt)
+        return _hex_from_rgb(r, g, b)
+
+    def _mask_tint(src, hex_color, strength):
+        """
+        Overlay hex_color on src using src alpha as mask.
+        strength 0..1. Ren'Py 7: im.AlphaMask + im.Composite.
+        """
+        if not src:
+            return src
+        try:
+            strength = float(strength)
+        except Exception:
+            strength = 0.55
+        if strength < 0:
+            strength = 0.0
+        if strength > 1:
+            strength = 1.0
+        key = (src, hex_color, int(strength * 100))
+        cached = _tint_cache.get(key)
+        if cached is not None:
+            return cached
+        try:
+            w, h = store.renpy.image_size(src)
+        except Exception:
+            w, h = 1280, 147
+        try:
+            colored = store.im.AlphaMask(store.Solid(hex_color), src)
+            if strength <= 0.01:
+                img = src
+            elif strength >= 0.99:
+                img = colored
+            else:
+                overlay = store.im.Alpha(colored, strength)
+                img = store.im.Composite((int(w), int(h)), (0, 0), src, (0, 0), overlay)
+        except Exception:
+            img = src
+        _tint_cache[key] = img
+        if len(_tint_cache) > 48:
+            _tint_cache.clear()
+            _tint_cache[key] = img
+        return img
+
+    def _tb_borders():
+        global _BTN_BORDERS
+        if _BTN_BORDERS is None:
+            try:
+                _BTN_BORDERS = store.Borders(5, 5, 5, 5)
+            except Exception:
+                _BTN_BORDERS = None
+        return _BTN_BORDERS
+
+    def _set_window_bg(style_obj, path, hexc, strength, as_frame=False):
+        img = path
+        if tb_tint_on() or flag("_mas_os_ui_match", True):
+            img = _mask_tint(path, hexc, strength)
+        try:
+            if as_frame:
+                borders = getattr(store.gui, "namebox_borders", None)
+                if borders is None:
+                    borders = _tb_borders()
+                style_obj.background = store.Frame(
+                    img, borders, tile=bool(getattr(store.gui, "namebox_tile", False))
+                )
+            else:
+                style_obj.background = store.Image(img, xalign=0.5, yalign=1.0)
+        except Exception:
+            try:
+                style_obj.background = store.Image(path, xalign=0.5, yalign=1.0)
+            except Exception:
+                pass
+
+    def _set_btn_frames(style_obj, idle_p, hover_p, ins_p, sel_p, hexc, strength):
+        borders = _tb_borders()
+        if borders is None:
+            return
+        try:
+            style_obj.idle_background = store.Frame(
+                _mask_tint(idle_p, hexc, strength), borders, tile=False
+            )
+            style_obj.hover_background = store.Frame(
+                _mask_tint(hover_p, hexc, strength), borders, tile=False
+            )
+            style_obj.insensitive_background = store.Frame(
+                _mask_tint(ins_p, hexc, strength), borders, tile=False
+            )
+            if sel_p:
+                style_obj.selected_background = store.Frame(
+                    _mask_tint(sel_p, hexc, strength), borders, tile=False
+                )
+                style_obj.selected_hover_background = store.Frame(
+                    _mask_tint(hover_p, hexc, strength), borders, tile=False
+                )
+        except Exception:
+            pass
+
+    def _restore_btn_frames(style_obj, template):
+        try:
+            style_obj.idle_background = None
+            style_obj.hover_background = None
+            style_obj.insensitive_background = None
+            style_obj.selected_background = None
+            style_obj.selected_hover_background = None
+        except Exception:
+            pass
+        try:
+            style_obj.background = store.Frame(
+                template, _tb_borders(), tile=False
+            )
+        except Exception:
+            pass
+
+    def apply_ui_tint():
+        hexc = tb_hex()
+        strength = tb_strength() / 100.0
+        match = flag("_mas_os_ui_match", True)
+        st = store.style
+        if match and (tb_tint_on() or textbox_id() != "pink"):
+            _set_btn_frames(
+                st.generic_button_dark,
+                "mod_assets/buttons/generic/idle_bg_d.png",
+                "mod_assets/buttons/generic/hover_bg_d.png",
+                "mod_assets/buttons/generic/insensitive_bg_d.png",
+                "mod_assets/buttons/generic/selected_bg_d.png",
+                hexc,
+                min(1.0, strength + 0.1),
+            )
+            _set_btn_frames(
+                st.generic_button_light,
+                "mod_assets/buttons/generic/idle_bg.png",
+                "mod_assets/buttons/generic/hover_bg.png",
+                "mod_assets/buttons/generic/insensitive_bg.png",
+                "mod_assets/buttons/generic/selected_bg.png",
+                hexc,
+                min(1.0, strength + 0.1),
+            )
+            try:
+                lite = _lighten_hex(hexc, 0.35)
+                store.mas_ui.dark_button_text_idle_color = lite
+                store.mas_ui.dark_button_text_hover_color = "#FFFFFF"
+                st.generic_button_text_dark.idle_color = lite
+                st.generic_button_text_dark.hover_color = "#FFFFFF"
+                st.hkb_button_text_dark.idle_color = lite
+                st.hkb_button_text_dark.hover_color = "#FFFFFF"
+            except Exception:
+                pass
+        else:
+            _restore_btn_frames(
+                st.generic_button_dark,
+                "mod_assets/buttons/generic/[prefix_]bg_d.png",
+            )
+            _restore_btn_frames(
+                st.generic_button_light,
+                "mod_assets/buttons/generic/[prefix_]bg.png",
+            )
+            try:
+                store.mas_ui.dark_button_text_idle_color = "#FD5BA2"
+                store.mas_ui.dark_button_text_hover_color = "#FFABD8"
+                st.generic_button_text_dark.idle_color = "#FD5BA2"
+                st.generic_button_text_dark.hover_color = "#FFABD8"
+            except Exception:
+                pass
+
     def apply_textbox():
         """
-        Point dark-mode say window at the chosen PNG.
-        Light mode keeps the stock textbox.png (no extra variants yet).
+        Dark/light say windows. Optional color overlay uses the PNG alpha
+        as a mask so Photoshop variants are not required.
         """
+        hexc = tb_hex()
+        strength = tb_strength() / 100.0
+        use_overlay = tb_tint_on()
         dark = textbox_dark_path()
+        if use_overlay:
+            dark_src = asset_open_path("gui/textbox_d.png") or "gui/textbox_d.png"
+            dark = _mask_tint(dark_src, hexc, strength)
         try:
             store.style.window_dark.background = store.Image(
                 dark, xalign=0.5, yalign=1.0
             )
         except Exception:
             pass
-        if dark.replace("\\", "/").endswith("textbox_d.png") or "/textbox_d." in dark.replace("\\", "/"):
-            monika_rel = "gui/textbox_monika_d.png"
-        else:
-            monika_rel = None
-            base = os.path.basename(dark)
-            cand = base.replace("textbox_d", "textbox_monika_d")
-            monika_rel = "gui/" + cand
+        light_src = asset_open_path("gui/textbox.png") or "gui/textbox.png"
         try:
-            monika = asset_open_path(monika_rel) if monika_rel else None
-            if not monika:
-                monika = asset_open_path("gui/textbox_monika_d.png") or "gui/textbox_monika_d.png"
+            light = _mask_tint(light_src, hexc, strength) if use_overlay else light_src
+            store.style.window.background = store.Image(
+                light, xalign=0.5, yalign=1.0
+            )
+        except Exception:
+            pass
+        if use_overlay:
+            monika_d = asset_open_path("gui/textbox_monika_d.png") or "gui/textbox_monika_d.png"
+            monika = asset_open_path("gui/textbox_monika.png") or "gui/textbox_monika.png"
+            monika_d = _mask_tint(monika_d, hexc, strength)
+            try:
+                monika = _mask_tint(monika, hexc, strength)
+            except Exception:
+                pass
+        else:
+            dark_path = textbox_dark_path()
+            if str(dark_path).replace("\\", "/").endswith("textbox_d.png"):
+                monika_rel = "gui/textbox_monika_d.png"
+            else:
+                monika_rel = "gui/" + os.path.basename(dark_path).replace(
+                    "textbox_d", "textbox_monika_d"
+                )
+            monika_d = asset_open_path(monika_rel) or "gui/textbox_monika_d.png"
+            monika = "gui/textbox_monika.png"
+        try:
             store.style.window_monika_dark.background = store.Image(
+                monika_d, xalign=0.5, yalign=1.0
+            )
+        except Exception:
+            pass
+        try:
+            store.style.window_monika.background = store.Image(
                 monika, xalign=0.5, yalign=1.0
             )
+        except Exception:
+            pass
+        try:
+            nb_d = asset_open_path("gui/namebox_d.png") or "gui/namebox_d.png"
+            nb = asset_open_path("gui/namebox.png") or "gui/namebox.png"
+            if use_overlay or flag("_mas_os_ui_match", True):
+                nb_d = _mask_tint(nb_d, hexc, strength)
+                nb = _mask_tint(nb, hexc, strength)
+            borders = getattr(store.gui, "namebox_borders", _tb_borders())
+            tile = bool(getattr(store.gui, "namebox_tile", False))
+            store.style.namebox_dark.background = store.Frame(nb_d, borders, tile=tile)
+            store.style.namebox.background = store.Frame(nb, borders, tile=tile)
+        except Exception:
+            pass
+        try:
+            apply_ui_tint()
+        except Exception:
+            pass
+        try:
+            apply_theme()
         except Exception:
             pass
         try:
@@ -414,11 +807,69 @@ init -10 python in mas_os:
         if color not in ids:
             color = "pink"
         store.persistent._mas_os_textbox = color
+        store.persistent._mas_os_tb_tint_on = False
         try:
             store.renpy.save_persistent()
         except Exception:
             pass
         apply_textbox()
+
+    def set_tb_tint_on(value):
+        store.persistent._mas_os_tb_tint_on = bool(value)
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        apply_textbox()
+        return None
+
+    def set_tb_tint(hex_color):
+        h = unicode(hex_color or "").strip()
+        if not h.startswith("#"):
+            h = "#" + h
+        store.persistent._mas_os_tb_tint = h
+        store.persistent._mas_os_tb_tint_on = True
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        apply_textbox()
+        return None
+
+    def set_tb_strength(value):
+        try:
+            value = int(value)
+        except Exception:
+            value = 55
+        if value < 0:
+            value = 0
+        if value > 100:
+            value = 100
+        store.persistent._mas_os_tb_strength = value
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        apply_textbox()
+        return None
+
+    def set_tb_rgb_channel(channel, value):
+        r, g, b = tb_rgb()
+        try:
+            value = int(value)
+        except Exception:
+            return None
+        rgb = [r, g, b]
+        if channel in (0, 1, 2):
+            rgb[channel] = value
+        set_tb_tint(_hex_from_rgb(rgb[0], rgb[1], rgb[2]))
+        return None
+
+    def textbox_preview():
+        src = asset_open_path("gui/textbox_d.png") or "gui/textbox_d.png"
+        if tb_tint_on():
+            return _mask_tint(src, tb_hex(), tb_strength() / 100.0)
+        return textbox_dark_path()
 
     FONT_PACKS = (
         ("aller", "Обычный (Aller)", "gui/font/Aller_Rg.ttf"),
@@ -794,6 +1245,13 @@ init -10 python in mas_os:
 
     def theme_color(key):
         pal = THEME_LIGHT if theme_light() else THEME_DARK
+        if flag("_mas_os_ui_match", True) and key in (
+            "accent", "accent_hover", "launch_hover", "btn_sel", "btn_sel_hover",
+        ):
+            hexc = tb_hex()
+            if key in ("accent_hover", "btn_sel_hover", "launch_hover"):
+                return _lighten_hex(hexc, 0.22)
+            return hexc
         if key in pal:
             return pal[key]
         return THEME_DARK.get(key, "#14070d")
@@ -1019,6 +1477,10 @@ init -10 python in mas_os:
         Puts the runtime into a non-session UI state.
         Does not touch closed_self / sessions / affection totals.
         """
+        try:
+            consume_auto_safe()
+        except Exception:
+            pass
         store.quick_menu = False
         store._confirm_quit = False
         store._dismiss_pause = True
@@ -1691,6 +2153,10 @@ label mas_os_shell:
     $ config.allow_skipping = False
     window hide
 
+    if store.mas_os.boot_splash_on():
+        call screen mas_os_boot_anim
+        hide screen mas_os_boot_anim
+
     jump mas_os_home
 
 
@@ -1705,7 +2171,9 @@ label mas_os_home:
 
     if _return == "preview":
         hide screen mas_os_launch_anim
+        hide screen mas_os_boot_anim
         $ store.mas_os.end_launch_preview()
+        $ store.mas_os.end_boot_preview()
         jump mas_os_home
 
     elif _return == "quit":
@@ -1765,7 +2233,9 @@ label mas_os_settings:
         call screen mas_os_settings with mas_os_trans
     if _return == "preview":
         hide screen mas_os_launch_anim
+        hide screen mas_os_boot_anim
         $ store.mas_os.end_launch_preview()
+        $ store.mas_os.end_boot_preview()
         $ store.mas_os._settings_no_trans = True
         jump mas_os_settings
     if _return == "player":
@@ -1901,12 +2371,15 @@ screen mas_os_confirm(message, yes_action, no_action):
                     action no_action
 
 
-screen mas_os_bg():
+screen mas_os_bg(show_brand=True):
     add store.mas_os.wallpaper_disp():
         xalign 0.5
         yalign 0.5
     if store.mas_os.flag("_mas_os_wp_dim", True):
         add Solid(store.mas_os.theme_color("bg_dim"))
+    if show_brand:
+        use mas_os_logo_mark(max_w=40, max_h=40, xpos=1224, ypos=14)
+        use mas_os_powered(ypos=698, size=12)
 
 
 screen mas_os_frame(title, subtitle=None):
@@ -2133,22 +2606,40 @@ screen mas_os_home():
     $ _aff_color = snap["color"]
     $ _launch_ic = store.mas_os.icon_path("launch")
     $ _aff_ic = store.mas_os.icon_path("affection")
+    $ _boot_warn = store.mas_os.boot_warning
 
-    use mas_os_bg
+    use mas_os_bg(show_brand=False)
 
-    vbox at store.mas_os.t_pop(0.0):
+    if _boot_warn:
+        timer 0.05 action [
+            Show("mas_os_notice", message=_boot_warn),
+            Function(store.mas_os.clear_boot_warning),
+        ]
+
+    hbox at store.mas_os.t_pop(0.0):
         xpos 56
-        ypos 36
-        spacing 4
+        ypos 18
+        spacing 12
 
-        text _("MAS OS"):
-            style "mas_os_title"
+        fixed at mas_os_logo_breathe:
+            xysize (64, 64)
+            use mas_os_logo_mark(max_w=64, max_h=64)
 
-        text _("[config.name]  ·  v[config.version]"):
-            style "mas_os_subtitle"
+        vbox:
+            spacing 2
+            yalign 0.5
 
-        text _("Оболочка до запуска игры. Сессия не начинается."):
-            style "mas_os_hint"
+            text _("MAS OS"):
+                style "mas_os_title"
+                size 36
+
+            use mas_os_powered_line(size=14)
+
+            text _("[config.name]  ·  v[config.version]"):
+                style "mas_os_subtitle"
+
+            text _("Оболочка до запуска игры. Сессия не начинается."):
+                style "mas_os_hint"
 
     button:
         style "mas_os_launch"
@@ -2456,9 +2947,9 @@ style mas_os_talk_btn:
 
 style mas_os_talk_btn_text:
     font gui.default_font
-    size 14
-    color "#000"
-    outlines []
+    size 16
+    color "#FFF6FB"
+    outlines [(1, "#8A1A4A", 0, 0)]
     text_align 0.5
     align (0.5, 0.5)
     layout "subtitle"
