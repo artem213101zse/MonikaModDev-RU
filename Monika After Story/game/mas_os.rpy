@@ -540,6 +540,7 @@ init -10 python in mas_os:
     )
     _tint_cache = {}
     _BTN_BORDERS = None
+    _ui_tint_applied = False
 
     def textbox_id():
         color = getattr(store.persistent, "_mas_os_textbox", "pink") or "pink"
@@ -734,11 +735,13 @@ init -10 python in mas_os:
             pass
 
     def apply_ui_tint():
+        global _ui_tint_applied
         hexc = tb_hex()
         strength = tb_strength() / 100.0
         match = flag("_mas_os_ui_match", True)
         st = store.style
-        if match and (tb_tint_on() or textbox_id() != "pink"):
+        want_tint = match and (tb_tint_on() or textbox_id() != "pink")
+        if want_tint:
             _set_btn_frames(
                 st.generic_button_dark,
                 "mod_assets/buttons/generic/idle_bg_d.png",
@@ -767,7 +770,8 @@ init -10 python in mas_os:
                 st.hkb_button_text_dark.hover_color = "#FFFFFF"
             except Exception:
                 pass
-        else:
+            _ui_tint_applied = True
+        elif _ui_tint_applied:
             _restore_btn_frames(
                 st.generic_button_dark,
                 "mod_assets/buttons/generic/[prefix_]bg_d.png",
@@ -783,6 +787,7 @@ init -10 python in mas_os:
                 st.generic_button_text_dark.hover_color = "#FFABD8"
             except Exception:
                 pass
+            _ui_tint_applied = False
 
     def apply_textbox():
         """
@@ -792,6 +797,18 @@ init -10 python in mas_os:
         hexc = tb_hex()
         strength = tb_strength() / 100.0
         use_overlay = tb_tint_on()
+        if textbox_id() == "pink" and not use_overlay:
+            # Factory textbox: do not rewrite window/namebox/buttons.
+            # Rewriting them on Android shifts the HUD away from stock MAS.
+            try:
+                apply_ui_tint()
+            except Exception:
+                pass
+            try:
+                apply_theme()
+            except Exception:
+                pass
+            return
         dark = textbox_dark_path()
         if use_overlay:
             dark_src = asset_open_path("gui/textbox_d.png") or "gui/textbox_d.png"
@@ -843,7 +860,7 @@ init -10 python in mas_os:
         try:
             nb_d = asset_open_path("gui/namebox_d.png") or "gui/namebox_d.png"
             nb = asset_open_path("gui/namebox.png") or "gui/namebox.png"
-            if use_overlay or flag("_mas_os_ui_match", True):
+            if use_overlay:
                 nb_d = _mask_tint(nb_d, hexc, strength)
                 nb = _mask_tint(nb, hexc, strength)
             borders = getattr(store.gui, "namebox_borders", _tb_borders())
@@ -1084,17 +1101,37 @@ init -10 python in mas_os:
                 except Exception:
                     pass
 
+    def fonts_are_default():
+        return (
+            font_id("dialogue") == "aller"
+            and font_id("menu") == "riffic"
+            and font_id("ui") == "halogen"
+            and font_id("notes") == "m1"
+        )
+
+    def _font_for_styles(latin_path):
+        # FontGroup + CJK on Android takes the tallest face for line height,
+        # so Talk/Music/textbox/menus all shift. Use the latin file only.
+        if getattr(store.renpy, "android", False) or getattr(store.renpy, "ios", False):
+            return latin_path
+        try:
+            return _fontgroup(latin_path)
+        except Exception:
+            return latin_path
+
     def apply_font():
         """
-        Apply all font slots. CJK fallbacks stay in the FontGroup.
-        On Android a FontGroup failure must not abort the whole apply:
-        variable fonts and APK-only loadable() misses are common there.
+        Apply all font slots. CJK fallbacks stay in the FontGroup on PC.
+        Android keeps the latin file so HUD metrics match stock MAS.
         """
+        if fonts_are_default():
+            return
+
         dlg_path = font_latin_path("dialogue")
         if _is_abs_fs(dlg_path) or not _font_can_open(dlg_path):
             dlg_path = "gui/font/Aller_Rg.ttf"
         try:
-            dlg_fg = _fontgroup(dlg_path)
+            dlg_fg = _font_for_styles(dlg_path)
         except Exception:
             dlg_fg = "gui/font/Aller_Rg.ttf"
 
@@ -1112,7 +1149,7 @@ init -10 python in mas_os:
 
         menu_path = font_latin_path("menu")
         try:
-            menu_fg = _fontgroup(menu_path)
+            menu_fg = _font_for_styles(menu_path)
         except Exception:
             menu_fg = menu_path
         _retarget_font(_font_prev.get("menu"), menu_fg)
@@ -1121,7 +1158,7 @@ init -10 python in mas_os:
 
         ui_path = font_latin_path("ui")
         try:
-            ui_fg = _fontgroup(ui_path)
+            ui_fg = _font_for_styles(ui_path)
         except Exception:
             ui_fg = ui_path
         _retarget_font(_font_prev.get("ui"), ui_fg)
