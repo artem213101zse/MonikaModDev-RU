@@ -349,8 +349,9 @@ screen mas_os_toast():
 
 
 screen mas_os_browser():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ site = store.mas_os.current_site_data()
     $ shot = store.mas_os.site_shot(site["id"]) if site else None
@@ -447,15 +448,16 @@ screen mas_os_browser():
 
                     null height 24
 
-    textbutton _("Назад"):
-        style "mas_os_nav_btn"
-        text_style "mas_os_nav_btn_text"
-        xpos 48
-        ypos 640
-        action Return("back")
+    if not store.mas_os.wm_embedded():
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xpos 48
+            ypos 640
+            action Return("back")
 
-    key "K_ESCAPE" action Return("back")
-    key "K_AC_BACK" action Return("back")
+        key "K_ESCAPE" action Return("back")
+        key "K_AC_BACK" action Return("back")
 
 
 style mas_os_toast_frame is default:

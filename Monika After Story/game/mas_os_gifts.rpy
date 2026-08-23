@@ -443,8 +443,9 @@ label mas_os_gifts:
 
 
 screen mas_os_gifts():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ stem, preview = store.mas_os.current_gift_preview()
     $ rows = store.mas_os.matched_gifts()
@@ -698,20 +699,22 @@ screen mas_os_gifts():
         ypos 640
         spacing 12
 
-        textbutton _("Назад"):
-            style "mas_os_nav_btn"
-            text_style "mas_os_nav_btn_text"
-            action [
-                Function(store.mas_os.stop_gift_typing),
-                Return("back"),
-            ]
+        if not store.mas_os.wm_embedded():
+            textbutton _("Назад"):
+                style "mas_os_nav_btn"
+                text_style "mas_os_nav_btn_text"
+                action [
+                    Function(store.mas_os.stop_gift_typing),
+                    Return("back"),
+                ]
 
         use mas_os_store_link("gift", "gifts", 420)
 
-    key "K_ESCAPE" action [Function(store.mas_os.stop_gift_typing), Return("back")]
-    key "K_AC_BACK" action If(
-        store.mas_os.gift_typing,
-        [store.mas_os.gift_iv.Disable(), Function(store.mas_os.stop_gift_typing)],
-        [Function(store.mas_os.stop_gift_typing), Return("back")],
-    )
+    if not store.mas_os.wm_embedded():
+        key "K_ESCAPE" action [Function(store.mas_os.stop_gift_typing), Return("back")]
+        key "K_AC_BACK" action If(
+            store.mas_os.gift_typing,
+            [store.mas_os.gift_iv.Disable(), Function(store.mas_os.stop_gift_typing)],
+            [Function(store.mas_os.stop_gift_typing), Return("back")],
+        )
     key "K_RETURN" action Function(store.mas_os.create_gift_from_input)

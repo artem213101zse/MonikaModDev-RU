@@ -380,6 +380,22 @@ init -5 python in mas_os:
         """
         return "calendar"
 
+    def open_wall_calendar():
+        try:
+            store.mas_calendar.loadCalendarDatabase()
+        except Exception:
+            pass
+        if getattr(store, "mas_current_background", None) is None:
+            _os_cal_def = getattr(store, "mas_background_def", None)
+            if _os_cal_def is not None:
+                store.mas_current_background = _os_cal_def
+        try:
+            store.ui.add(store.MASCalendar(False))
+            store.ui.interact()
+        except Exception:
+            pass
+        return None
+
 
 label mas_os_events:
     $ store.mas_os.ensure_active_event()
@@ -409,6 +425,10 @@ label mas_os_calendar_view:
 
 
 screen mas_os_events():
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
+
     $ tab = store.mas_os.events_tab
     $ rows = store.mas_os.tab_events()
     $ unread_n = store.mas_os.unread_event_count()
@@ -443,7 +463,7 @@ screen mas_os_events():
         ypos 12
         xysize (72, 72)
         background None
-        action Return("calendar")
+        action Function(store.mas_os.open_wall_calendar)
         hover_sound store.mas_os.os_hover()
         activate_sound store.mas_os.os_activate()
 
@@ -587,12 +607,14 @@ screen mas_os_events():
         ypos 640
         spacing 12
 
-        textbutton _("Назад"):
-            style "mas_os_nav_btn"
-            text_style "mas_os_nav_btn_text"
-            action Return("back")
+        if not store.mas_os.wm_embedded():
+            textbutton _("Назад"):
+                style "mas_os_nav_btn"
+                text_style "mas_os_nav_btn_text"
+                action Return("back")
 
-        use mas_os_ibutton(_("Календарь"), Return("calendar"), "Кл", "#C94A7A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, icon="events")
+        use mas_os_ibutton(_("Календарь"), Function(store.mas_os.open_wall_calendar), "Кл", "#C94A7A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, icon="events")
 
-    key "K_ESCAPE" action Return("back")
-    key "K_AC_BACK" action Return("back")
+    if not store.mas_os.wm_embedded():
+        key "K_ESCAPE" action Return("back")
+        key "K_AC_BACK" action Return("back")

@@ -147,8 +147,9 @@ label mas_os_logs:
 
 
 screen mas_os_logs():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ rows = store.mas_os.list_logs()
     $ log = store.mas_os.active_log()
@@ -226,15 +227,16 @@ screen mas_os_logs():
                             xsize 750
                             substitute False
 
-    textbutton _("Назад"):
-        style "mas_os_nav_btn"
-        text_style "mas_os_nav_btn_text"
-        xpos 48
-        ypos 640
-        action Return("back")
+    if not store.mas_os.wm_embedded():
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xpos 48
+            ypos 640
+            action Return("back")
 
-    key "K_ESCAPE" action Return("back")
-    key "K_AC_BACK" action Return("back")
+        key "K_ESCAPE" action Return("back")
+        key "K_AC_BACK" action Return("back")
 
 
 style mas_os_log_text is mas_os_hint:

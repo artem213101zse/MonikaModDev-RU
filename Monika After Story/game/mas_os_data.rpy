@@ -207,53 +207,79 @@ init -5 python in mas_os:
         data_selected = name
         data_status = ""
 
+    def data_live_meta():
+        snap = aff_snapshot()
+        sessions = store.persistent.sessions or {}
+        path = persistent_path()
+        return {
+            "ok": True,
+            "name": "persistent",
+            "path": path,
+            "mtime": _fmt_mtime(path) if path and os.path.isfile(path) else "в памяти",
+            "player": unicode(getattr(store.persistent, "playername", None) or "—"),
+            "nick": unicode(getattr(store.persistent, "_mas_monika_nickname", None) or "Моника"),
+            "version": unicode(getattr(store.persistent, "version_number", None) or store.config.version),
+            "aff_s": snap["value_s"],
+            "state_s": snap["state_s"],
+            "sessions": unicode(sessions.get("total_sessions", "—")),
+            "play": _fmt_play(sessions.get("total_playtime")) if sessions.get("total_playtime") is not None else "—",
+            "first": _fmt_dt(sessions.get("first_session")),
+            "last": _fmt_dt(sessions.get("last_session_end")),
+            "is_current": True,
+            "size": _fm_size(path) if path and os.path.isfile(path) else "—",
+            "cal": "db.mcal",
+        }
+
     def data_make_backup():
         global data_status
+        if data_locked():
+            data_status = "Нет доступа к папке сохранений."
+            return False
         try:
             store.renpy.save_persistent()
         except Exception:
             pass
         try:
             store.__mas__memoryBackup()
-            data_status = "Бэкап persistent и календаря создан."
+            data_status = "Бэкап persistent и календаря создан. Файл лежит в папке сохранений — открыть его можно в «Файлах»."
             return True
         except Exception as err:
             data_status = "Бэкап не удался: {0}".format(err)
             return False
 
-    def data_restore():
+    def data_promote_path(src):
+        """Copy a persistent* file over the live slot, then reboot. File-level only."""
         global data_status
-        row = data_selected_row()
-        if row is None:
-            data_status = "Нечего загружать."
-            return False
-        if row["is_current"]:
-            data_status = "Это уже текущий persistent."
-            return False
-        if not row["ok"]:
-            data_status = "Этот файл повреждён, загружать нельзя."
+        if data_locked():
+            data_status = "Нет доступа к папке сохранений."
             return False
         folder = _save_folder()
-        src = row["path"]
+        if not src or not os.path.isfile(src) or not folder:
+            data_status = "Файл не найден."
+            return False
         dst = os.path.join(folder, "persistent")
         try:
+            if os.path.abspath(src) == os.path.abspath(dst):
+                data_status = "Это уже текущий persistent."
+                return False
             try:
                 store.__mas__memoryBackup()
             except Exception:
                 if os.path.isfile(dst):
                     shutil.copy2(dst, os.path.join(folder, "persistent_osprev.bak"))
             shutil.copy2(src, dst)
-            cal = row.get("cal")
+            name = os.path.basename(src)
+            cal = _cal_name_for(name)
             if cal:
-                cal_src = os.path.join(folder, cal)
+                cal_src = os.path.join(os.path.dirname(src), cal)
                 cal_dst = os.path.join(folder, "db.mcal")
                 if os.path.isfile(cal_src):
                     shutil.copy2(cal_src, cal_dst)
-            data_status = "Подставлено. Перезапуск..."
+            data_status = "Файл подставлен. Перезапуск оболочки..."
             reboot_shell()
             return True
         except Exception as err:
-            data_status = "Не загрузить: {0}".format(err)
+            data_status = "Не подставить: {0}".format(err)
             return False
 
     def _safe_zip_name(text):
@@ -268,10 +294,17 @@ init -5 python in mas_os:
 
     def data_export_zip():
         global data_status
-        row = data_selected_row()
-        if row is None or not os.path.isfile(row["path"]):
-            data_status = "Нечего экспортировать."
+        if data_locked():
+            data_status = "Нет доступа к папке сохранений."
             return False
+        row = data_selected_row()
+        if row is None or not os.path.isfile(row.get("path") or ""):
+            live = persistent_path()
+            if live and os.path.isfile(live):
+                row = {"path": live, "name": "persistent", "player": getattr(store.persistent, "playername", None) or "mas", "nick": "Моника", "version": "", "aff_s": "", "state_s": "", "sessions": "", "play": "", "first": "", "mtime": ""}
+            else:
+                data_status = "Нечего экспортировать."
+                return False
         stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         zip_name = "mas_{0}_{1}.zip".format(_safe_zip_name(row.get("player")), stamp)
         folders = []
@@ -320,103 +353,25 @@ init -5 python in mas_os:
             data_status = "Экспорт не удался: {0}".format(err)
             return False
 
-    def data_delete_bak():
-        global data_status, data_selected
-        row = data_selected_row()
-        if row is None:
-            data_status = "Нечего удалять."
-            return False
-        if row["is_current"] or row["name"] == "persistent":
-            data_status = "Текущий persistent удалять нельзя."
-            return False
+    def data_go_files():
+        global fm_keep_cwd
         try:
-            os.remove(row["path"])
-            cal = row.get("cal")
-            if cal:
-                cal_path = os.path.join(_save_folder(), cal)
-                if os.path.isfile(cal_path):
-                    os.remove(cal_path)
-            data_selected = "persistent"
-            data_status = "Удалено: {0}".format(row["name"])
-            return True
-        except Exception as err:
-            data_status = "Не удалить: {0}".format(err)
-            return False
+            fm_jump("saves")
+            fm_keep_cwd = True
+        except Exception:
+            pass
+        return "files"
 
-    def list_import_zips():
-        found = []
-        seen = set()
-        for folder in (os.path.join(game_dir(), "mas_os_export"), characters_dir()):
-            if not folder or not os.path.isdir(folder):
-                continue
-            try:
-                names = os.listdir(folder)
-            except Exception:
-                names = []
-            for name in sorted(names):
-                if not name.lower().endswith(".zip"):
-                    continue
-                if name in seen:
-                    continue
-                seen.add(name)
-                found.append({
-                    "name": name,
-                    "path": os.path.join(folder, name),
-                })
-        return found
 
-    def data_import_zip(path):
-        global data_status
-        if not path or not os.path.isfile(path):
-            data_status = "ZIP не найден."
-            return False
-        folder = _save_folder()
-        try:
-            zf = zipfile.ZipFile(path, "r")
-        except Exception as err:
-            data_status = "Не открыть ZIP: {0}".format(err)
-            return False
-        try:
-            names = zf.namelist()
-            per_name = None
-            for n in names:
-                base = os.path.basename(n)
-                if base == "persistent" or (base.startswith("persistent") and (base.endswith(".bak") or base == "persistent_unstable")):
-                    per_name = n
-                    break
-            if per_name is None:
-                data_status = "В архиве нет persistent."
-                return False
-            try:
-                store.__mas__memoryBackup()
-            except Exception:
-                pass
-            payload = zf.read(per_name)
-            dst = os.path.join(folder, "persistent")
-            handle = open(dst, "wb")
-            try:
-                handle.write(payload)
-            finally:
-                handle.close()
-            for n in names:
-                base = os.path.basename(n)
-                if base == "db.mcal" or (base.startswith("db.mcal") and base.endswith(".bak")):
-                    cal_data = zf.read(n)
-                    cal_dst = os.path.join(folder, "db.mcal")
-                    handle = open(cal_dst, "wb")
-                    try:
-                        handle.write(cal_data)
-                    finally:
-                        handle.close()
-                    break
-        except Exception as err:
-            data_status = "Импорт не удался: {0}".format(err)
-            return False
-        finally:
-            zf.close()
-        data_status = "ZIP импортирован. Перезапуск..."
-        reboot_shell()
-        return True
+init python:
+    class MASOSDataFiles(Action):
+        def __call__(self):
+            store.mas_os.data_go_files()
+            if store.mas_os.layout_desktop():
+                store.mas_os.wm_open("files", reset_fm=False)
+                store.renpy.restart_interaction()
+                return None
+            return "files"
 
 
 label mas_os_data:
@@ -424,76 +379,122 @@ label mas_os_data:
     if not store.mas_os.data_selected:
         $ store.mas_os.data_selected = "persistent"
     call screen mas_os_data with mas_os_trans
+    if _return == "files":
+        jump mas_os_files
     jump mas_os_home
 
 
 screen mas_os_data():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
-    $ rows = store.mas_os.list_persistents()
-    $ sel = store.mas_os.data_selected_row()
-    $ zips = store.mas_os.list_import_zips()
+    $ locked = store.mas_os.data_locked()
+    $ live = store.mas_os.data_live_meta()
+    $ rows = [] if locked else store.mas_os.list_persistents()
+    $ sel = None if locked else store.mas_os.data_selected_row()
     $ status = store.mas_os.data_status
+    $ loc = store.mas_os.saves_folder_display()
+    $ mode = store.mas_os.android_saves_mode_label()
+    $ gray = store.mas_os.theme_color("insensitive")
     $ sel_name = sel["name"] if sel else ""
-    $ d_nick = ("Моника: " + sel["nick"]) if sel else ""
-    $ d_player = ("Игрок: " + sel["player"]) if sel else ""
-    $ d_ver = ("Версия: " + sel["version"]) if sel else ""
-    $ d_aff = ("Привязанность: " + sel["aff_s"] + "  " + sel["state_s"]) if sel else ""
-    $ d_ses = ("Сессии: " + sel["sessions"] + "  /  " + sel["play"]) if sel else ""
-    $ d_first = ("Первая: " + sel["first"]) if sel else ""
-    $ d_last = ("Последняя: " + sel["last"]) if sel else ""
-    $ d_file = ("Файл: " + sel["mtime"] + "  " + sel["size"]) if sel else ""
+    $ card = sel if (sel and not sel.get("is_current")) else live
+    $ card_title = card["name"] if (card and not card.get("is_current")) else _("Сейчас в памяти")
+    $ d_nick = _("Моника: ") + card["nick"]
+    $ d_player = _("Игрок: ") + card["player"]
+    $ d_ver = _("Версия: ") + card["version"]
+    $ d_aff = _("Привязанность: ") + card["aff_s"] + "  " + card["state_s"]
+    $ d_ses = _("Сессии: ") + card["sessions"] + "  /  " + card["play"]
+    $ d_first = _("Первая: ") + card["first"]
+    $ d_last = _("Последняя: ") + card["last"]
 
     use mas_os_bg
 
     text _("Данные") at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
-        ypos 18
+        ypos 14
 
-    text _("Бэкапы persistent в папке сохранений. Загрузка подменяет текущий файл и перезапускает игру."):
+    text _("Сейчас: [mode]"):
         style "mas_os_hint"
         xpos 48
-        ypos 58
+        ypos 52
         xsize 1180
+        substitute True
 
-    viewport:
+    frame:
+        style "mas_os_panel"
         xpos 48
-        ypos 92
+        ypos 82
         xysize (760, 430)
-        draggable True
-        mousewheel True
-        scrollbars "vertical"
+        padding (12, 10)
+        background Solid(store.mas_os.theme_color("panel2") if not locked else "#1A1A1A")
 
-        vbox:
-            spacing 4
+        if locked:
+            timer 0.5 action MASOSFn(store.mas_os.android_saves_poll) repeat True
 
-            hbox:
-                spacing 8
-                text _("файл") style "mas_os_hint" xsize 240
-                text _("дата") style "mas_os_hint" xsize 150
-                text _("игрок") style "mas_os_hint" xsize 140
-                text _("привяз.") style "mas_os_hint" xsize 90
+            vbox:
+                spacing 10
+                xfill True
 
-            if not rows:
-                text _("Persistent не найден."):
+                text _("Папка сохранений недоступна"):
+                    style "mas_os_subtitle"
+                    color gray
+
+                text _("Выбраны Documents, но нет разрешения «доступ ко всем файлам». Список файлов и операции с диском выключены. Ниже — только текущий persistent из памяти."):
                     style "mas_os_body"
-            else:
-                for row in rows:
-                    textbutton "{0}   {1}   {2}   {3}".format(row["name"], row["mtime"], row["player"], row["aff_s"]):
-                        style "mas_os_side_btn"
-                        text_style "mas_os_side_btn_text"
-                        xsize 730
-                        ysize 48
-                        substitute False
-                        selected (row["name"] == sel_name)
-                        action Function(store.mas_os.data_select, row["name"])
+                    color gray
+                    xsize 720
+
+                textbutton _("Открыть настройки разрешения"):
+                    style "mas_os_button"
+                    text_style "mas_os_button_text"
+                    xsize 720
+                    action Function(store.mas_os.android_saves_open_settings)
+
+                textbutton _("Проверить разрешение"):
+                    style "mas_os_nav_btn"
+                    text_style "mas_os_nav_btn_text"
+                    xsize 720
+                    action MASOSFn(store.mas_os.android_saves_finish_documents)
+
+                textbutton _("Вернуть папку приложения"):
+                    style "mas_os_nav_btn"
+                    text_style "mas_os_nav_btn_text"
+                    xsize 720
+                    action Function(store.mas_os.android_saves_choose_app)
+        else:
+            viewport:
+                xysize (736, 410)
+                draggable True
+                mousewheel True
+                scrollbars "vertical"
+
+                vbox:
+                    spacing 4
+
+                    text _("Файлы в папке сохранений (просмотр). Подменить текущий persistent можно только в «Файлах»: копируй bak и «Сделать текущим», затем перезапуск."):
+                        style "mas_os_hint"
+                        xsize 700
+
+                    if not rows:
+                        text _("Файлов persistent не видно."):
+                            style "mas_os_body"
+                    else:
+                        for row in rows:
+                            textbutton "{0}   {1}   {2}   {3}".format(row["name"], row["mtime"], row["player"], row["aff_s"]):
+                                style "mas_os_side_btn"
+                                text_style "mas_os_side_btn_text"
+                                xsize 700
+                                ysize 48
+                                substitute False
+                                selected (row["name"] == sel_name)
+                                action Function(store.mas_os.data_select, row["name"])
 
     frame:
         style "mas_os_panel"
         xpos 828
-        ypos 92
+        ypos 82
         xysize (404, 430)
         padding (16, 14)
 
@@ -501,54 +502,56 @@ screen mas_os_data():
             spacing 6
             xfill True
 
-            if sel:
-                text sel["name"]:
-                    style "mas_os_subtitle"
-                    substitute False
+            text card_title:
+                style "mas_os_subtitle"
+                substitute False
 
-                text d_nick:
-                    style "mas_os_body"
-                    size 16
-                    substitute False
+            text d_nick:
+                style "mas_os_body"
+                size 16
+                substitute False
 
-                text d_player:
-                    style "mas_os_body"
-                    size 16
-                    substitute False
+            text d_player:
+                style "mas_os_body"
+                size 16
+                substitute False
 
-                text d_ver:
-                    style "mas_os_body"
-                    size 16
-                    substitute False
+            text d_ver:
+                style "mas_os_body"
+                size 16
+                substitute False
 
-                text d_aff:
-                    style "mas_os_body"
-                    size 16
-                    substitute False
+            text d_aff:
+                style "mas_os_body"
+                size 16
+                substitute False
 
-                text d_ses:
-                    style "mas_os_body"
-                    size 16
-                    substitute False
+            text d_ses:
+                style "mas_os_body"
+                size 16
+                substitute False
 
-                text d_first:
+            text d_first:
+                style "mas_os_hint"
+                substitute False
+
+            text d_last:
+                style "mas_os_hint"
+                substitute False
+
+            text loc:
+                style "mas_os_hint"
+                size 13
+                substitute False
+
+            if locked:
+                text _("Это снимок из памяти. Файлы на диске не читаем."):
                     style "mas_os_hint"
-                    substitute False
-
-                text d_last:
-                    style "mas_os_hint"
-                    substitute False
-
-                text d_file:
-                    style "mas_os_hint"
-                    substitute False
-            else:
-                text _("Выбери запись слева."):
-                    style "mas_os_hint"
+                    color gray
 
     vbox:
         xpos 48
-        ypos 532
+        ypos 522
         spacing 8
 
         hbox:
@@ -558,56 +561,33 @@ screen mas_os_data():
                 style "mas_os_nav_btn"
                 text_style "mas_os_nav_btn_text"
                 xsize 200
-                action Function(store.mas_os.data_make_backup)
-
-            textbutton _("Загрузить"):
-                style "mas_os_nav_btn"
-                text_style "mas_os_nav_btn_text"
-                xsize 180
-                action Show(
-                    "mas_os_confirm",
-                    message=_("Подставить этот persistent и перезапустить MAS OS? Текущий сначала сохранится в bak."),
-                    yes_action=[Function(store.mas_os.data_restore), Hide("mas_os_confirm")],
-                    no_action=Hide("mas_os_confirm")
-                )
+                sensitive (not locked)
+                action MASOSFn(store.mas_os.data_make_backup)
 
             textbutton _("Экспорт ZIP"):
                 style "mas_os_nav_btn"
                 text_style "mas_os_nav_btn_text"
                 xsize 180
-                action Function(store.mas_os.data_export_zip)
+                sensitive (not locked)
+                action MASOSFn(store.mas_os.data_export_zip)
 
-            textbutton _("Удалить bak"):
+            textbutton _("Открыть в файлах"):
+                style "mas_os_button"
+                text_style "mas_os_button_text"
+                xsize 220
+                sensitive (not locked)
+                action MASOSDataFiles()
+
+            textbutton _("Перезапустить оболочку"):
                 style "mas_os_nav_btn"
                 text_style "mas_os_nav_btn_text"
-                xsize 180
+                xsize 260
                 action Show(
                     "mas_os_confirm",
-                    message=_("Удалить выбранный bak? Текущий persistent не тронется."),
-                    yes_action=[Function(store.mas_os.data_delete_bak), Hide("mas_os_confirm")],
+                    message=_("Перезапустить MAS OS? Нужно после подмены persistent в файловом менеджере."),
+                    yes_action=[Function(store.mas_os.reboot_shell), Hide("mas_os_confirm")],
                     no_action=Hide("mas_os_confirm")
                 )
-
-        if zips:
-            hbox:
-                spacing 8
-
-                text _("Импорт ZIP:"):
-                    style "mas_os_hint"
-                    yalign 0.5
-
-                for zitem in zips[:3]:
-                    textbutton zitem["name"]:
-                        style "mas_os_nav_btn"
-                        text_style "mas_os_nav_btn_text"
-                        xsize 240
-                        substitute False
-                        action Show(
-                            "mas_os_confirm",
-                            message=_("Импортировать архив и перезапустить?"),
-                            yes_action=[Function(store.mas_os.data_import_zip, zitem["path"]), Hide("mas_os_confirm")],
-                            no_action=Hide("mas_os_confirm")
-                        )
 
     if status:
         text status:
@@ -617,12 +597,13 @@ screen mas_os_data():
             xsize 1180
             substitute False
 
-    textbutton _("Назад"):
-        style "mas_os_nav_btn"
-        text_style "mas_os_nav_btn_text"
-        xpos 48
-        ypos 640
-        action Return("back")
+    if not store.mas_os.wm_embedded():
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xpos 48
+            ypos 640
+            action Return("back")
 
-    key "K_ESCAPE" action Return("back")
-    key "K_AC_BACK" action Return("back")
+        key "K_ESCAPE" action Return("back")
+        key "K_AC_BACK" action Return("back")

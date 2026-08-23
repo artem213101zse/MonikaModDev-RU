@@ -165,13 +165,195 @@ image tos = "bg/warning.png"
 image tos2 = "bg/warning2.png"
 
 
+init python:
+    class MASOSTOSMark(Action):
+        def __init__(self, which):
+            self.which = which
+
+        def __call__(self):
+            store.mas_os.tos_mark(self.which)
+            store.renpy.restart_interaction()
+            return None
+
+    class MASOSTOSDone(Action):
+        def __call__(self):
+            if store.mas_os.tos_test:
+                store.mas_os.tos_test = False
+                store.renpy.hide_screen("mas_os_tos")
+                store.renpy.restart_interaction()
+                return None
+            return True
+
+    class MASOSTOSRefuse(Action):
+        def __call__(self):
+            store.mas_os.tos_refuse()
+            return None
+
+
+label mas_os_tos_seq:
+    python:
+        store.mas_os.tos_begin(False)
+        quick_menu = False
+        _confirm_quit = False
+        config.allow_skipping = False
+    scene white
+    pause 0.5
+    scene tos
+    with Dissolve(1.0)
+    pause 0.4
+    call screen mas_os_tos
+    scene white
+    with Dissolve(1.0)
+    return
+
+
+screen mas_os_tos_agree_btn(cap, agreed, which):
+    button:
+        xsize 430
+        ysize 56
+        padding (10, 6)
+        background Solid("#2F9A58" if agreed else "#FFD0E4")
+        hover_background Solid("#3DB86A" if agreed else "#FFB7D8")
+        action MASOSTOSMark(which)
+        hover_sound gui.hover_sound
+        activate_sound gui.activate_sound
+
+        hbox:
+            spacing 12
+            xalign 0.5
+            yalign 0.5
+
+            frame:
+                xysize (28, 28)
+                background Solid("#FFFFFF")
+                yalign 0.5
+
+                if agreed:
+                    text "OK":
+                        size 13
+                        color "#1A7A3A"
+                        bold True
+                        xalign 0.5
+                        yalign 0.5
+                        outlines []
+
+            text cap:
+                size 18
+                color ("#FFFFFF" if agreed else "#5A2038")
+                yalign 0.5
+                outlines []
+                substitute False
+
+
+screen mas_os_tos():
+    modal True
+    zorder 400
+
+    $ phase = store.mas_os.tos_phase
+    $ a_mas = store.mas_os.tos_agree_mas
+    $ a_os = store.mas_os.tos_agree_os
+    $ gname = config.name
+
+    if phase == 2:
+        if renpy.loadable("bg/warning2.png"):
+            add "tos2"
+        else:
+            add Solid("#ffffff")
+        timer 1.5 action MASOSTOSDone()
+    else:
+        if renpy.loadable("bg/warning.png"):
+            add "tos"
+        else:
+            add Solid("#14070d")
+        add Solid("#000000B3")
+
+        frame:
+            xalign 0.5
+            yalign 0.5
+            xsize 1000
+            padding (32, 24)
+            background Solid("#FFF8F2")
+
+            vbox:
+                xsize 936
+                spacing 12
+
+                text _("Условия использования"):
+                    style "splash_text"
+                    size 26
+                    color "#1A1216"
+                    xalign 0.5
+
+                text _("Monika After Story"):
+                    style "splash_text"
+                    size 20
+                    color "#7A2850"
+                    xalign 0.5
+
+                text _("[gname] — это фанатский мод для Doki Doki Literature Club, никак не связанный с Team Salvato. Рекомендуется проходить его только после завершения оригинальной игры: здесь очень много спойлеров. Для запуска нужны файлы оригинальной DDLC, их можно бесплатно скачать на http://ddlc.moe"):
+                    style "splash_text"
+                    size 18
+                    color "#24181C"
+                    xsize 936
+                    xalign 0.5
+                    text_align 0.5
+                    substitute True
+
+                text _("Запуская [gname], вы подтверждаете, что прошли Doki Doki Literature Club до конца и согласны со всеми спойлерами."):
+                    style "splash_text"
+                    size 18
+                    color "#24181C"
+                    xsize 936
+                    xalign 0.5
+                    text_align 0.5
+                    substitute True
+
+                text _("MAS OS"):
+                    style "splash_text"
+                    size 20
+                    color "#7A2850"
+                    xalign 0.5
+
+                text _("MAS OS — оболочка этого порта, © Kurokawa GDS (Kurokawa Game Dev Studio). Это не продукт Team Salvato и не официальная часть команды Monika After Story. Оболочку можно использовать только в составе этого порта: нельзя копировать MAS OS в чужой мод или сборку, выдавать её за свою работу, снимать логотип и строку «powered by Kurokawa GDS»."):
+                    style "splash_text"
+                    size 18
+                    color "#24181C"
+                    xsize 936
+                    xalign 0.5
+                    text_align 0.5
+
+                text _("Нужны оба согласия. Если одно не принято — игра закроется."):
+                    style "splash_text"
+                    size 16
+                    color "#7A2850"
+                    xalign 0.5
+
+                hbox:
+                    xalign 0.5
+                    spacing 20
+
+                    use mas_os_tos_agree_btn(_("Согласен: мод"), a_mas, "mas")
+                    use mas_os_tos_agree_btn(_("Согласен: MAS OS"), a_os, "os")
+
+        if a_mas and a_os:
+            timer 0.45 action Function(store.mas_os.tos_advance)
+
+        key "K_ESCAPE" action If(a_mas and a_os, NullAction(), MASOSTOSRefuse())
+        key "K_AC_BACK" action If(a_mas and a_os, NullAction(), MASOSTOSRefuse())
+
+
 label splashscreen:
     # Init reached splash: crash watchdog can stand down.
     $ store.mas_os.mark_boot_ok()
+    # Team Salvato + MAS OS clickwrap before the shell.
+    if not persistent._mas_os_tos_agreed:
+        call mas_os_tos_seq
     # MAS OS must run BEFORE session/affection startup.
     # Visiting the shell is not a MAS session.
     if store.mas_os.needs_setup():
         call mas_os_setup
+    if store.mas_os.android_saves_should_ask():
+        call screen mas_os_android_saves
     if store.mas_os.can_show():
         call mas_os_shell
 
@@ -194,27 +376,8 @@ label splashscreen:
 
     scene white
 
-    #If this is the first time the game has been run, show a disclaimer
     if persistent.first_run:
         $ quick_menu = False
-        pause 0.5
-        scene tos
-        with Dissolve(1.0)
-        pause 1.0
-        "[config.name] — это фанатский мод для Doki Doki Literature Club, никак не связанный с Team Salvato."
-        "Рекомендуется проходить его только после завершения оригинальной игры, так как здесь содержится очень много спойлеров"
-        "Для запуска мода необходимы файлы оригинальной Doki Doki Literature Club. Их можно бесплатно скачать здесь: http://ddlc.moe"
-        menu:
-            "Запуская [config.name], вы подтверждаете, что прошли Doki Doki Literature Club до конца и согласны со всеми спойлерами, которые могут здесь встретиться."
-            "Согласен":
-                pass
-        scene tos2
-        with Dissolve(1.5)
-        pause 1.0
-
-        scene white
-        with Dissolve(1.5)
-
         #Optional, load a copy of DDLC save data
         if not persistent._mas_imported_saves:
             call import_ddlc_persistent from _call_import_ddlc_persistent

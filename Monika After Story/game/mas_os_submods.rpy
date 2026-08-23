@@ -896,8 +896,9 @@ init 1 python:
 
 
 screen mas_os_submods():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ tab = store.mas_os.sm_tab
     $ rows = store.mas_os.sm_installed_rows()
@@ -1330,29 +1331,30 @@ screen mas_os_submods():
                     style "mas_os_hint"
                     xsize 1140
 
-    textbutton _("Назад"):
-        style "mas_os_nav_btn"
-        text_style "mas_os_nav_btn_text"
-        xpos 48
-        ypos 640
-        action [
+    if not store.mas_os.wm_embedded():
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xpos 48
+            ypos 640
+            action [
+                Function(store.mas_os.stop_sm_url_typing),
+                Function(store.mas_os.stop_sm_direct_typing),
+                Return("back"),
+            ]
+
+        key "K_ESCAPE" action [
             Function(store.mas_os.stop_sm_url_typing),
             Function(store.mas_os.stop_sm_direct_typing),
             Return("back"),
         ]
-
-    key "K_ESCAPE" action [
-        Function(store.mas_os.stop_sm_url_typing),
-        Function(store.mas_os.stop_sm_direct_typing),
-        Return("back"),
-    ]
-    key "K_AC_BACK" action If(
-        store.mas_os.sm_url_typing or store.mas_os.sm_direct_typing,
-        [
-            store.mas_os.sm_url_iv.Disable(),
-            store.mas_os.sm_direct_iv.Disable(),
-            Function(store.mas_os.stop_sm_url_typing),
-            Function(store.mas_os.stop_sm_direct_typing),
-        ],
-        Return("back"),
-    )
+        key "K_AC_BACK" action If(
+            store.mas_os.sm_url_typing or store.mas_os.sm_direct_typing,
+            [
+                store.mas_os.sm_url_iv.Disable(),
+                store.mas_os.sm_direct_iv.Disable(),
+                Function(store.mas_os.stop_sm_url_typing),
+                Function(store.mas_os.stop_sm_direct_typing),
+            ],
+            Return("back"),
+        )

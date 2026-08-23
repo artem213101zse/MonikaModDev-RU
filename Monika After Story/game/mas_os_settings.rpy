@@ -65,13 +65,15 @@ init -5 python in mas_os:
             "title": "Репозиторий порта",
             "hint": "MonikaModDev-RU",
             "url": "https://github.com/artem213101zse/MonikaModDev-RU",
+            "logo": "mod_assets/mas_os/about/github.png",
             "icon": "github-port",
             "hue": "#C94A7A",
         },
         {
-            "title": "MAS на GitHub",
+            "title": "Monika After Story",
             "hint": "официальный мод",
             "url": "https://github.com/Monika-After-Story/MonikaModDev",
+            "logo": "mod_assets/mas_os/about/mas.png",
             "icon": "mas-official",
             "hue": "#FF8AC4",
         },
@@ -79,6 +81,7 @@ init -5 python in mas_os:
             "title": "Ren'Py",
             "hint": "движок игры",
             "url": "https://www.renpy.org/",
+            "logo": "mod_assets/mas_os/about/renpy.png",
             "icon": "renpy",
             "hue": "#4A8AAA",
         },
@@ -86,6 +89,7 @@ init -5 python in mas_os:
             "title": "DDLC",
             "hint": "оригинал Team Salvato",
             "url": "https://ddlc.moe",
+            "logo": "mod_assets/mas_os/about/ddlc.png",
             "icon": "ddlc",
             "hue": "#8A4A7A",
         },
@@ -93,10 +97,27 @@ init -5 python in mas_os:
             "title": "Team Salvato",
             "hint": "авторы DDLC",
             "url": "https://teamsalvato.com",
+            "logo": "mod_assets/mas_os/about/salvato.png",
             "icon": "team-salvato",
             "hue": "#8A6A4A",
         },
     ]
+
+    def about_image(path):
+        if not path:
+            return None
+        try:
+            opened = asset_open_path(path)
+            if opened:
+                return opened
+        except Exception:
+            pass
+        try:
+            if store.renpy.loadable(path):
+                return path
+        except Exception:
+            pass
+        return None
 
     def open_site(url):
         if not url:
@@ -206,8 +227,9 @@ screen mas_os_onoff(caption, hint, flag_name, default=True):
 
 
 screen mas_os_link_card(item, delay=0.08):
+    $ logo = store.mas_os.about_image(item.get("logo"))
     $ ic = store.mas_os.icon_path(item.get("icon"))
-    $ shown = store.mas_os.doc_image_path(item.get("image")) if not ic else None
+    $ shown = logo or ic
 
     button:
         style "mas_os_link_card"
@@ -220,16 +242,12 @@ screen mas_os_link_card(item, delay=0.08):
             spacing 0
 
             frame:
-                xysize (220, 96)
+                xysize (224, 108)
                 background Solid(store.mas_os.theme_color("panel2"))
                 clipping True
 
-                if ic:
-                    add store.mas_os.fit_image(ic, 88, 88):
-                        xalign 0.5
-                        yalign 0.5
-                elif shown:
-                    add store.mas_os.fit_image(shown, 220, 96):
+                if shown:
+                    add store.mas_os.fit_image(shown, 200, 96):
                         xalign 0.5
                         yalign 0.5
                 else:
@@ -239,8 +257,8 @@ screen mas_os_link_card(item, delay=0.08):
                         yalign 0.5
 
             frame:
-                xsize 220
-                ysize 56
+                xsize 224
+                ysize 52
                 background Solid(item.get("hue") or "#C94A7A")
                 padding (8, 6)
 
@@ -257,9 +275,27 @@ screen mas_os_link_card(item, delay=0.08):
                         substitute False
 
 
+screen mas_os_about_bullet(caption, hue="#FF8AC4"):
+    hbox:
+        spacing 8
+        xfill True
+
+        frame:
+            xysize (8, 8)
+            yoffset 6
+            background Solid(hue)
+
+        text caption:
+            style "mas_os_hint"
+            size 14
+            xsize 680
+            substitute False
+
+
 screen mas_os_settings():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ cat = store.mas_os.settings_cat or "boot"
 
@@ -452,7 +488,7 @@ screen mas_os_settings():
                     text _("Оформление"):
                         style "mas_os_subtitle"
 
-                    text _("Тема оболочки, анимации, обои, текстбокс и шрифты."):
+                    text _("Тема оболочки, вид (плитки или рабочий стол), анимации, обои, текстбокс и шрифты."):
                         style "mas_os_hint"
 
                     frame:
@@ -461,6 +497,13 @@ screen mas_os_settings():
                         xsize 760
                         padding (16, 12)
                         use mas_os_theme_toggle(width=720)
+
+                    frame:
+                        style "mas_os_panel"
+                        background Solid(store.mas_os.theme_color("panel2"))
+                        xsize 760
+                        padding (16, 12)
+                        use mas_os_layout_toggle(width=720)
 
                     frame:
                         style "mas_os_panel"
@@ -754,7 +797,7 @@ screen mas_os_settings():
                         False,
                     )
 
-                    use mas_os_ibutton(_("Открыть плеер"), Return("player"), "Au", "#8A6A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="sound")
+                    use mas_os_ibutton(_("Открыть плеер"), MASOSGo("player"), "Au", "#8A6A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="sound")
 
                     use mas_os_store_link("music", "settings")
 
@@ -773,7 +816,9 @@ screen mas_os_settings():
                     text _("Каталог сабмодов — JSON-индекс. Ссылку меняют в разделе «Сабмоды» → Каталог. Пример схемы: game/mod_assets/mas_os/catalog_example.json."):
                         style "mas_os_hint"
 
-                    use mas_os_ibutton(_("Установщик MAS OS"), Return("setup"), "Up", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="boot")
+                    use mas_os_android_saves_row
+
+                    use mas_os_ibutton(_("Установщик MAS OS"), MASOSGo("setup"), "Up", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="boot")
 
                     use mas_os_ibutton(_("Сбросить настройки MAS OS"), Show("mas_os_confirm", message=_("Сбросить оформление, звук и поведение оболочки к заводским?\nСкачанные файлы и прочитанные события не трогаем."), yes_action=[Function(store.mas_os.reset_os_settings), Hide("mas_os_confirm")], no_action=Hide("mas_os_confirm")), "R", "#8A3A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="reboot")
 
@@ -782,132 +827,170 @@ screen mas_os_settings():
                     text _("Оболочка не считает посещение комнаты, пока не нажато «Запустить MAS»."):
                         style "mas_os_hint"
 
-    textbutton _("Назад"):
-        style "mas_os_nav_btn"
-        text_style "mas_os_nav_btn_text"
-        xpos 48
-        ypos 640
-        at mas_os_btn
-        action Return("back")
-
-    key "K_ESCAPE" action Return("back")
-    key "K_AC_BACK" action Return("back")
+    use mas_os_app_nav
 
 
 screen mas_os_about():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ plat = store.mas_os.platform_name()
     $ touch = _("да") if store.mas_os.is_touch() else _("нет")
     $ rver = renpy.version()
     $ osver = store.mas_os.VERSION
     $ links = store.mas_os.ABOUT_LINKS
+    $ layout_name = _("Рабочий стол") if store.mas_os.layout_desktop() else _("Плитки")
+    $ theme_name = _("светлая") if store.mas_os.theme_light() else _("тёмная")
 
     use mas_os_bg
 
-    text _("О системе") at store.mas_os.t_pop(0.0):
-        style "mas_os_title"
-        xpos 48
-        ypos 16
-
-    text _("MAS OS [osver]  ·  [config.name] [config.version]  ·  [rver]") at store.mas_os.t_pop(0.04):
-        style "mas_os_hint"
-        xpos 48
-        ypos 58
-
-    hbox at store.mas_os.t_pop(0.08):
-        xpos 48
-        ypos 96
-        spacing 12
-
-        for i in range(len(links)):
-            use mas_os_link_card(links[i], delay=0.06 + 0.04 * i)
-
-    frame at store.mas_os.t_pop(0.16):
+    frame at store.mas_os.t_pop(0.0):
         style "mas_os_panel"
         xpos 48
-        ypos 330
-        xysize (1184, 280)
-        padding (20, 14)
+        ypos 12
+        xysize (1184, 96)
+        padding (16, 10)
 
         hbox:
-            spacing 24
+            spacing 16
+            yalign 0.5
+            xfill True
+
+            fixed at mas_os_logo_breathe:
+                xysize (72, 72)
+                use mas_os_logo_mark(max_w=72, max_h=72)
 
             vbox:
-                xsize 360
-                spacing 8
+                spacing 2
+                yalign 0.5
 
-                hbox:
-                    spacing 12
+                text _("О системе"):
+                    style "mas_os_title"
+                    size 30
 
-                    fixed at mas_os_logo_breathe:
-                        xysize (56, 56)
-                        use mas_os_logo_mark(max_w=56, max_h=56)
-
-                    vbox:
-                        spacing 2
-                        yalign 0.5
-
-                        text store.mas_os.STUDIO:
-                            style "mas_os_studio_title"
-                            substitute False
-
-                        text store.mas_os.STUDIO_LONG:
-                            style "mas_os_hint"
-                            size 13
-                            substitute False
-
-                        use mas_os_powered_line(size=13)
-
-                text _("Сборка"):
+                text _("MAS OS [osver]  ·  оболочка порта"):
                     style "mas_os_subtitle"
+                    size 16
 
-                text _("Платформа: [plat]"):
-                    style "mas_os_body"
+                use mas_os_powered_line(size=13)
 
-                text _("Сенсорный ввод: [touch]"):
+            null:
+                xfill True
+
+            vbox:
+                spacing 2
+                yalign 0.5
+                xsize 420
+
+                text _("[config.name]  [config.version]"):
                     style "mas_os_body"
+                    size 16
+                    xalign 1.0
+
+                text _("[rver]"):
+                    style "mas_os_hint"
+                    size 13
+                    xalign 1.0
+
+                text _("Платформа [plat]  ·  сенсор [touch]"):
+                    style "mas_os_hint"
+                    size 13
+                    xalign 1.0
+
+    hbox at store.mas_os.t_pop(0.06):
+        xpos 48
+        ypos 118
+        spacing 10
+
+        for i in range(len(links)):
+            use mas_os_link_card(links[i], delay=0.04 + 0.03 * i)
+
+    hbox at store.mas_os.t_pop(0.12):
+        xpos 48
+        ypos 286
+        spacing 12
+
+        frame:
+            style "mas_os_panel"
+            xysize (360, 340)
+            padding (16, 12)
+
+            vbox:
+                spacing 8
+                xfill True
+
+                text store.mas_os.STUDIO:
+                    style "mas_os_studio_title"
+                    substitute False
+
+                text store.mas_os.STUDIO_LONG:
+                    style "mas_os_hint"
+                    size 13
+                    substitute False
+
+                text store.mas_os.ABOUT_BLURB:
+                    style "mas_os_hint"
+                    size 14
+                    xsize 320
+                    substitute False
+
+                text _("Сейчас: [layout_name], тема [theme_name]"):
+                    style "mas_os_body"
+                    size 15
+
+                text store.mas_os.ABOUT_NOTE:
+                    style "mas_os_hint"
+                    size 13
+                    xsize 320
+                    substitute False
 
                 textbutton _("Открыть логи"):
                     style "mas_os_nav_btn"
                     text_style "mas_os_nav_btn_text"
                     xsize 200
-                    action Return("logs")
+                    action MASOSGo("logs")
+
+                textbutton _("Тест дисклеймера"):
+                    style "mas_os_nav_btn"
+                    text_style "mas_os_nav_btn_text"
+                    xsize 200
+                    action [Function(store.mas_os.tos_begin, True), Show("mas_os_tos")]
+
+        frame:
+            style "mas_os_panel"
+            xysize (812, 340)
+            padding (16, 12)
 
             viewport:
-                xysize (760, 248)
+                id "mas_os_about_plan"
+                xysize (776, 312)
                 draggable True
                 mousewheel True
                 scrollbars "vertical"
 
                 vbox:
-                    spacing 8
-                    xsize 730
+                    spacing 10
+                    xsize 750
 
-                    text _("План порта"):
+                    text _("Уже сделано"):
                         style "mas_os_subtitle"
 
-                    text store.mas_os.ROADMAP:
-                        style "mas_os_hint"
-                        xsize 720
-                        substitute False
+                    for line in store.mas_os.ABOUT_DONE:
+                        use mas_os_about_bullet(line, "#FF8AC4")
 
-    textbutton _("Назад"):
-        style "mas_os_nav_btn"
-        text_style "mas_os_nav_btn_text"
-        xpos 48
-        ypos 640
-        at mas_os_btn
-        action Return("back")
+                    text _("Дальше"):
+                        style "mas_os_subtitle"
 
-    key "K_ESCAPE" action Return("back")
-    key "K_AC_BACK" action Return("back")
+                    for line in store.mas_os.ABOUT_NEXT:
+                        use mas_os_about_bullet(line, "#3DFFF0")
+
+    use mas_os_app_nav
 
 
 style mas_os_link_card is default:
-    xsize 220
-    ysize 152
+    xsize 224
+    ysize 160
     padding (0, 0)
     idle_background Solid("#1E0C14")
     hover_background Solid("#3A1524")

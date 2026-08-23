@@ -1135,8 +1135,9 @@ label mas_os_store:
 
 
 screen mas_os_store():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ kind = store.mas_os.dl_kind
     $ typing = store.mas_os.dl_typing
@@ -1357,23 +1358,24 @@ screen mas_os_store():
                                     style "mas_os_hint"
                                     substitute False
 
-    textbutton _("Назад"):
-        style "mas_os_nav_btn"
-        text_style "mas_os_nav_btn_text"
-        xpos 48
-        ypos 640
-        at mas_os_btn
-        action [
-            Function(store.mas_os.stop_dl_typing),
-            Return(back_to),
-        ]
+    if not store.mas_os.wm_embedded():
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xpos 48
+            ypos 640
+            at mas_os_btn
+            action [
+                Function(store.mas_os.stop_dl_typing),
+                Return(back_to),
+            ]
 
-    key "K_ESCAPE" action [Function(store.mas_os.stop_dl_typing), Return(back_to)]
-    key "K_AC_BACK" action If(
-        store.mas_os.dl_typing,
-        [store.mas_os.dl_iv.Disable(), Function(store.mas_os.stop_dl_typing)],
-        [Function(store.mas_os.stop_dl_typing), Return(back_to)],
-    )
+        key "K_ESCAPE" action [Function(store.mas_os.stop_dl_typing), Return(back_to)]
+        key "K_AC_BACK" action If(
+            store.mas_os.dl_typing,
+            [store.mas_os.dl_iv.Disable(), Function(store.mas_os.stop_dl_typing)],
+            [Function(store.mas_os.stop_dl_typing), Return(back_to)],
+        )
 
 
 screen mas_os_store_link(kind, back="home", xsize=760):
@@ -1387,7 +1389,7 @@ screen mas_os_store_link(kind, back="home", xsize=760):
         activate_sound store.mas_os.os_activate()
         action [
             Function(store.mas_os.open_store, kind, back),
-            Return("store"),
+            MASOSGo("store"),
         ]
 
         hbox:

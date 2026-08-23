@@ -385,7 +385,7 @@ init -5 python in mas_os:
         return "Плейлист MAS · {0} треков (встроенные + custom_bgm)".format(n)
 
 
-screen mas_os_player_widget(width=420, height=132, ypos=386):
+screen mas_os_player_widget(width=420, height=132, ypos=386, xpos=56):
     $ _mus_ic = store.mas_os.icon_path("sound")
     $ _title = store.mas_os.player_title()
     $ _status = store.mas_os.player_status_line()
@@ -394,7 +394,7 @@ screen mas_os_player_widget(width=420, height=132, ypos=386):
 
     frame at store.mas_os.t_pop(0.12):
         style "mas_os_panel"
-        xpos 56
+        xpos xpos
         ypos ypos
         xsize width
         ysize height
@@ -414,7 +414,7 @@ screen mas_os_player_widget(width=420, height=132, ypos=386):
                 button:
                     style "mas_os_link"
                     yalign 0.5
-                    action Return("player")
+                    action MASOSGo("player")
                     hover_sound store.mas_os.os_hover()
                     activate_sound store.mas_os.os_activate()
 
@@ -427,7 +427,7 @@ screen mas_os_player_widget(width=420, height=132, ypos=386):
                     style "mas_os_player_mini"
                     text_style "mas_os_player_mini_text"
                     yalign 0.5
-                    action Return("player")
+                    action MASOSGo("player")
 
             text _status:
                 style "mas_os_hint"
@@ -607,8 +607,9 @@ screen mas_os_vol_row(caption, hint, pref, channel=None):
 
 
 screen mas_os_player():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ tracks = store.mas_os.player_tracks()
     $ title = store.mas_os.player_title()
@@ -845,16 +846,18 @@ screen mas_os_player():
         ypos 640
         spacing 12
 
-        textbutton _("Назад"):
-            style "mas_os_nav_btn"
-            text_style "mas_os_nav_btn_text"
-            at mas_os_btn
-            action Return("back")
+        if not store.mas_os.wm_embedded():
+            textbutton _("Назад"):
+                style "mas_os_nav_btn"
+                text_style "mas_os_nav_btn_text"
+                at mas_os_btn
+                action Return("back")
 
         use mas_os_store_link("music", "player", 420)
 
-    key "K_ESCAPE" action Return("back")
-    key "K_AC_BACK" action Return("back")
+    if not store.mas_os.wm_embedded():
+        key "K_ESCAPE" action Return("back")
+        key "K_AC_BACK" action Return("back")
 
 
 style mas_os_bar is slider:

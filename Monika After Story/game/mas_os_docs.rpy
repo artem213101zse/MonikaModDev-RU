@@ -567,8 +567,9 @@ screen mas_os_doc_image(path, caption=None, max_w=740, max_h=320):
 
 
 screen mas_os_docs():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ items = store.mas_os.matched_docs()
     $ doc = store.mas_os.active_doc()
@@ -786,22 +787,24 @@ screen mas_os_docs():
                         xsize 740
                         substitute False
 
-    textbutton _("Назад"):
-        style "mas_os_nav_btn"
-        text_style "mas_os_nav_btn_text"
-        xpos 48
-        ypos 640
-        action [
-            Function(store.mas_os.stop_doc_search),
-            Return("back"),
-        ]
+    if not store.mas_os.wm_embedded():
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xpos 48
+            ypos 640
+            action [
+                Function(store.mas_os.stop_doc_search),
+                Return("back"),
+            ]
 
-    key "K_ESCAPE" action [Function(store.mas_os.stop_doc_search), Return("back")]
-    key "K_AC_BACK" action If(
-        store.mas_os.doc_typing,
-        [store.mas_os.doc_iv.Disable(), Function(store.mas_os.stop_doc_search)],
-        [Function(store.mas_os.stop_doc_search), Return("back")],
-    )
+    if not store.mas_os.wm_embedded():
+        key "K_ESCAPE" action [Function(store.mas_os.stop_doc_search), Return("back")]
+        key "K_AC_BACK" action If(
+            store.mas_os.doc_typing,
+            [store.mas_os.doc_iv.Disable(), Function(store.mas_os.stop_doc_search)],
+            [Function(store.mas_os.stop_doc_search), Return("back")],
+        )
     key "K_LEFT" action Function(store.mas_os.doc_slide_prev)
     key "K_RIGHT" action Function(store.mas_os.doc_slide_next)
     key "K_RETURN" action Function(store.mas_os.stop_doc_search)

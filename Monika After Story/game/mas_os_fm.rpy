@@ -30,6 +30,9 @@ init -5 python in mas_os:
     fm_edit_index = -1
     fm_line_buf = ""
     fm_typing = False
+    fm_clip = ""
+    fm_clip_name = ""
+    fm_keep_cwd = False
 
     def _abs(path):
         return _norm(os.path.abspath(path))
@@ -445,6 +448,85 @@ init -5 python in mas_os:
             fm_status = "Не создать: {0}".format(err)
             return False
 
+    def fm_is_persistent_name(name):
+        name = name or ""
+        return name == "persistent" or name == "persistent_unstable" or (
+            name.startswith("persistent") and name.endswith(".bak")
+        )
+
+    def fm_copy(name):
+        global fm_clip, fm_clip_name, fm_status
+        path = _abs(os.path.join(fm_cwd, name))
+        if not fm_in_sandbox(path) or not os.path.exists(path):
+            fm_status = "Нечего копировать."
+            return False
+        fm_clip = path
+        fm_clip_name = name
+        fm_status = "Скопировано: {0}. Вставь в этой или другой папке.".format(name)
+        return True
+
+    def fm_can_paste():
+        return bool(fm_clip) and os.path.exists(fm_clip)
+
+    def fm_paste(overwrite=False):
+        global fm_status
+        if not fm_can_paste():
+            fm_status = "Буфер пуст."
+            return False
+        dest = _abs(os.path.join(fm_cwd, fm_clip_name))
+        if not fm_in_sandbox(dest):
+            fm_status = "Сюда вставлять нельзя."
+            return False
+        if os.path.abspath(fm_clip) == os.path.abspath(dest):
+            fm_status = "Это тот же файл."
+            return False
+        if os.path.exists(dest) and not overwrite:
+            return "exists"
+        try:
+            if os.path.exists(dest):
+                if os.path.isdir(dest):
+                    shutil.rmtree(dest)
+                else:
+                    os.remove(dest)
+            if os.path.isdir(fm_clip):
+                shutil.copytree(fm_clip, dest)
+            else:
+                shutil.copy2(fm_clip, dest)
+            fm_status = "Вставлено: {0}".format(fm_clip_name)
+            if fm_is_persistent_name(fm_clip_name):
+                fm_status = fm_status + " Перезапусти оболочку, если это должен быть текущий persistent."
+            return True
+        except Exception as err:
+            fm_status = "Не вставить: {0}".format(err)
+            return False
+
+    def fm_use_as_persistent(name):
+        global fm_status
+        path = _abs(os.path.join(fm_cwd, name))
+        if not fm_is_persistent_name(name):
+            fm_status = "Это не файл persistent."
+            return False
+        return data_promote_path(path)
+
+    def fm_paste_overwrite():
+        fm_paste(True)
+        return None
+
+    def fm_paste_or_ask():
+        rv = fm_paste(False)
+        if rv == "exists":
+            store.renpy.show_screen(
+                "mas_os_confirm",
+                message="Файл {0} уже есть. Заменить?".format(fm_clip_name.replace("[", "[[").replace("{", "{{")),
+                yes_action=[
+                    store.Function(fm_paste_overwrite),
+                    store.Hide("mas_os_confirm"),
+                ],
+                no_action=store.Hide("mas_os_confirm"),
+            )
+            return None
+        return None
+
     def fm_delete(name):
         global fm_status
         path = _abs(os.path.join(fm_cwd, name))
@@ -507,6 +589,10 @@ init python:
                 renpy.restart_interaction()
                 return None
             if store.mas_os.fm_prepare_named(self.name):
+                if store.mas_os.wm_embedded():
+                    store.mas_os.fm_sub = "view"
+                    renpy.restart_interaction()
+                    return None
                 return "view"
             renpy.restart_interaction()
             return None
@@ -517,8 +603,9 @@ init 1 python:
 
 
 screen mas_os_files():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ entries = store.mas_os.fm_list()
     $ cwd_label = store.mas_os.fm_rel()
@@ -526,6 +613,8 @@ screen mas_os_files():
     $ at_root = store.mas_os.fm_is_root()
     $ del_icon = store.mas_os.icon_path("delete")
     $ up_icon = store.mas_os.icon_path("folder-up")
+    $ copy_icon = store.mas_os.icon_path("add")
+    $ persist_icon = store.mas_os.icon_path("save")
 
     use mas_os_bg
 
@@ -580,13 +669,13 @@ screen mas_os_files():
             style "mas_os_nav_btn"
             text_style "mas_os_nav_btn_text"
             xsize 140
-            action Return("gifts")
+            action MASOSGo("gifts")
 
         textbutton _("Логи"):
             style "mas_os_nav_btn"
             text_style "mas_os_nav_btn_text"
             xsize 100
-            action Return("logs")
+            action MASOSGo("logs")
 
     hbox:
         xpos 48
@@ -624,6 +713,13 @@ screen mas_os_files():
             xsize 100
             action MASOSFn(store.mas_os.fm_begin_create, "file")
 
+        textbutton _("Вставить"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xsize 140
+            sensitive store.mas_os.fm_can_paste()
+            action MASOSFn(store.mas_os.fm_paste_or_ask)
+
     viewport:
         xpos 48
         ypos 184
@@ -645,7 +741,7 @@ screen mas_os_files():
 
                         button:
                             style "mas_os_side_btn"
-                            xsize 980
+                            xsize 880
                             ysize 48
                             padding (8, 6)
                             action MASOSFMOpen(item["name"], item["dir"])
@@ -678,6 +774,44 @@ screen mas_os_files():
                             style "mas_os_nav_btn"
                             xsize 48
                             ysize 48
+                            action MASOSFn(store.mas_os.fm_copy, item["name"])
+
+                            if copy_icon:
+                                add store.mas_os.fit_image(copy_icon, 24, 24):
+                                    xalign 0.5
+                                    yalign 0.5
+                            else:
+                                text _("C"):
+                                    style "mas_os_nav_btn_text"
+                                    xalign 0.5
+                                    yalign 0.5
+
+                        if (not item["dir"]) and store.mas_os.fm_is_persistent_name(item["name"]):
+                            button:
+                                style "mas_os_nav_btn"
+                                xsize 48
+                                ysize 48
+                                action Show(
+                                    "mas_os_confirm",
+                                    message="Подставить {0} как текущий persistent и перезапустить оболочку? Живой persistent из памяти не правим — только файл, затем перезапуск.".format(item["name"].replace("[", "[[").replace("{", "{{")),
+                                    yes_action=[MASOSFn(store.mas_os.fm_use_as_persistent, item["name"]), Hide("mas_os_confirm")],
+                                    no_action=Hide("mas_os_confirm")
+                                )
+
+                                if persist_icon:
+                                    add store.mas_os.fit_image(persist_icon, 24, 24):
+                                        xalign 0.5
+                                        yalign 0.5
+                                else:
+                                    text _("P"):
+                                        style "mas_os_nav_btn_text"
+                                        xalign 0.5
+                                        yalign 0.5
+
+                        button:
+                            style "mas_os_nav_btn"
+                            xsize 48
+                            ysize 48
                             action Show(
                                 "mas_os_confirm",
                                 message="Удалить {0}?".format(item["name"].replace("[", "[[").replace("{", "{{")),
@@ -702,15 +836,16 @@ screen mas_os_files():
             ypos 608
             xsize 900
 
-    textbutton _("Назад"):
-        style "mas_os_nav_btn"
-        text_style "mas_os_nav_btn_text"
-        xpos 48
-        ypos 640
-        action Return("back")
+    if not store.mas_os.wm_embedded():
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xpos 48
+            ypos 640
+            action Return("back")
 
-    key "K_ESCAPE" action Return("back")
-    key "K_AC_BACK" action Return("back")
+        key "K_ESCAPE" action Return("back")
+        key "K_AC_BACK" action Return("back")
 
 
 screen mas_os_fm_prompt():
@@ -763,8 +898,9 @@ screen mas_os_fm_prompt():
 
 
 screen mas_os_fm_view():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ chunks = store.mas_os.fm_view_chunks()
     $ can_save = store.mas_os.fm_can_save
@@ -831,22 +967,28 @@ screen mas_os_fm_view():
             style "mas_os_nav_btn"
             text_style "mas_os_nav_btn_text"
             xsize 160
-            action Return("back")
+            action MASOSBack()
 
         if can_save:
             textbutton _("Править"):
                 style "mas_os_nav_btn"
                 text_style "mas_os_nav_btn_text"
                 xsize 180
-                action Return("edit")
+                action If(
+                    store.mas_os.wm_embedded(),
+                    Function(store.mas_os.fm_embed_go, "edit"),
+                    Return("edit"),
+                )
 
-    key "K_ESCAPE" action Return("back")
-    key "K_AC_BACK" action Return("back")
+    if not store.mas_os.wm_embedded():
+        key "K_ESCAPE" action Return("back")
+        key "K_AC_BACK" action Return("back")
 
 
 screen mas_os_fm_edit():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ lines = store.mas_os.fm_edit_lines
     $ idx = store.mas_os.fm_edit_index
@@ -993,12 +1135,13 @@ screen mas_os_fm_edit():
             xsize 200
             action [
                 MASOSFn(store.mas_os.stop_fm_typing),
-                Return("back"),
+                MASOSBack(),
             ]
 
-    key "K_ESCAPE" action [MASOSFn(store.mas_os.stop_fm_typing), Return("back")]
-    key "K_AC_BACK" action If(
-        store.mas_os.fm_typing,
-        [store.mas_os.fm_line_iv.Disable(), MASOSFn(store.mas_os.stop_fm_typing)],
-        [MASOSFn(store.mas_os.stop_fm_typing), Return("back")],
-    )
+    if not store.mas_os.wm_embedded():
+        key "K_ESCAPE" action [MASOSFn(store.mas_os.stop_fm_typing), Return("back")]
+        key "K_AC_BACK" action If(
+            store.mas_os.fm_typing,
+            [store.mas_os.fm_line_iv.Disable(), MASOSFn(store.mas_os.stop_fm_typing)],
+            [MASOSFn(store.mas_os.stop_fm_typing), Return("back")],
+        )

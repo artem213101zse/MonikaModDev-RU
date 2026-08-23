@@ -42,7 +42,13 @@ default persistent._mas_os_font_notes = "m1"
 default persistent._mas_os_wallpaper = "splash.png"
 default persistent._mas_os_wp_dim = True
 default persistent._mas_os_theme = "dark"
+# cards — плитки (текущий вид); desktop — extras/Windows как в DDLC Plus
+default persistent._mas_os_layout = "cards"
 default persistent._mas_os_setup_done = False
+default persistent._mas_os_setup_step = 0
+default persistent._mas_os_tos_agreed = False
+# ask — показать выбор на Android; documents / app — решение игрока
+default persistent._mas_os_android_saves = "ask"
 # off — полное вступление; tips — без болтовни, подсказки t/m/p остаются; all — только служебный код
 default persistent._mas_os_intro_skip = "off"
 
@@ -52,7 +58,7 @@ init -10 python in mas_os:
     import store
     import renpy
 
-    VERSION = "0.1.0-proto"
+    VERSION = "0.2.0"
     game_entered = False
 
     _active_doc = None
@@ -63,31 +69,46 @@ init -10 python in mas_os:
     gift_input = ""
     gift_status = ""
 
-    ROADMAP = (
-        "Сделано:\n"
-        "• оболочка до сессии (Моника не обижается на выход из OS)\n"
-        "• пропуск OS при запуске\n"
-        "• события из календаря на стене\n"
-        "• фейковый браузер и тосты реакций на окна\n"
-        "• виджет привязанности\n"
-        "• подарки в characters и просмотр логов\n\n"
-        "Доделать заглушки:\n"
-        "• файлы: копировать / удалять / поделиться\n"
-        "• данные: экспорт, импорт, бэкап persistent\n"
-        "• сабмоды: установка с устройства + перезапуск\n"
-        "• настройки: апдейтер порта, обои OS, шрифт, текстбокс\n\n"
-        "Дальше по пользе для Android:\n"
-        "• спрайтпаки (json + png) до запуска игры\n"
-        "• безопасный режим, если сабмод валит init\n"
-        "• кастомная музыка и piano_songs\n"
-        "• док-станция / monika.chr\n"
-        "• API-ключи и часовой пояс\n"
-        "• рендер и масштаб UI до старта\n"
-        "• календарь на месяц в OS\n"
-        "• FAQ порта в документации\n"
-        "• картинки на плитки главного меню\n\n"
-        "Не тащить в OS: разговоры, extras, мини-игры — это комната Моники."
+    ABOUT_BLURB = (
+        "MAS OS — оболочка порта Kurokawa GDS. Открывается до комнаты Моники: "
+        "заход сюда не считается визитом, привязанность и прощания не трогаются. "
+        "Это фича порта, не сабмод."
     )
+
+    ABOUT_DONE = (
+        "Оболочка до сессии и возврат из игры без обиды и crash-greeting",
+        "Заставка MAS OS (логотип / надпись / минимальная / выкл) и тест в настройках",
+        "Анимации «Запустить MAS»: логотип, bloom, glitch, iris, выкл",
+        "Два вида главной: плитки и рабочий стол как extras в DDLC Plus",
+        "Тёмная и светлая тема, свои обои, затемнение",
+        "Шрифты по слотам, свои ttf/otf со Склада, пути Android overlay",
+        "Цвет текстбокса, RGB-оверлей и подгонка кнопок под него",
+        "Сабмоды: каталог, zip, GitHub releases, Extra Plus, безопасный режим",
+        "Файловый менеджер, Склад по ссылке (GitHub / Drive / Яндекс)",
+        "Вставка ссылки из буфера — обход лимита 32 символа на Android",
+        "Плеер и виджет на главной, события календаря, подарки, браузер, логи",
+        "Мастер первого запуска, пропуск вступления, документация порта",
+        "Бренд Kurokawa GDS и радужная кнопка возврата в MAS OS",
+        "Сейвы Android: Documents или папка приложения, доступ ко всем файлам",
+        "Данные: просмотр persistent, бэкап/ZIP; подмена файла — через «Файлы»",
+        "Файлы: копирование, вставка, «Сделать текущим» для persistent",
+    )
+
+    ABOUT_NEXT = (
+        "Подмена заглушек бренда на сгенерированные логотип и кнопки",
+        "Апдейтер самого порта из оболочки",
+        "Установка спрайтпаков до запуска сессии",
+        "Файлы: «поделиться»",
+        "Piano, док-станция и monika.chr из OS",
+        "API-ключи и часовой пояс из оболочки",
+        "Масштаб UI до старта, календарь на месяц, расширить FAQ",
+    )
+
+    ABOUT_NOTE = (
+        "В OS не тащим разговоры, extras и мини-игры — это комната Моники."
+    )
+
+    ROADMAP = ""
 
     # In-game talk-menu button. Swap these two paths when custom art is ready.
     TALK_IDLE = "mod_assets/hkb_idle_background.png"
@@ -128,6 +149,7 @@ init -10 python in mas_os:
         ("_mas_os_wallpaper", "splash.png"),
         ("_mas_os_wp_dim", True),
         ("_mas_os_theme", "dark"),
+        ("_mas_os_layout", "cards"),
         ("_mas_os_intro_skip", "off"),
         ("_mas_os_boot_splash", "logo"),
     )
@@ -205,6 +227,47 @@ init -10 python in mas_os:
         return True
 
     boot_warning = ""
+
+    tos_test = False
+    tos_agree_mas = False
+    tos_agree_os = False
+    tos_phase = 1
+
+    def tos_begin(test=False):
+        global tos_test, tos_agree_mas, tos_agree_os, tos_phase
+        tos_test = bool(test)
+        tos_agree_mas = False
+        tos_agree_os = False
+        tos_phase = 1
+        return None
+
+    def tos_mark(which):
+        global tos_agree_mas, tos_agree_os
+        if which == "mas":
+            tos_agree_mas = True
+        elif which == "os":
+            tos_agree_os = True
+        return None
+
+    def tos_advance():
+        global tos_phase
+        if not (tos_agree_mas and tos_agree_os):
+            return None
+        tos_phase = 2
+        if not tos_test:
+            store.persistent._mas_os_tos_agreed = True
+            try:
+                store.renpy.save_persistent()
+            except Exception:
+                pass
+        return None
+
+    def tos_refuse():
+        try:
+            store.renpy.quit()
+        except Exception:
+            pass
+        return None
 
     def boot_lock_path():
         return os.path.join(game_dir(), "mas_os_boot_lock")
@@ -2256,7 +2319,10 @@ label mas_os_player:
 
 
 label mas_os_files:
-    $ store.mas_os.fm_open()
+    if store.mas_os.fm_keep_cwd:
+        $ store.mas_os.fm_keep_cwd = False
+    else:
+        $ store.mas_os.fm_open()
     jump mas_os_files_loop
 
 label mas_os_files_loop:
@@ -2372,14 +2438,15 @@ screen mas_os_confirm(message, yes_action, no_action):
 
 
 screen mas_os_bg(show_brand=True):
-    add store.mas_os.wallpaper_disp():
-        xalign 0.5
-        yalign 0.5
-    if store.mas_os.flag("_mas_os_wp_dim", True):
-        add Solid(store.mas_os.theme_color("bg_dim"))
-    if show_brand:
-        use mas_os_logo_mark(max_w=40, max_h=40, xpos=1224, ypos=14)
-        use mas_os_powered(ypos=698, size=12)
+    if not store.mas_os.wm_embedded():
+        add store.mas_os.wallpaper_disp():
+            xalign 0.5
+            yalign 0.5
+        if store.mas_os.flag("_mas_os_wp_dim", True):
+            add Solid(store.mas_os.theme_color("bg_dim"))
+        if show_brand:
+            use mas_os_logo_mark(max_w=40, max_h=40, xpos=1224, ypos=14)
+            use mas_os_powered(ypos=698, size=12)
 
 
 screen mas_os_frame(title, subtitle=None):
@@ -2597,6 +2664,31 @@ screen mas_os_home():
     modal True
     zorder 200
 
+    $ _boot_warn = store.mas_os.boot_warning
+
+    if _boot_warn:
+        timer 0.05 action [
+            Show("mas_os_notice", message=_boot_warn),
+            Function(store.mas_os.clear_boot_warning),
+        ]
+
+    if store.mas_os.layout_desktop():
+        use mas_os_home_desktop
+    else:
+        use mas_os_home_cards
+
+    if store.mas_os.layout_desktop() and (store.mas_os.start_open or store.mas_os.wm_focus):
+        key "K_ESCAPE" action Function(store.mas_os.wm_esc)
+        key "K_AC_BACK" action Function(store.mas_os.wm_esc)
+    elif store.mas_os.flag("_mas_os_quit_confirm", True):
+        key "K_ESCAPE" action Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm"))
+        key "K_AC_BACK" action Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm"))
+    else:
+        key "K_ESCAPE" action Function(store.mas_os.request_quit)
+        key "K_AC_BACK" action Function(store.mas_os.request_quit)
+
+
+screen mas_os_home_cards():
     $ snap = store.mas_os.aff_snapshot()
     $ ev_line = store.mas_os.next_event_line()
     $ ev_label = store.mas_os.events_button_label()
@@ -2606,15 +2698,15 @@ screen mas_os_home():
     $ _aff_color = snap["color"]
     $ _launch_ic = store.mas_os.icon_path("launch")
     $ _aff_ic = store.mas_os.icon_path("affection")
-    $ _boot_warn = store.mas_os.boot_warning
+    $ _aff_on = store.mas_os.flag("_mas_os_aff_widget", True)
+    $ _mus_on = store.mas_os.flag("_mas_os_music_widget", True)
+    $ _aff_y = 268 if _mus_on else 280
+    $ _aff_h = 110 if _mus_on else 150
+    $ _mus_y = 386 if _aff_on else 280
+    $ _mus_h = 136 if _aff_on else 150
+    $ _boot_y = 526 if (_aff_on and _mus_on) else 440
 
     use mas_os_bg(show_brand=False)
-
-    if _boot_warn:
-        timer 0.05 action [
-            Show("mas_os_notice", message=_boot_warn),
-            Function(store.mas_os.clear_boot_warning),
-        ]
 
     hbox at store.mas_os.t_pop(0.0):
         xpos 56
@@ -2678,14 +2770,6 @@ screen mas_os_home():
             text _("Запустить MAS"):
                 style "mas_os_launch_text"
                 yalign 0.5
-
-    $ _aff_on = store.mas_os.flag("_mas_os_aff_widget", True)
-    $ _mus_on = store.mas_os.flag("_mas_os_music_widget", True)
-    $ _aff_y = 268 if _mus_on else 280
-    $ _aff_h = 110 if _mus_on else 150
-    $ _mus_y = 386 if _aff_on else 280
-    $ _mus_h = 136 if _aff_on else 150
-    $ _boot_y = 526 if (_aff_on and _mus_on) else 440
 
     if _aff_on:
         frame at store.mas_os.t_pop(0.10):
@@ -2763,13 +2847,6 @@ screen mas_os_home():
             use mas_os_ibutton(_("Выключение"), Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm")), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.41, icon="shutdown")
         else:
             use mas_os_ibutton(_("Выключение"), Function(store.mas_os.request_quit), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.41, icon="shutdown")
-
-    if store.mas_os.flag("_mas_os_quit_confirm", True):
-        key "K_ESCAPE" action Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm"))
-        key "K_AC_BACK" action Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm"))
-    else:
-        key "K_ESCAPE" action Function(store.mas_os.request_quit)
-        key "K_AC_BACK" action Function(store.mas_os.request_quit)
 
 
 style mas_os_title is default:

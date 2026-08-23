@@ -6,11 +6,12 @@ init -5 python in mas_os:
 
     setup_step = 0
     setup_from = "boot"
-    SETUP_LAST = 5
+    SETUP_LAST = 6
 
     SETUP_TITLES = (
         "Приветствие",
         "Файлы DDLC",
+        "Сохранения",
         "Внешний вид",
         "Шрифт и движение",
         "Запуск",
@@ -34,30 +35,49 @@ init -5 python in mas_os:
             return SETUP_TITLES[setup_step]
         return "Установка"
 
+    def _save_setup_step():
+        store.persistent._mas_os_setup_step = setup_step
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+
     def setup_next():
         global setup_step
+        if setup_step == 2:
+            if android_saves_wait_permission():
+                return None
+            if android_saves_available() and not android_saves_choice_resolved():
+                android_saves_choose_app()
         if setup_step < SETUP_LAST:
             setup_step += 1
+            _save_setup_step()
         return None
 
     def setup_back():
         global setup_step
         if setup_step > 0:
             setup_step -= 1
+            _save_setup_step()
         return None
 
     def setup_goto(step):
         global setup_step
         if 0 <= step <= SETUP_LAST:
             setup_step = step
+            _save_setup_step()
         return None
 
     def setup_finish():
         store.persistent._mas_os_setup_done = True
+        store.persistent._mas_os_setup_step = 0
         try:
             store.renpy.save_persistent()
         except Exception:
             pass
+        if layout_desktop() and (wm_embedded() or wm_is_open("setup")):
+            wm_close("setup")
+            return None
         return "done"
 
     def setup_skip():
@@ -126,9 +146,19 @@ init -5 python in mas_os:
 label mas_os_setup:
     python:
         store.mas_os.enter_shell()
-        store.mas_os.setup_step = 0
         if store.mas_os.setup_from not in ("settings", "boot"):
             store.mas_os.setup_from = "boot"
+        if store.mas_os.setup_from == "boot":
+            step = getattr(store.persistent, "_mas_os_setup_step", 0) or 0
+            try:
+                step = int(step)
+            except Exception:
+                step = 0
+            if step < 0 or step > store.mas_os.SETUP_LAST:
+                step = 0
+            store.mas_os.setup_step = step
+        else:
+            store.mas_os.setup_step = 0
     $ quick_menu = False
     $ _confirm_quit = False
     $ config.allow_skipping = False
@@ -142,8 +172,9 @@ label mas_os_setup:
 
 
 screen mas_os_setup():
-    modal True
-    zorder 200
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
 
     $ step = store.mas_os.setup_step
     $ title = store.mas_os.setup_title()
@@ -195,7 +226,7 @@ screen mas_os_setup():
                     text _("Добро пожаловать"):
                         style "mas_os_subtitle"
 
-                    text _("Это оболочка порта до запуска комнаты Моники. Сейчас проверим файлы оригинальной DDLC и выставим внешний вид."):
+                    text _("Это оболочка порта до запуска комнаты Моники. Сейчас проверим файлы оригинальной DDLC, куда писать сохранения, и выставим внешний вид."):
                         style "mas_os_body"
                         xsize 1080
 
@@ -272,6 +303,13 @@ screen mas_os_setup():
                         action Function(store.mas_os.setup_recheck)
 
                 elif step == 2:
+                    text _("Куда писать сохранения. На Android можно положить их в Documents, чтобы пережили переустановку. На ПК папка уже видна."):
+                        style "mas_os_hint"
+                        xsize 1080
+
+                    use mas_os_saves_picker(in_setup=True)
+
+                elif step == 3:
                     text _("Тема, обои и текстбокс. Это можно сменить в любой момент в настройках."):
                         style "mas_os_hint"
 
@@ -281,6 +319,13 @@ screen mas_os_setup():
                         xsize 1080
                         padding (16, 12)
                         use mas_os_theme_toggle(width=1040)
+
+                    frame:
+                        style "mas_os_panel"
+                        background Solid(store.mas_os.theme_color("panel2"))
+                        xsize 1080
+                        padding (16, 12)
+                        use mas_os_layout_toggle(width=1040)
 
                     use mas_os_onoff(
                         _("Затемнение поверх обоев"),
@@ -357,7 +402,7 @@ screen mas_os_setup():
                                         style "mas_os_side_btn_text"
                                         yalign 0.5
 
-                elif step == 3:
+                elif step == 4:
                     text _("Основной шрифт диалога. Остальные слоты (меню, UI, записки) — в настройках оформления."):
                         style "mas_os_hint"
                         xsize 1080
@@ -429,7 +474,7 @@ screen mas_os_setup():
                                         xsize 1040
                                         substitute False
 
-                elif step == 4:
+                elif step == 5:
                     text _("Как открывать порт и что показать на главной."):
                         style "mas_os_hint"
 
@@ -504,12 +549,13 @@ screen mas_os_setup():
             textbutton _("Закрыть"):
                 style "mas_os_nav_btn"
                 text_style "mas_os_nav_btn_text"
-                action Return("settings")
+                action MASOSBack("settings")
 
         if step < last:
             textbutton _("Далее"):
                 style "mas_os_nav_btn"
                 text_style "mas_os_nav_btn_text"
+                sensitive (step != 2 or not store.mas_os.android_saves_wait_permission())
                 action Function(store.mas_os.setup_next)
         else:
             textbutton _("Готово"):
@@ -517,9 +563,10 @@ screen mas_os_setup():
                 text_style "mas_os_nav_btn_text"
                 action Function(store.mas_os.setup_finish)
 
-    if step == 0:
-        key "K_ESCAPE" action If(from_settings, Return("settings"), Function(store.mas_os.setup_skip))
-        key "K_AC_BACK" action If(from_settings, Return("settings"), Function(store.mas_os.setup_skip))
-    elif step > 0:
-        key "K_ESCAPE" action Function(store.mas_os.setup_back)
-        key "K_AC_BACK" action Function(store.mas_os.setup_back)
+    if not store.mas_os.wm_embedded():
+        if step == 0:
+            key "K_ESCAPE" action If(from_settings, Return("settings"), Function(store.mas_os.setup_skip))
+            key "K_AC_BACK" action If(from_settings, Return("settings"), Function(store.mas_os.setup_skip))
+        elif step > 0:
+            key "K_ESCAPE" action Function(store.mas_os.setup_back)
+            key "K_AC_BACK" action Function(store.mas_os.setup_back)
