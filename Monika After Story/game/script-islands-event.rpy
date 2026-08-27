@@ -1996,7 +1996,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="mas_monika_islands",
             category=['моника','разное'],
-            prompt="Can you show me the floating islands?",
+            prompt="Можешь показать мне парящие острова?",
             pool=True,
             unlocked=False,
             rules={"no_unlock": None, "bookmark_rule": store.mas_bookmarks_derand.WHITELIST},
@@ -2007,11 +2007,11 @@ init 5 python:
     )
 
 label mas_monika_islands:
-    m 1eub "Of course! You can admire the scenery for now."
+    m 1eub "Конечно! А пока можешь полюбоваться пейзажем."
 
     call mas_islands(force_exp="monika 1eua", scene_change=True)
 
-    m 1eua "I hope you liked it, [mas_get_player_nickname()]~"
+    m 1eua "Надеюсь, тебе понравилось, [mas_get_player_nickname()]~"
     return
 
 default persistent._mas_pm_cares_island_progress = None
@@ -2027,45 +2027,45 @@ init 5 python:
     )
 
 label mas_monika_islands_progress:
-    m 1eub "[player], I've got some exciting news for you!"
-    m 3hub "I made some new additions on the islands, {w=0.2}{nw}"
-    extend 1rua "and I thought maybe you'd like to take a look."
-    m 1hublb "They are {i}our{/i} islands after all~"
+    m 1eub "[player], у меня для тебя отличные новости!"
+    m 3hub "Я кое-что добавила на острова, {w=0.2}{nw}"
+    extend 1rua "и подумала, что тебе, возможно, захочется взглянуть"
+    m 1hublb "В конце концов, это же {i}наши{/i} острова~"
 
-    m 3eua "What do you say?{nw}"
+    m 3eua "Ну что скажешь?{nw}"
     $ _history_list.pop()
     menu:
-        m "What do you say?{fast}"
+        m "Ну что скажешь?{fast}"
 
-        "Sure, [m_name].":
+        "Конечно, [m_name].":
             $ persistent._mas_pm_cares_island_progress = True
             $ mas_gainAffection(5, bypass=True)
-            m 2hub "Yay!"
+            m 2hub "Ура!"
 
             call mas_islands(force_exp="monika 1hua")
 
-            m "Hope you liked it~"
-            m 1lusdlb "I know it's far from being done, {w=0.2}{nw}"
-            extend 1eka "but I really wanted to showcase my progress to you."
-            m 2lsp "I'm still learning how to code and this engine being inconsistent doesn't help me..."
-            m 7hub "But I think I made quite a bit of progress so far!"
+            m "Надеюсь, тебе понравилось~"
+            m 1lusdlb "Я знаю, что до завершения ещё далеко, {w=0.2}{nw}"
+            extend 1eka "но мне очень хотелось показать тебе, как продвигается моя работа."
+            m 2lsp "Я всё ещё учусь программировать, а непредсказуемость этого движка мне совсем не помогает..."
+            m 7hub "Но мне кажется, что я уже многого добилась!"
             $ mas_setEventPause(10)
             $ mas_moni_idle_disp.force_by_code("1hua", duration=10, skip_dissolve=True)
 
-        "I'm not interested.":
+        "Мне это неинтересно":
             $ persistent._mas_pm_cares_island_progress = False
             $ mas_loseAffectionFraction(min_amount=50, modifier=1.0)
-            m 2ekc "Oh..."
-            m 6rktpc "I..."
-            m 6fktpd "I worked really hard on this..."
-            m 2rktdc "You...{w=0.5} You must just be busy..."
+            m 2ekc "Ох..."
+            m 6rktpc "Я..."
+            m 6fktpd "Я так много над этим работала..."
+            m 2rktdc "Ты...{w=0.5} Ты, наверное, просто занят..."
             $ mas_setEventPause(60*10)
             $ mas_moni_idle_disp.force_by_code("2ekc", duration=60*10, skip_dissolve=True)
 
-        "Maybe later.":
-            m 2ekc "Oh...{w=0.5}{nw}"
-            extend 2eka "alright."
-            m 7eka "Just don't keep me waiting too long~"
+        "Может, позже.":
+            m 2ekc "Ох...{w=0.5}{nw}"
+            extend 2eka "хорошо."
+            m 7eka "Только не заставляй меня ждать слишком долго~"
             $ mas_setEventPause(20)
             $ mas_moni_idle_disp.force_by_code("1euc", duration=20, skip_dissolve=True)
 

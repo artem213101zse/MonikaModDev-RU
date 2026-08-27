@@ -3276,8 +3276,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_change_background",
-            category=["location"],
-            prompt="Can we go somewhere else?",
+            category=["местоположение"],
+            prompt="Может, пойдем куда-нибудь еще?",
             pool=True,
             unlocked=False,
             rules={"no_unlock": None},
@@ -3287,7 +3287,7 @@ init 5 python:
     )
 
 label monika_change_background:
-    m 1hua "Sure!"
+    m 1hua "Конечно!"
 
     #FALL THROUGH
 
@@ -3337,7 +3337,7 @@ label monika_change_background_loop:
         final_item = (mas_background.BACKGROUND_RETURN, False, False, False, 20)
 
     show monika 1eua at t21
-    m "Where would you like to go?" nointeract
+    m "Куда ты хочешь пойти?" nointeract
 
     # call scrollable pane
     call screen mas_gen_scrollable_menu(backgrounds, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, final_item)
@@ -3352,8 +3352,8 @@ label monika_change_background_loop:
 
     # NOTE: Just in casem you shouldn't be able to select the current bg
     if sel_background == mas_current_background:
-        m 1hua "We're here right now, silly."
-        m "Try again~"
+        m 1hua "Мы же сейчас здесь, глупышка."
+        m "Попробуй ещё раз~"
         jump monika_change_background_loop
 
     python:
@@ -3378,8 +3378,8 @@ label monika_change_background_loop:
 label mas_background_change(new_bg, skip_leadin=False, skip_transition=False, skip_outro=False, set_persistent=False):
     # otherwise, we can change the background now
     if not skip_leadin:
-        m 1eua "Alright!"
-        m 1hua "Let's go, [player]!"
+        m 1eua "Хорошо!"
+        m 1hua "Ну что, идём [player]!"
 
     #Little transition
     if not skip_transition:
@@ -3428,6 +3428,6 @@ label mas_background_change(new_bg, skip_leadin=False, skip_transition=False, sk
     call spaceroom(scene_change=not skip_transition, dissolve_all=True, bg_change_info=change_info, force_exp="monika 1hua")
 
     if not skip_outro:
-        m 1eua "Here we are!"
-        m "Let me know if you want to go somewhere else, okay?"
+        m 1eua "Вот мы и пришли!"
+        m "Скажи, если хочешь пойти куда-нибудь еще, ладно?"
     return

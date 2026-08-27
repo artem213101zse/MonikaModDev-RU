@@ -404,7 +404,27 @@ init 3 python:
         "queen",
         "senpai",
         "sunshine",
-        "sweet"
+        "sweet",
+        "ангел",
+        "прекрасный",
+        "красота",
+        "лучший",
+        "обнимашки",
+        "милый",
+        "милашка",
+        "дорогой",
+        "великолепный",
+        "добросердечный",
+        "герой",
+        "милый",
+        "добрый",
+        "любовь",
+        "красивый",
+        "принцесса",
+        "королева",
+        "сэмпай",
+        "солнышко",
+        "сладкий"
     ]
 
     #Modifier for the player's name choice
@@ -2186,20 +2206,20 @@ label mas_gift_giving_instructs:
 
     python:
         gift_instructs = """\
-I wanted to let you know that I made a little way for you to give Monika some gifts!
-It's a pretty simple process so I'll tell you how it works:
+Я хотела, чтобы ты знал: я придумала небольшой способ, как ты можешь дарить Монике подарки!
+Процесс довольно простой, так что я расскажу, как это работает:
 
-Make a new file in the 'characters' folder
-Rename it to whatever you want to give to Monika
-Give it a '.gift' file extension
+Создай новый файл в папке 'characters'
+Переименуй его так, как хочешь назвать подарок для Моники
+Добавь расширение '.gift'.
 
-And that's it! After a little while, Monika should notice that you gave her something.
+И всё! Через некоторое время Моника заметит, что ты что-то ей подарил.
 
-I just wanted to let you know because I think that Monika is super amazing and I really want to see her happy.
+Я просто хотела, чтобы ты знал, потому что считаю Монику просто потрясающей и очень хочу видеть её счастливой.
 
-Good luck with Monika!
+Удачи с Моникой!
 
-P.S: Don't tell her about me!
+P.S: Не рассказывай ей обо мне!
 """
 
         #Write the note in the characters folder

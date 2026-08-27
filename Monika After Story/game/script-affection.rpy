@@ -3033,8 +3033,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_change_player_nicknames",
-            prompt="Can you call me different nicknames?",
-            category=['you'],
+            prompt="Можешь называть меня по-разному?",
+            category=['ты'],
             pool=True,
             unlocked=False,
             rules={"no_unlock": None},
@@ -3043,30 +3043,30 @@ init 5 python:
     )
 
 label monika_change_player_nicknames:
-    m 1hub "Sure [player]!"
+    m 1hub "Конечно, [player]!"
 
     python:
         #Generate a list of names we're using now so we can set things
         if not persistent._mas_player_nicknames:
             current_nicknames = [
-                ("Darling", "darling", False, True, False),
-                ("My darling", "my darling", False, True, False),
-                ("Dear", "dear", False, True, False),
-                ("My dear", "my dear", False, True, False),
-                ("Honey", "honey", False, True, False),
-                ("Love", "love", False, True, False),
-                ("My love", "my love", False, True, False),
-                ("Sweetheart", "sweetheart", False, True, False),
-                ("Sweetie", "sweetie", False, True, False),
+                ("Любимый", "любимый", False, True, False),
+                ("Мой любимый", "мой любимый", False, True, False),
+                ("Дорогой", "дорогой", False, True, False),
+                ("Мой дорогой", "мой дорогой", False, True, False),
+                ("Милый", "милый", False, True, False),
+                ("Любовь моя", "любовь моя", False, True, False),
+                ("Моя любовь", "моя любовь", False, True, False),
+                ("Милый мой", "милый мой", False, True, False),
+                ("Сладкий", "сладкий", False, True, False),
             ]
-            dlg_line = "Pick the names you'd like me to call you."
+            dlg_line = "Выбери, как мне тебя называть."
 
         else:
             current_nicknames = [
                 (nickname.capitalize(), nickname, True, True, False)
                 for nickname in persistent._mas_player_nicknames
             ]
-            dlg_line = "Deselect the names you don't want me to call you anymore."
+            dlg_line = "Убери отметку с тех обращений, которыми ты больше не хочешь, чтобы я тебя называла."
 
     call mas_player_nickname_loop("[dlg_line]", current_nicknames)
     return
@@ -3083,10 +3083,10 @@ label mas_player_nickname_loop(check_scrollable_text, nickname_pool):
         acceptable_nicknames = _return.keys()
 
         if acceptable_nicknames:
-            dlg_line = "Is there anything else you'd like me to call you?"
+            dlg_line = "Есть ещё какие-нибудь обращения, которыми ты хочешь, чтобы я тебя называла?"
 
         else:
-            dlg_line = "Is there something else you'd like me to call you instead?"
+            dlg_line = "Может, ты хочешь, чтобы я называла тебя как-нибудь иначе?"
 
         lowerplayer = player.lower()
         cute_nickname_pattern = "(?:{0}|{1})\\w?y".format(lowerplayer, lowerplayer[0:-1])
@@ -3098,14 +3098,14 @@ label mas_player_nickname_loop(check_scrollable_text, nickname_pool):
         menu:
             m "[dlg_line]{fast}"
 
-            "Yes.":
+            "Да.":
                 label .name_enter_skip_loop:
                     pass
 
                 #Now parse this
                 python:
                     lowername = mas_input(
-                        _("So what do you want me to call you?"),
+                        _("Как мне тебя называть?"),
                         allow=" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_",
                         length=10,
                         screen_kwargs={"use_return_button": True, "return_button_value": "nevermind"}
@@ -3119,47 +3119,47 @@ label mas_player_nickname_loop(check_scrollable_text, nickname_pool):
 
                 elif lowername == "":
                     m 1eksdla "..."
-                    m 3rksdlb "You have to give me a name to call you, [player]..."
-                    m 1eua "Try again~"
+                    m 3rksdlb "Ты должен придумать имя, которым я смогу тебя называть, [player]..."
+                    m 1eua "Попробуй ещё раз~"
                     jump .name_enter_skip_loop
 
                 elif lowername == lowerplayer:
                     m 2hua "..."
-                    m 4hksdlb "That's the same name you have right now, silly!"
-                    m 1eua "Try again~"
+                    m 4hksdlb "Это ведь то же имя, которое у тебя уже есть, глупышка!"
+                    m 1eua "Попробуй ещё раз~"
                     jump .name_enter_skip_loop
 
                 elif not is_cute_nickname and mas_awk_name_comp.search(lowername):
                     $ awkward_quip = renpy.substitute(renpy.random.choice(mas_awkward_quips))
                     m 1rksdlb "[awkward_quip]"
-                    m 3rksdla "Could you pick a more...{w=0.2}{i}appropriate{/i} name please?"
+                    m 3rksdla "Не мог бы ты выбрать более...{w=0.2}{i}подходящее{/i} имя?"
                     jump .name_enter_skip_loop
 
                 elif not is_cute_nickname and mas_bad_name_comp.search(lowername):
                     $ bad_quip = renpy.substitute(renpy.random.choice(mas_bad_quips))
                     m 1ekd "[bad_quip]"
-                    m 3eka "Please pick a nicer name for yourself, okay?"
+                    m 3eka "Пожалуйста, выбери для себя имя поприятнее, хорошо?"
                     jump .name_enter_skip_loop
 
                 elif lowername in acceptable_nicknames:
-                    m 3rksdla "You already told me I can call you that, [player]..."
-                    m 1hua "Try again~"
+                    m 3rksdla "Ты уже разрешил мне так тебя называть, [player]..."
+                    m 1hua "Попробуй ещё раз~"
                     jump .name_enter_skip_loop
 
                 else:
                     #If this is all good, then we'll add this to a list of things to add
                     $ acceptable_nicknames.append(lowername)
 
-            "No.":
+            "Нет.":
                 $ done = True
 
     if acceptable_nicknames:
-        $ dlg_line = "Just let me know if you ever want me to call you some other names, okay?"
+        $ dlg_line = "Просто скажи мне, если когда-нибудь захочешь, чтобы я называла тебя как-нибудь ещё, хорошо?"
 
     else:
-        $ dlg_line = "Just let me know if you ever change your mind, okay?"
+        $ dlg_line = "Просто скажи мне, если когда-нибудь передумаешь, хорошо?"
 
-    m 1hua "Alright, [player]."
+    m 1hua "Хорошо, [player]."
     m 3eub "[dlg_line]"
 
     #Now set persistent

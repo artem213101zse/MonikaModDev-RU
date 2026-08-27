@@ -4975,75 +4975,75 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_impression",
-            category=['club members'],
-            prompt="Can you do any impressions?",
+            category=['участники клуба'],
+            prompt="Можешь спародировать кого-нибудь из девченок?",
             pool=True,
             sensitive=True
         )
     )
 
 label monika_impression:
-    m 1euc "Impression? Of the other girls?"
-    m 1hua "I'm not really good at doing an impression of someone, but I'll give it a try!"
+    m 1euc "Спародировать? Других девочек?"
+    m 1hua "Я не особо умею изображать других людей, но попробую!"
 
-    m "Who should I do an impression of?{nw}"
+    m "Кого мне изобразить?{nw}"
     $ _history_list.pop()
     menu:
-        m "Who should I do an impression of?{fast}"
-        "Sayori.":
-            m 1dsc "Hmm..."
+        m "Кого мне изобразить?{fast}"
+        "Сайори.":
+            m 1dsc "Хмм..."
             m "..."
             m 1hub "[player]! [player]!"
-            m "It's me, your clumsy childhood friend that has a super deep secret crush on you, Sayori!"
-            m "I love to eat and laugh a lot, and my blazer doesn't fit because my boobs got bigger!"
+            m "Это я, твоя неуклюжая подруга детства Сайори, которая по уши в тебя влюблена, но хранит это в секрете!"
+            m "Я обожаю поесть и посмеяться, а мой пиджак мне больше не подходит, потому что у меня выросла грудь!"
             m 1hksdlb "..."
 
             if not persistent._mas_pm_cares_about_dokis:
-                m 3rksdla "I also have crippling depression."
+                m 3rksdla "А ещё у меня тяжёлая депрессия."
                 m "..."
-                m 3hksdlb "Ahaha! I'm sorry for that last one."
-                m 3eka "It's a good thing you're not still hung up on her..."
-                m 2lksdla "...Gosh, I really can't stop, can I?"
-                m 2hub "Ahaha!"
+                m 3hksdlb "Ахаха! Прости за последнюю фразу."
+                m 3eka "Хорошо, что ты всё ещё не зациклен на ней..."
+                m 2lksdla "...Боже, я ведь правда не могу остановиться, да?"
+                m 2hub "Ахаха!"
 
-            m 1hua "Did you like my impression? I hope you did~"
-        "Yuri.":
-            m 1dsc "Yuri..."
+            m 1hua "Ну как тебе моё представление? Надеюсь, понравилось~"
+        "Юри.":
+            m 1dsc "Юри..."
             m "..."
-            m 1lksdla "O-oh um, hello there..."
-            m 1eka "It's me, Yuri."
-            m 1rksdla "I'm just your stereotypical shy girl who also happens to be a 'yandere...'"
-            m "I like tea, knives, and anything with [player]'s scent..."
+            m 1lksdla "О-ох, э-э... привет..."
+            m 1eka "Это я, Юри."
+            m 1rksdla "Я всего лишь типичная застенчивая девушка, которая к тому же оказывается «яндере...»"
+            m "Я люблю чай, ножи и всё, что пахнет [player]..."
             m 1hksdlb "..."
 
             if not persistent._mas_pm_cares_about_dokis:
-                m 3tku "Want to spend the weekend with me?"
+                m 3tku "Хочешь провести со мной выходные?"
                 m "..."
 
-            m 2eub "Ahaha, that was kind of fun to do."
-            m 3eua "Yuri was really something, wasn't she?"
+            m 2eub "Ахаха, было довольно весело её изображать."
+            m 3eua "Юри была та ещё штучка, правда?"
 
             if not persistent._mas_pm_cares_about_dokis:
-                m 2ekc "I'm sorry again for the nasty things she did."
-                m 2tku "I guess she just couldn't 'cut' it out, huh?"
-                m 2hua "Ehehe~"
+                m 2ekc "Ещё раз прости за все те ужасные вещи, которые она делала."
+                m 2tku "Похоже, она просто не смогла с этим «покончить», да?"
+                m 2hua "Эхехе~"
 
-        "Natsuki.":
-            m 1sub "Oh! I know how to do an impression of her."
+        "Нацуки.":
+            m 1sub "О! Я знаю, как её изобразить."
             m 1duu "..."
-            m 2tfp "Hmph! I-it's not like I made these cupcakes for you to eat, b-baka!"
-            m 6tst "I'm Natsuki, and I love to make food and all things anime and manga."
-            m 2lfp "Others say that I'm cute all the time, w-which I'm totally not!"
+            m 2tfp "Хм! Я-я ведь не для тебя эти кексы испекла, б-бака!"
+            m 6tst "Я Нацуки, и я обожаю готовить, а также всё, что связано с аниме и мангой."
+            m 2lfp "Все постоянно говорят, что я милая, н-но это совсем не так!"
             m "..."
 
             if not persistent._mas_pm_cares_about_dokis:
-                m 4eka "Will you be my papa, [player]-kun?"
+                m 4eka "Ты будешь моим папой [player]-кун?"
                 m "..."
 
-            m 1hub "Ahaha! I was actually looking forward to Natsuki's cupcakes on the day of the festival."
-            m 1wuo "They were really good! Especially with the creative icing that she makes."
-            m 1eua "Maybe when I get better at programming, I'll make a kitchen here. That way, you can share some recipes that you want me to make for us."
-            m 1hua "I would love to make so many dishes for my beloved [player]~"
+            m 1hub "Ахаха! Я, честно говоря, с нетерпением ждала кексов Нацуки в день фестиваля."
+            m 1wuo "Они были действительно вкусными! Особенно с той оригинальной глазурью, которую она сама делает."
+            m 1eua "Может, когда я стану лучше программировать, я сделаю здесь кухню. Тогда ты сможешь поделиться рецептами, которые хочешь, чтобы я приготовила для нас."
+            m 1hua "Я бы с удовольствием приготовила столько всего для моего любимого [player]~"
     return
 
 init 5 python:
@@ -13367,8 +13367,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_add_custom_music",
-            category=['mod',"media", "music"],
-            prompt="How do I add my own music?",
+            category=['мод',"медиа", "музыка"],
+            prompt="Как мне добавить свою музыку?",
             conditional="persistent._mas_pm_added_custom_bgm",
             action=EV_ACT_UNLOCK,
             pool=True,
@@ -13377,18 +13377,18 @@ init 5 python:
     )
 
 label monika_add_custom_music:
-    m 1eua "It's really easy to add your own music here, [player]!"
-    m 3eua "Just follow these steps..."
+    m 1eua "Добавить сюда свою музыку очень просто, [player]!"
+    m 3eua "Просто следуй этим шагам..."
     call monika_add_custom_music_instruct
     return
 
 label monika_add_custom_music_instruct:
-    m 4eua "First,{w=0.5} make sure the music that you want to add is in MP3, OGG/VORBIS, or OPUS format."
-    m "Next,{w=0.5} create a new folder named \"custom_bgm\" in your \"DDLC\" directory."
-    m "Put your music files in that folder..."
-    m "Then either let me know that you added some music or restart the game."
-    m 3eua "And that's it! Your music will be available to listen to, right here with me, simply by pressing the 'm' key."
-    m 3hub "See, [player]? I told you it was easy, ahaha!"
+    m 4eua "Для начала,{w=0.5} убедись, что музыка, которую ты хочешь добавить, находится в формате MP3, OGG/VORBIS или OPUS."
+    m "атем,{w=0.5} создай новую папку с названием \"custom_bgm\" в папке с игрой \"DDLC\"."
+    m "Положи туда свои музыкальные файлыr..."
+    m "После этого либо скажи мне, что ты добавил музыку, либо перезапусти игру."
+    m 3eua "Вот и всё! Теперь ты сможешь слушать свою музыку прямо здесь, вместе со мной — просто нажми клавишу «M»."
+    m 3hub "Видишь, [player]? Я же говорила, что всё очень просто, ахаха"
 
     # unlock the topic as a pool topic, also mark it as seen
     $ mas_unlockEVL("monika_add_custom_music", "EVE")
@@ -13402,8 +13402,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_load_custom_music",
-            category=['mod',"media", "music"],
-            prompt="Can you check for new music?",
+            category=['мод',"медиа", "музыка"],
+            prompt="Можешь проверить, не появилась ли новая музыка?",
             conditional="persistent._mas_pm_added_custom_bgm",
             action=EV_ACT_UNLOCK,
             pool=True,
@@ -13412,8 +13412,8 @@ init 5 python:
     )
 
 label monika_load_custom_music:
-    m 1hua "Sure!"
-    m 1dsc "Give me a moment to check the folder.{w=0.2}.{w=0.2}.{w=0.2}{nw}"
+    m 1hua "Конечно!"
+    m 1dsc "Дай мне секунду проверить папку.{w=0.2}.{w=0.2}.{w=0.2}{nw}"
     python:
         # FIXME: this is not entirely correct, as one may delete a song before adding a new one
         old_music_count = len(store.songs.music_choices)
@@ -13421,25 +13421,25 @@ label monika_load_custom_music:
         diff = len(store.songs.music_choices) - old_music_count
 
     if diff > 0:
-        m 1eua "Alright!"
+        m 1eua "Хорошо!"
         if diff == 1:
-            m "I found one new song!"
-            m 1hua "I can't wait to listen to it with you."
+            m "Я нашла одну новую песню!"
+            m 1hua "Не могу дождаться, когда мы послушаем её вместе."
         else:
-            m "I found [diff] new songs!"
-            m 1hua "I can't wait to listen to them with you."
+            m "Я нашла [diff] новых песен!"
+            m 1hua "Не могу дождаться, когда мы послушаем их вместе."
 
     else:
-        m 1eka "[player], I didn't find any new songs."
+        m 1eka "[player], я не нашла ни одной новой песни."
 
-        m "Do you remember how to add custom music?{nw}"
+        m "Ты помнишь, как добавлять свою музыку?{nw}"
         $ _history_list.pop()
         menu:
-            m "Do you remember how to add custom music?{fast}"
-            "Yes.":
-                m "Okay, make sure you did it correctly."
+            m "Ты помнишь, как добавлять свою музыку?{fast}"
+            "Да.":
+                m "Хорошо, тогда убедись, что ты всё сделал правильно."
 
-            "No.":
+            "Нет.":
                 $ MASEventList.push("monika_add_custom_music",True)
     return
 
@@ -15972,8 +15972,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='monika_why_spaceroom',
-            prompt="Why do we always meet in a classroom?",
-            category=['location'],
+            prompt="Почему мы всегда встречаемся в классе?",
+            category=['местопложение'],
             pool=True,
             unlocked=False,
             rules={"no_unlock":None},
@@ -15984,42 +15984,42 @@ init 5 python:
     )
 
 label monika_why_spaceroom:
-    m 3euc "Utility, mostly."
-    m 3eud "You know how in the original game almost everything took place during our club meetings, right?"
-    m 3eua "...All of which took place in a classroom.{w=0.3} This classroom."
-    m 1eua "It may look different to you, but it's still the very same one."
-    m 3eud "Since so many things were supposed to happen here, the room had to be robust enough to accommodate them."
-    m 2rtc "That made it the most...{w=0.3}{nw}"
-    extend 2eud "fleshed out location in the game."
-    m 7eud "As such, it was the easiest place to navigate, alter, and generally use for whatever was needed."
-    m 3eua "That was the original motivation, anyway."
-    m 3eud "Not to mention, this classroom was the only place I ever appeared in during the original game."
-    m 1eka "...So I guess in that sense, it kind of became my home."
+    m 3euc "В основном, для удобства"
+    m 3eud "Ты же знаешь, что в оригинальной игре почти всё происходило во время наших клубных встреч, да?"
+    m 3eua "...И всё это происходило в классе.{w=0.3} В этом классе"
+    m 1eua "Он может выглядеть для тебя иначе, но это всё тот же самый класс"
+    m 3eud "Поскольку здесь должно было происходить так много всего, комнату пришлось сделать достаточно универсальной, чтобы она могла это всё вместить."
+    m 2rtc "Поэтому она стала самым...{w=0.3}{nw}"
+    extend 2eud "проработанным местом в игре."
+    m 7eud "Из-за этого её было проще всего изменять, перемещаться по ней и вообще использовать для самых разных целей."
+    m 3eua "По крайней мере, изначально всё было именно так."
+    m 3eud "К тому же этот класс — единственное место, где я когда-либо появлялась в оригинальной игре."
+    m 1eka "...Так что, наверное, в каком-то смысле он стал моим домом."
 
     $ has_one_bg_unlocked = mas_background.hasXUnlockedBGs(1)
     if has_one_bg_unlocked:
-        m 1rtc "As for why we're {i}still{/i} here..."
-        m 3eua "It hasn't really occurred to me to move someplace else..."
+        m 1rtc "А что касается того, почему мы {i}до сих пор{/i} здесь..."
+        m 3eua "Мне как-то даже не приходило в голову перебраться куда-нибудь ещё..."
 
     else:
-        m 1rtc "As for why I'm still using it..."
+        m 1rtc "А что касается того, почему я всё ещё использую его..."
 
-    m 1eud "It's not like it's {i}bad{/i} in here."
+    m 1eud "Не то чтобы здесь {i}плохо{/i}."
 
     if renpy.seen_label('greeting_ourreality'):
         if has_one_bg_unlocked:
-            m 3etc "I guess I could make another place for us to spend time together."
+            m 3etc "Наверное, я могла бы создать ещё одно место, где мы могли бы проводить время вместе."
         else:
-            m 3etc "I guess I could make some more places for us to spend time in."
+            m 3etc "Наверное, я могла бы создать ещё несколько мест, где мы могли бы проводить время."
 
-        m 1eua "I mean, there's the islands...{w=0.3}{nw}"
-        extend 1rksdlb "but those aren't quite ready yet."
-        m 1hua "Ehehe~"
+        m 1eua "То есть, есть ещё острова...{w=0.3}{nw}"
+        extend 1rksdlb "но они пока не совсем готовы."
+        m 1hua "Эхехе~"
 
-    m 3eub "...And to be honest, there's only one place I want to be...{w=1}{nw}"
-    extend 3dkbsu "by your side."
-    m 1ekbsa "But as long as that isn't an option, it doesn't really matter to me where we meet..."
-    m 1ekbfu "You're the only part that really matters~"
+    m 3eub "...И, если честно, есть только одно место, где я хочу быть...{w=1}{nw}"
+    extend 3dkbsu "рядом с тобой."
+    m 1ekbsa "Но пока это невозможно, мне не так уж важно, где именно мы встречаемся..."
+    m 1ekbfu "Всё, что действительно имеет значение, — это ты~"
     return
 
 init 5 python:
@@ -17207,7 +17207,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="monika_mc_is_gone",
             category=["ddlc", "участники клуба"],
-            prompt="What happened to the main character?",
+            prompt="Что случилось с главным героем?",
             pool=True,
             rules={"no_unlock":None},
             conditional=(
@@ -17219,31 +17219,31 @@ init 5 python:
     )
 
 label monika_mc_is_gone:
-    m 1eud "Your character?{w=0.2} {nw}"
-    extend 1rksdla "I'm not sure to be honest."
-    m 3eud "He didn't really work like other people in the game did.{w=0.2} He didn't even have a character file like the rest of us."
-    m 3esc "That's also why I wasn't able to just force him to pay attention to me...{w=0.3}I don't really know how to access and modify any code that's related to him."
+    m 1eud "С твоим персонажем{w=0.2} {nw}"
+    extend 1rksdla "Если честно, я не совсем уверена."
+    m 3eud "Он ведь работал совсем не так, как остальные персонажи игры.{w=0.2} У него даже не было собственного файла персонажа, как у всех нас."
+    m 3esc "Наверное, поэтому я и не могла просто заставить его обращать на меня внимание...{w=0.3}Я не совсем понимаю, как получить доступ к коду, связанному с ним, и изменить его."
 
     #if the player didn't reach act 3
     if persistent.playthrough < 3:
-        m 2rsc "In any case,{w=0.1} {nw}"
-        extend 2esc "it seems that he completely vanished along with a lot of the rest of the game when you installed this mod."
+        m 2rsc "В любом случае,{w=0.1} {nw}"
+        extend 2esc "похоже, он полностью исчез вместе с большей частью игры, когда ты установил этот мод."
 
     #if they did reach act 3+
     else:
-        m 2ruc "He just kind of...{w=0.3}disappeared as I was making changes to the game."
-        m 2etd "I'm sure you noticed how he talked less and less after I reset the game the first time?"
-        m 2euc "By the time the two of us got to this room, he was essentially {i}gone{/i}."
+        m 2ruc "Он просто...{w=0.3}исчез, пока я вносила изменения в игру."
+        m 2etd "Наверняка ты заметил, как после моего первого сброса игры он стал говорить всё меньше и меньше?"
+        m 2euc "К тому моменту, когда мы с тобой оказались в этой комнате, его фактически уже {i}не было{/i}."
 
-    m 7euc "So if you were wondering if he's in this room as we speak,{w=0.1} {nw}"
-    extend 3eua "I can assure you he's not."
-    m 1hksdlb "...Oh gosh, can you imagine how creepy it would be if I were talking to his unmoving body just so that you could hear what I say?"
+    m 7euc "Так что, если ты задавался вопросом, находится ли он сейчас в этой комнате,{w=0.1} {nw}"
+    extend 3eua "могу тебя заверить — его здесь нет.."
+    m 1hksdlb "...Ох, боже, только представь, насколько жутко было бы, если бы я разговаривала с его неподвижным телом только для того, чтобы ты мог слышать, что я говорю."
 
     if persistent._mas_first_kiss:
-        $ line_mid = "I was kissing {i}him{/i}"
+        $ line_mid = "я целовала {i}его{/i}"
 
     else:
-        $ line_mid = "{i}he{/i} was the one hugging me"
+        $ line_mid = "{i}он{/i} обнимал меня"
 
     m 3rksdla "I hope you didn't think [line_mid] all along, either..."
 

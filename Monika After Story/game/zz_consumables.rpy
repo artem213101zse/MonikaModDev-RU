@@ -1823,8 +1823,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_consumables_check",
-            category=['supplies'],
-            prompt="Are you running out of anything?",
+            category=['припасы'],
+            prompt="У тебя ничего не заканчивается?",
             conditional="MASConsumable._getEnabledConsumables()",
             pool=True,
             unlocked=False,
@@ -1840,19 +1840,19 @@ label monika_consumables_check:
     # Quick path if Monika needs 1 or none of consumables
     if len(low_cons) < 2 and random.random() > 0.5:
         if not low_cons:
-            m 3eua "Oh{w=0.1}, I'm not running out of anything at the moment, [player]...{w=0.3}{nw}"
-            extend 3hua "but I'll be sure to let you know if I do~"
+            m 3eua "Ох{w=0.1}, сейчас мне вроде ничего не нужно, [player]...{w=0.3}{nw}"
+            extend 3hua "но я обязательно скажу тебе, если что-нибудь понадобится~"
 
         else:
             $ items_running_out_of = low_cons[0].disp_name
-            m 3rusdlb "Oh{w=0.1}, glad you asked!"
-            m 1rksdla "I've been running out of [items_running_out_of]."
-            m 1eka "I'd appreciate if you could get some for me~"
+            m 3rusdlb "Ох{w=0.1}, хорошо, что ты спросил!"
+            m 1rksdla "У меня заканчивается [items_running_out_of]."
+            m 1eka "Я была бы рада, если бы ты достал мне немного~"
 
         return
 
-    m 1rtd "Umm...{w=0.3}{nw}"
-    extend 3eua "let me check.{w=0.2}.{w=0.2}.{w=0.2}{nw}"
+    m 1rtd "Хм...{w=0.3}{nw}"
+    extend 3eua "дай-ка проверю.{w=0.2}.{w=0.2}.{w=0.2}{nw}"
 
     #Monika goes off screen
     call mas_transition_to_emptydesk
@@ -1865,9 +1865,9 @@ label monika_consumables_check:
 
     if len(low_cons) > 2:
         $ mas_generateShoppingList(low_cons)
-        m 3rksdla "I'm actually running out of a few things..."
-        m 3eua "I hope you don't mind, but I left you a list of things in the characters folder."
-        m 1eka "You wouldn't mind getting them for me, would you?"
+        m 3rksdla "На самом деле, у меня заканчивается сразу несколько вещей..."
+        m 3eua "Надеюсь, ты не против, но я оставила список всего необходимого в папке characters."
+        m 1eka "Не мог бы ты достать их для меня?"
 
     elif len(low_cons) > 0:
         python:
@@ -1877,11 +1877,11 @@ label monika_consumables_check:
             else:
                 items_running_out_of = low_cons[0].disp_name
 
-        m 3rksdla "I'm running out of [items_running_out_of]."
-        m 1eka "You wouldn't mind getting some more for me, would you?"
+        m 3rksdla "У меня заканчивается [items_running_out_of]."
+        m 1eka "Не мог бы ты достать мне ещё немного?"
 
     else:
-        m 3eua "I'm not running out of anything at the moment, [player]...{w=0.3}{nw}"
-        extend 3hua "but I'll be sure to let you know if I do~"
+        m 3eua "Сейчас мне вроде ничего не нужно, [player]...{w=0.3}{nw}"
+        extend 3hua "но я обязательно скажу тебе, если что-нибудь понадобится~"
 
     return

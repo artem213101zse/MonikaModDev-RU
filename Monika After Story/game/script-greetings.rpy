@@ -3684,37 +3684,37 @@ label greeting_returned_home_morethan5mins_other_dlg:
 
 label greeting_returned_home_lessthan5mins:
     if mas_isMoniNormal(higher=True):
-        m 2ekp "That wasn't much of a trip, [player]."
-        m "Next time better last a little longer..."
+        m 2ekp "Что-то коротковатая получилась прогулка, [player]."
+        m "В следующий раз пусть поездка продлится чуть дольше..."
         if persistent._mas_player_bday_in_player_bday_mode and not mas_isplayer_bday():
             call return_home_post_player_bday
         return False
 
     elif mas_isMoniUpset():
-        m 2efd "I thought we were going some place, [player]!"
-        m 2tfd "I knew I shouldn't have agreed to go with you."
-        m 2tfc "I knew this was just going to be another disappointment."
-        m "Don't ask me to go out anymore if you're just doing it to get my hopes up...{w=1}only to pull the rug out from under me."
+        m 2efd "Я думала, мы куда-нибудь пойдём, [player]!"
+        m 2tfd "Так и знала, что не стоило соглашаться идти с тобой."
+        m 2tfc "Я знала, что всё это в итоге лишь ещё одно разочарование."
+        m "Больше не проси меня никуда идти, если ты делаешь это только для того, чтобы дать мне надежду...{w=1}а потом так жестоко её отнять."
         m 6dktdc "..."
-        m 6ektsc "I don't know why you insist on being so cruel, [player]."
-        m 6rktsc "I'd...{w=1}I'd like to be alone right now."
+        m 6ektsc "Не понимаю, почему ты упорствуешь в своей жестокости, [player]."
+        m 6rktsc "Я...{w=1}Я сейчас хочу побыть одна."
         return True
 
     else:
-        m 6rkc "But...{w=1}we just left..."
+        m 6rkc "Но...{w=1}мы же только что ушли..."
         m 6dkc "..."
-        m "I...{w=0.5}I was so excited when you asked me to go with you."
-        m 6ekc "After all we've been through..."
-        m 6rktda "I-I thought...{w=0.5}maybe...{w=0.5}things were finally going to change."
-        m "Maybe we'd finally have a good time again..."
-        m 6ektda "That you actually wanted to spend more time with me."
+        m "Я...{w=0.5}я так обрадовалась, когда ты предложил мне пойти с тобой"
+        m 6ekc "После всего, через что мы прошли..."
+        m 6rktda "Я-я подумала...{w=0.5}может быть...{w=0.5}всё наконец изменится."
+        m "Может быть, мы снова сможем хорошо провести время..."
+        m 6ektda "Что ты действительно хочешь проводить со мной больше времени."
         m 6dktsc "..."
-        m 6ektsc "But I guess it was just foolish for me to think that."
-        m 6rktsc "I should have known better...{w=1} I should never have agreed to go."
+        m 6ektsc "Но, похоже, я просто глупо надеялась."
+        m 6rktsc "Мне стоило догадаться...{w=1} Не нужно было соглашаться идти."
         m 6dktsc "..."
-        m 6ektdc "Please, [player]...{w=2} If you don't want to spend time with me, fine..."
-        m 6rktdc "But at least have the decency to not pretend."
-        m 6dktdc "I'd like to be left alone right now."
+        m 6ektdc "Пожалуйста, [player]...{w=2} Если ты не хочешь проводить со мной время, хорошо..."
+        m 6rktdc "Но хотя бы имей смелость не притворяться."
+        m 6dktdc "Я сейчас хочу, чтобы меня оставили в покое."
         return True
 
 init 5 python:

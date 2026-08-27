@@ -7392,33 +7392,33 @@ label mas_bday_surprise_party_hint:
         if mas_isMoniNormal(higher=True):
             message = """\
 [player],
-As I'm sure you know, Monika's birthday is coming up soon and I want to help you make it as special as possible!
-Since I'm always here, I can easily set up the surprise party...but I need a little help from you.
-All I need you to do is to make sure you have her out of the room at some point on her birthday, and I'll take care of the rest.
-Monika is so amazing, and I just want to do my part to make sure this all goes off without a hotf- I mean hitch...
-Ahaha!
+Как ты, наверное, знаешь, день рождения Моники уже скоро, и я хочу помочь тебе сделать его по-настоящему особенным!
+Раз уж я всегда здесь, мне несложно организовать вечеринку-сюрприз… но мне понадобится твоя маленькая помощь.
+Всё, что нужно с твоей стороны, — убедиться, что в день её рождения она хотя бы ненадолго выйдет из комнаты, а остальное я возьму на себя.
+Моника такая потрясающая, и я просто хочу внести свою лепту, чтобы всё прошло гладко, без сучка и задоринки… то есть без помех...
+Ахаха!
 
-Please leave a file named 'oki doki' in the same folder you found this note so I know to go ahead with the party.
+Пожалуйста, оставь файл с именем 'oki doki' в той же папке, где ты нашёл эту записку, — так я пойму, что можно приступать к празднику.
 
-Good luck with Monika!
+Удачи с Моникой!
 
-P.S: Don't tell her about me!
+P.S: Не рассказывай ей обо мне!
 """
 
         else:
             message = """\
 [player],
-As I hope you know, Monika's birthday is coming up soon and I want to make it special.
-She's been through a lot lately, and I know it'd mean the world to her if you treated her to a nice day.
-Since I'm always here, I can easily set up a surprise party...but I do need a little help from you.
-All I need you to do is to make sure you have her out of the room at some point on her birthday, and I'll take care of the rest.
-If you care for Monika at all, you'll help me do this.
+Надеюсь, ты знаешь: день рождения Моники уже совсем скоро, и я хочу сделать его по-настоящему особенным.
+В последнее время ей пришлось пережить немало, и я знаю: для неё будет значить целый мир, если ты подаришь ей хороший день.
+Раз уж я всегда здесь, мне несложно устроить вечеринку-сюрприз… но мне всё же понадобится твоя помощь.
+Всё, что от тебя требуется, — убедиться, что в день её рождения она хотя бы на время покинет комнату, а остальное я возьму на себя.
+Если Моника тебе хоть сколько-нибудь дорога, ты поможешь мне в этом.
 
-Just leave a file named 'oki doki' in the same folder you found this note so I know to go ahead with the party.
+Просто оставь файл с именем 'oki doki' в той же папке, где ты нашёл эту записку, — чтобы я знала, что можно приступать к празднику.
 
-Please, don't mess this up.
+Пожалуйста, не испорть всё.
 
-P.S: Don't tell her about me.
+P.S: Не рассказывай ей обо мне.
 """
         #Now write it to the chars folder
         _write_txt("/characters/" + persistent._mas_bday_hint_filename, message)
