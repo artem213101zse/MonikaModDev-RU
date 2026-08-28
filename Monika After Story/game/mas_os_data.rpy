@@ -248,39 +248,18 @@ init -5 python in mas_os:
             return False
 
     def data_promote_path(src):
-        """Copy a persistent* file over the live slot, then reboot. File-level only."""
+        """Назначить слот: копия после рестарта, вид OS не откатывается."""
         global data_status
         if data_locked():
             data_status = "Нет доступа к папке сохранений."
             return False
-        folder = _save_folder()
-        if not src or not os.path.isfile(src) or not folder:
+        if not src or not os.path.isfile(src):
             data_status = "Файл не найден."
             return False
-        dst = os.path.join(folder, "persistent")
-        try:
-            if os.path.abspath(src) == os.path.abspath(dst):
-                data_status = "Это уже текущий persistent."
-                return False
-            try:
-                store.__mas__memoryBackup()
-            except Exception:
-                if os.path.isfile(dst):
-                    shutil.copy2(dst, os.path.join(folder, "persistent_osprev.bak"))
-            shutil.copy2(src, dst)
-            name = os.path.basename(src)
-            cal = _cal_name_for(name)
-            if cal:
-                cal_src = os.path.join(os.path.dirname(src), cal)
-                cal_dst = os.path.join(folder, "db.mcal")
-                if os.path.isfile(cal_src):
-                    shutil.copy2(cal_src, cal_dst)
-            data_status = "Файл подставлен. Перезапуск оболочки..."
-            reboot_shell()
-            return True
-        except Exception as err:
-            data_status = "Не подставить: {0}".format(err)
-            return False
+        return schedule_persistent_slot(
+            os.path.basename(src),
+            prefs_from_slot=bool(data_prefs_from_slot),
+        )
 
     def _safe_zip_name(text):
         text = unicode(text or "mas").strip() or "mas"
@@ -407,6 +386,7 @@ screen mas_os_data():
     $ d_ses = _("Сессии: ") + card["sessions"] + "  /  " + card["play"]
     $ d_first = _("Первая: ") + card["first"]
     $ d_last = _("Последняя: ") + card["last"]
+    $ prefs_cap = _("Взять вид MAS OS из этого сейва") if store.mas_os.data_prefs_from_slot else _("Оставить текущий вид MAS OS")
 
     use mas_os_bg
 
@@ -421,6 +401,8 @@ screen mas_os_data():
         ypos 52
         xsize 1180
         substitute True
+
+    use mas_os_app_folder_warn(xpos=520, ypos=8, xsize=720)
 
     frame:
         style "mas_os_panel"
@@ -578,13 +560,38 @@ screen mas_os_data():
                 sensitive (not locked)
                 action MASOSDataFiles()
 
+            textbutton _("Загрузить после перезапуска"):
+                style "mas_os_button"
+                text_style "mas_os_button_text"
+                xsize 300
+                sensitive (not locked and sel and not sel.get("is_current"))
+                action Show(
+                    "mas_os_confirm",
+                    message=_("Этот persistent станет текущим после перезапуска. Вид MAS OS по умолчанию не сбросится."),
+                    yes_action=[
+                        Function(store.mas_os.schedule_persistent_slot, sel_name, store.mas_os.data_prefs_from_slot),
+                        Hide("mas_os_confirm"),
+                    ],
+                    no_action=Hide("mas_os_confirm")
+                )
+
+        hbox:
+            spacing 8
+
+            textbutton prefs_cap:
+                style "mas_os_nav_btn"
+                text_style "mas_os_nav_btn_text"
+                xsize 420
+                sensitive (not locked)
+                action Function(store.mas_os.toggle_prefs_from_slot)
+
             textbutton _("Перезапустить оболочку"):
                 style "mas_os_nav_btn"
                 text_style "mas_os_nav_btn_text"
                 xsize 260
                 action Show(
                     "mas_os_confirm",
-                    message=_("Перезапустить MAS OS? Нужно после подмены persistent в файловом менеджере."),
+                    message=_("Перезапустить MAS OS?"),
                     yes_action=[Function(store.mas_os.reboot_shell), Hide("mas_os_confirm")],
                     no_action=Hide("mas_os_confirm")
                 )

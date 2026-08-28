@@ -280,6 +280,11 @@ init -5 python in mas_os:
         global toast_title, toast_body
         toast_title = title
         toast_body = body
+        # Тост на экране и запись в центр уведомлений рабочего стола.
+        try:
+            notify_add(title, body, source="browser")
+        except Exception:
+            pass
         if store.renpy.get_screen("mas_os_toast"):
             store.renpy.hide_screen("mas_os_toast")
         store.renpy.show_screen("mas_os_toast")
@@ -329,7 +334,7 @@ screen mas_os_toast():
         xalign 1.0
         yalign 1.0
         xoffset -24
-        yoffset -28
+        yoffset -56
         xsize 380
         padding (0, 0)
 

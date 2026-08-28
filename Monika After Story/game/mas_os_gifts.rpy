@@ -1,4 +1,18 @@
 # MAS OS — create .gift files in characters/ from a known catalog.
+#
+# Where the names actually live in MAS:
+#   game/zz_reactions.rpy
+#       addReaction(..., "coffee") and the rest of the stock .gift list.
+#       Runtime map: mas_filereacts.filereact_map
+#   game/zz_consumables.rpy
+#       coffee / hot chocolate / candy cane / cookies stock after the gift.
+#   game/zz_spriteobjects.rpy
+#       ACS / clothes / hair sprites (mug, ribbons, santa, blackdress, …).
+#       These extras usually unlock from holidays/affection, not .gift.
+#   game/zz_spritejsons.rpy + game/mod_assets/monika/j/*.json
+#       Spritepack giftname → mas_sprites_json.giftname_map
+#   This file
+#       GIFT_HINTS / GIFT_TITLES / GIFT_IMG — titles, hints, catalog thumbs.
 
 init -5 python in mas_os:
     import os
@@ -11,7 +25,7 @@ init -5 python in mas_os:
         "justmonikathermos": "Термос Just Monika. Аксессуар на стол.",
         "quetzalplushie": "Плюшевый кетцаль. Один раз; любимый «питомец».",
         "promisering": "Кольцо-обещание. Принимает только с привязанности «Влюблённая» и выше.",
-        "cupcake": "Капкейк.",
+        "cupcake": "Капкейк. Нейтральный подарок, можно дарить в любой день.",
         "candy": "Конфеты. В коде реакция на Хэллоуин; в другой сезон может пройти как обычный подарок.",
         "candycorn": "Кукурузные конфеты. Плохой подарок — Моника не любит.",
         "fudge": "Шоколадный фадж.",
@@ -69,21 +83,49 @@ init -5 python in mas_os:
         "silverribbon": "Серебряная лента",
         "tealribbon": "Бирюзовая лента",
         "yellowribbon": "Жёлтая лента",
+        "blackdress": "Чёрное платье",
+        "blackpinkdress": "Чёрно-розовое платье",
+        "marisa": "Костюм Марисы",
+        "new_years_dress": "Новогоднее платье",
+        "nou_shirt": "Футболка NOU",
+        "rin": "Костюм Рин",
+        "santa": "Костюм Санты",
+        "santa_lingerie": "Бельё Санты",
+        "spider_lingerie": "Паучье бельё",
+        "sundress_white": "Белый сарафан",
+        "vday_lingerie": "Бельё на 14 февраля",
+        "blazerless": "Форма без пиджака",
+        "diamond_necklace_pink": "Розовое колье",
+        "earrings_diamond_pink": "Розовые серьги",
+        "grayhearts_hairclip": "Заколка (сердца)",
+        "holly_hairclip": "Заколка (остролист)",
+        "marisa_witchhat": "Шляпа ведьмы",
+        "musicnote_necklace_gold": "Колье-нота",
+        "pinkdiamonds_hairclip": "Заколка (ромбы)",
+        "ribbon_wine": "Винная лента",
+        "ribbon_black_gray": "Чёрно-серая лента",
+        "ribbon_black_pink": "Чёрно-розовая лента",
+        "ear_rose": "Роза за ухом",
+        "flower_crown": "Цветочный венок",
+        "braided": "Косы",
+        "down": "Распущенные волосы",
+        "downtiedstrand": "Хвост с прядью",
     }
 
     GIFT_IMG = {
-        "coffee": "mod_assets/monika/a/mug/0.png",
-        "hotchocolate": "mod_assets/monika/a/hotchoc_mug/0.png",
-        "justmonikathermos": "mod_assets/monika/a/thermos_mug/0.png",
-        "quetzalplushie": "mod_assets/monika/a/quetzalplushie/0.png",
-        "promisering": "mod_assets/monika/a/promisering/2-10.png",
-        "candy": "mod_assets/monika/a/desk_candy_jack_half/0.png",
-        "candycorn": "mod_assets/monika/a/desk_candy_jack_brim/0.png",
-        "fudge": "mod_assets/monika/a/heartchoc/0.png",
-        "christmascookies": "mod_assets/monika/a/christmas_cookies/0.png",
-        "candycane": "mod_assets/monika/a/candycane/0.png",
-        "roses": "mod_assets/monika/a/roses/0.png",
-        "chocolates": "mod_assets/monika/a/heartchoc/0.png",
+        "coffee": "mod_assets/mas_os/gifts/coffee.png",
+        "hotchocolate": "mod_assets/mas_os/gifts/hotchocolate.png",
+        "justmonikathermos": "mod_assets/mas_os/gifts/justmonikathermos.png",
+        "quetzalplushie": "mod_assets/mas_os/gifts/quetzalplushie.png",
+        "promisering": "mod_assets/mas_os/gifts/promisering.png",
+        "cupcake": "mod_assets/mas_os/gifts/cupcake.png",
+        "candy": "mod_assets/mas_os/gifts/candy.png",
+        "candycorn": "mod_assets/mas_os/gifts/candycorn.png",
+        "fudge": "mod_assets/mas_os/gifts/fudge.png",
+        "christmascookies": "mod_assets/mas_os/gifts/christmascookies.png",
+        "candycane": "mod_assets/mas_os/gifts/candycane.png",
+        "roses": "mod_assets/mas_os/gifts/roses.png",
+        "chocolates": "mod_assets/mas_os/gifts/chocolates.png",
         "noudeck": "mod_assets/games/nou/cards/back.png",
         "blackribbon": "mod_assets/thumbs/acs-ribbon_black.png",
         "blueribbon": "mod_assets/thumbs/acs-ribbon_blue.png",
@@ -101,9 +143,39 @@ init -5 python in mas_os:
         "silverribbon": "mod_assets/thumbs/acs-ribbon_silver.png",
         "tealribbon": "mod_assets/thumbs/acs-ribbon_teal.png",
         "yellowribbon": "mod_assets/thumbs/acs-ribbon_yellow.png",
+        "blackdress": "mod_assets/thumbs/clothes-blackdress.png",
+        "blackpinkdress": "mod_assets/thumbs/clothes-blackpinkdress.png",
+        "marisa": "mod_assets/thumbs/clothes-marisa.png",
+        "new_years_dress": "mod_assets/thumbs/clothes-new_years_dress.png",
+        "nou_shirt": "mod_assets/thumbs/clothes-nou_shirt.png",
+        "rin": "mod_assets/thumbs/clothes-rin.png",
+        "santa": "mod_assets/thumbs/clothes-santa.png",
+        "santa_lingerie": "mod_assets/thumbs/clothes-santa_lingerie.png",
+        "spider_lingerie": "mod_assets/thumbs/clothes-spider_lingerie.png",
+        "sundress_white": "mod_assets/thumbs/clothes-sundress_white.png",
+        "vday_lingerie": "mod_assets/thumbs/clothes-vday_lingerie.png",
+        "blazerless": "mod_assets/thumbs/clothes-schooluniform_blazerless.png",
+        "diamond_necklace_pink": "mod_assets/thumbs/acs-diamond_necklace_pink.png",
+        "earrings_diamond_pink": "mod_assets/thumbs/acs-earrings_diamond_pink.png",
+        "grayhearts_hairclip": "mod_assets/thumbs/acs-grayhearts_hairclip.png",
+        "holly_hairclip": "mod_assets/thumbs/acs-holly_hairclip.png",
+        "marisa_witchhat": "mod_assets/thumbs/acs-marisa_witchhat.png",
+        "musicnote_necklace_gold": "mod_assets/thumbs/acs-musicnote_necklace_gold.png",
+        "pinkdiamonds_hairclip": "mod_assets/thumbs/acs-pinkdiamonds_hairclip.png",
+        "ribbon_wine": "mod_assets/thumbs/acs-ribbon_wine.png",
+        "ribbon_black_gray": "mod_assets/thumbs/acs-ribbon_black_gray.png",
+        "ribbon_black_pink": "mod_assets/thumbs/acs-ribbon_black_pink.png",
+        "braided": "mod_assets/thumbs/hair-braided.png",
+        "down": "mod_assets/thumbs/hair-down.png",
+        "downtiedstrand": "mod_assets/thumbs/hair-downtiedstrand.png",
     }
 
     GIFT_UNKNOWN_IMG = "mod_assets/thumbs/unknown.png"
+
+    # ACS desk sprites are 1280x850 with the item in a corner. Crop that
+    # empty canvas so the catalog cell shows the object, not a speck.
+    _GIFT_BBOX = {}
+    _GIFT_THUMB_CACHE = {}
 
     def _gift_loadable(path):
         if not path:
@@ -112,6 +184,90 @@ init -5 python in mas_os:
             return bool(store.renpy.loadable(path))
         except Exception:
             return False
+
+    def _opaque_bbox(path):
+        """
+        Bounding box of non-transparent pixels. Cached.
+        Returns (x, y, w, h) or None.
+        """
+        cached = _GIFT_BBOX.get(path, "MISS")
+        if cached != "MISS":
+            return cached
+        rect = None
+        try:
+            img = store.renpy.display.im.Image(path)
+            surf = img.load()
+            try:
+                import pygame.mask as pgmask
+                mask = pgmask.from_surface(surf, 24)
+                hit = mask.get_bounding_rect()
+                hw = int(getattr(hit, "w", None) or getattr(hit, "width", 0) or 0)
+                hh = int(getattr(hit, "h", None) or getattr(hit, "height", 0) or 0)
+                if hit is not None and hw > 2 and hh > 2:
+                    rect = (int(hit.x), int(hit.y), hw, hh)
+            except Exception:
+                rect = None
+        except Exception:
+            rect = None
+        _GIFT_BBOX[path] = rect
+        return rect
+
+    def gift_thumb(path, box_w, box_h, fill=True):
+        """
+        Preview that actually fills the catalog cell.
+        Large ACS canvases are cropped to the object first, then zoomed.
+        fill=True covers the box (clips overflow); False fits inside.
+        """
+        if not path:
+            return store.Null()
+        box_w = max(int(box_w or 1), 1)
+        box_h = max(int(box_h or box_w), 1)
+        key = (path, box_w, box_h, bool(fill))
+        hit = _GIFT_THUMB_CACHE.get(key)
+        if hit is not None:
+            return hit
+        iw = ih = 0
+        try:
+            iw, ih = store.renpy.image_size(path)
+        except Exception:
+            iw = ih = 0
+        if not iw or not ih:
+            _GIFT_THUMB_CACHE[key] = path
+            return path
+        cx, cy, cw, ch = 0, 0, iw, ih
+        if iw >= 400 or ih >= 400:
+            bbox = _opaque_bbox(path)
+            if bbox:
+                bx, by, bw, bh = bbox
+                pad = int(max(bw, bh) * 0.12)
+                pad = max(pad, 8)
+                cx = max(0, bx - pad)
+                cy = max(0, by - pad)
+                cw = min(iw - cx, bw + (2 * pad))
+                ch = min(ih - cy, bh + (2 * pad))
+                cw = max(cw, 1)
+                ch = max(ch, 1)
+        if fill:
+            z = max(float(box_w) / float(cw), float(box_h) / float(ch))
+        else:
+            z = min(float(box_w) / float(cw), float(box_h) / float(ch))
+        disp = path
+        if cx or cy or cw != iw or ch != ih:
+            try:
+                im_mod = getattr(store, "im", None) or store.renpy.display.im
+                disp = im_mod.Crop(path, (cx, cy, cw, ch))
+            except Exception:
+                disp = path
+                if fill:
+                    z = max(float(box_w) / float(iw), float(box_h) / float(ih))
+                else:
+                    z = min(float(box_w) / float(iw), float(box_h) / float(ih))
+        if abs(z - 1.0) < 0.02:
+            _GIFT_THUMB_CACHE[key] = disp
+            return disp
+        out = store.Transform(disp, zoom=z)
+        _GIFT_THUMB_CACHE[key] = out
+        return out
 
     def _gift_sel_thumb(sp_type, sp_name):
         selspr = getattr(store, "mas_selspr", None)
@@ -137,9 +293,12 @@ init -5 python in mas_os:
 
     def gift_image(stem):
         stem = (stem or "").lower()
-        path = GIFT_IMG.get(stem)
-        if _gift_loadable(path):
-            return path
+        for cand in (
+            GIFT_IMG.get(stem),
+            "mod_assets/mas_os/gifts/{0}.png".format(stem),
+        ):
+            if _gift_loadable(cand):
+                return cand
         info = None
         try:
             info = getattr(store.mas_sprites_json, "giftname_map", {}).get(stem)
@@ -219,13 +378,126 @@ init -5 python in mas_os:
         labels = {0: "аксессуар", 1: "причёска", 2: "одежда"}
         return labels.get(kind, "спрайт"), sp_name
 
+    _SKIP_EXTRA_SPRITES = set([
+        "def",
+        "ribbon_def",
+        "ribbon_blank",
+        "mug",
+        "hotchoc_mug",
+        "thermos_mug",
+        "quetzalplushie",
+        "quetzalplushie_antlers",
+        "quetzalplushie_mid",
+        "quetzalplushie_santahat",
+        "quetzalplushie_santahat_mid",
+        "promisering",
+        "heartchoc",
+        "roses",
+        "candycane",
+        "christmas_cookies",
+        "desk_candy_jack_half",
+        "desk_candy_jack_brim",
+        "desk_candy_jack_empty",
+        "desk_lantern_lit",
+        "desk_lantern_unlit",
+        "water_drops",
+        "ahoge_bent",
+        "ahoge_curl",
+        "ahoge_double",
+        "ahoge_heart",
+        "ahoge_lightning",
+        "ahoge_sharp",
+        "ahoge_simple",
+        "ahoge_small",
+        "ahoge_swoop",
+        "ahoge_twisty",
+        "wet",
+    ])
+
+    _RIBBON_GIFT_STEM = {
+        "ribbon_black": "blackribbon",
+        "ribbon_blue": "blueribbon",
+        "ribbon_dark_purple": "darkpurpleribbon",
+        "ribbon_emerald": "emeraldribbon",
+        "ribbon_gray": "grayribbon",
+        "ribbon_green": "greenribbon",
+        "ribbon_light_purple": "lightpurpleribbon",
+        "ribbon_peach": "peachribbon",
+        "ribbon_pink": "pinkribbon",
+        "ribbon_platinum": "platinumribbon",
+        "ribbon_red": "redribbon",
+        "ribbon_ruby": "rubyribbon",
+        "ribbon_sapphire": "sapphireribbon",
+        "ribbon_silver": "silverribbon",
+        "ribbon_teal": "tealribbon",
+        "ribbon_yellow": "yellowribbon",
+    }
+
+    def _sel_display(sel, fallback):
+        name = getattr(sel, "display_name", None)
+        if name:
+            return name
+        return (fallback or "").replace("_", " ")
+
+    def _extra_selectables(seen):
+        """
+        Official extras (clothes / ACS / hair) that have a selector thumb
+        but no addReaction of their own. Players still look for them here.
+        """
+        rows = []
+        selspr = getattr(store, "mas_selspr", None)
+        if selspr is None:
+            return rows
+        groups = (
+            (0, getattr(selspr, "ACS_SEL_MAP", {}), "аксессуар"),
+            (1, getattr(selspr, "HAIR_SEL_MAP", {}), "причёска"),
+            (2, getattr(selspr, "CLOTH_SEL_MAP", {}), "одежда"),
+        )
+        for sp_type, mapping, kind in groups:
+            if not mapping:
+                continue
+            for sp_name in sorted(mapping.keys()):
+                if not sp_name or sp_name in _SKIP_EXTRA_SPRITES:
+                    continue
+                ribbon_stem = _RIBBON_GIFT_STEM.get(sp_name)
+                if ribbon_stem:
+                    continue
+                stem = sp_name.lower().replace(" ", "")
+                if stem in seen:
+                    continue
+                sel = mapping.get(sp_name)
+                path = _gift_sel_thumb(sp_type, sp_name)
+                if not path:
+                    path = gift_image(stem)
+                title = GIFT_TITLES.get(stem) or _sel_display(sel, sp_name)
+                hint = (
+                    "Официальный спрайт MAS: {0} «{1}». "
+                    "Обычно открывается событием или привязанностью. "
+                    ".gift сработает как спрайтпак, только если имя "
+                    "прописано в JSON (game/mod_assets/monika/j/)."
+                ).format(kind, title)
+                seen.add(stem)
+                rows.append({
+                    "stem": stem,
+                    "title": title,
+                    "hint": hint,
+                    "img": path,
+                    "source": "extra",
+                })
+        return rows
+
     def gift_catalog():
         """
-        Built-in reactions + spritepack giftnames currently registered.
+        Built-in reactions + spritepack giftnames + official extras with thumbs.
         """
         rows = []
         seen = set()
         fmap = getattr(store.mas_filereacts, "filereact_map", {})
+        gmap = {}
+        try:
+            gmap = getattr(store.mas_sprites_json, "giftname_map", {}) or {}
+        except Exception:
+            gmap = {}
 
         for fname in sorted(GIFT_HINTS.keys()):
             seen.add(fname)
@@ -237,14 +509,22 @@ init -5 python in mas_os:
                 "source": "mas",
             })
 
-        for fname in sorted(fmap.keys()):
-            if not fname or fname in seen:
+        json_names = set()
+        for fname in fmap.keys():
+            if fname:
+                json_names.add(fname)
+        for fname in gmap.keys():
+            if fname and not str(fname).startswith("__"):
+                json_names.add(fname)
+
+        for fname in sorted(json_names):
+            if fname in seen:
                 continue
             kind = _sprite_kind(fname)
             if kind:
-                hint = "Спрайтпак: {0} «{1}».".format(kind[0], kind[1])
+                hint = "Спрайтпак: {0} «{1}». JSON в game/mod_assets/monika/j/.".format(kind[0], kind[1])
             else:
-                hint = "Зарегистрированный подарок MAS."
+                hint = "Зарегистрированный подарок MAS (mas_filereacts)."
             seen.add(fname)
             rows.append({
                 "stem": fname,
@@ -254,6 +534,7 @@ init -5 python in mas_os:
                 "source": "json",
             })
 
+        rows.extend(_extra_selectables(seen))
         return rows
 
     def matched_gifts():
@@ -461,6 +742,8 @@ screen mas_os_gifts():
         xpos 48
         ypos 22
 
+    use mas_os_app_folder_warn(xpos=280, ypos=14, xsize=960)
+
     text _("Файл попадёт в characters. Имя без пробелов, латиница. Моника увидит его после «Запустить MAS»."):
         style "mas_os_hint"
         xpos 48
@@ -605,7 +888,7 @@ screen mas_os_gifts():
                         clipping True
 
                         if row.get("img"):
-                            add store.mas_os.fit_image(row["img"], 166, 114):
+                            add store.mas_os.gift_thumb(row["img"], 170, 118, True):
                                 xalign 0.5
                                 yalign 0.5
                         else:
@@ -678,7 +961,7 @@ screen mas_os_gifts():
                                     xoffset 8
 
                                     if fimg:
-                                        add store.mas_os.fit_image(fimg, 40, 40):
+                                        add store.mas_os.gift_thumb(fimg, 40, 40, True):
                                             yalign 0.5
 
                                     text name:

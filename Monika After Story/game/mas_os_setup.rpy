@@ -48,7 +48,7 @@ init -5 python in mas_os:
             if android_saves_wait_permission():
                 return None
             if android_saves_available() and not android_saves_choice_resolved():
-                android_saves_choose_app()
+                return None
         if setup_step < SETUP_LAST:
             setup_step += 1
             _save_setup_step()
@@ -303,7 +303,7 @@ screen mas_os_setup():
                         action Function(store.mas_os.setup_recheck)
 
                 elif step == 2:
-                    text _("Куда писать сохранения. На Android можно положить их в Documents, чтобы пережили переустановку. На ПК папка уже видна."):
+                    text _("Куда писать сейвы, подарки и музыку. Documents видна в файловом менеджере и переживает переустановку. Папка приложения — скрытая, после удаления игры всё пропадёт."):
                         style "mas_os_hint"
                         xsize 1080
 
@@ -555,7 +555,13 @@ screen mas_os_setup():
             textbutton _("Далее"):
                 style "mas_os_nav_btn"
                 text_style "mas_os_nav_btn_text"
-                sensitive (step != 2 or not store.mas_os.android_saves_wait_permission())
+                sensitive (
+                    step != 2
+                    or (
+                        not store.mas_os.android_saves_wait_permission()
+                        and store.mas_os.android_saves_choice_resolved()
+                    )
+                )
                 action Function(store.mas_os.setup_next)
         else:
             textbutton _("Готово"):

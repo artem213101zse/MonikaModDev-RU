@@ -90,8 +90,8 @@ init -10 python in mas_os:
         "Мастер первого запуска, пропуск вступления, документация порта",
         "Бренд Kurokawa GDS и радужная кнопка возврата в MAS OS",
         "Сейвы Android: Documents или папка приложения, доступ ко всем файлам",
-        "Данные: просмотр persistent, бэкап/ZIP; подмена файла — через «Файлы»",
-        "Файлы: копирование, вставка, «Сделать текущим» для persistent",
+        "Данные: слот persistent после рестарта, вид OS в mas_os_prefs.json",
+        "Файлы: проводник, просмотр картинок и карточка persistent",
     )
 
     ABOUT_NEXT = (
@@ -159,9 +159,12 @@ init -10 python in mas_os:
         for key, value in OS_DEFAULTS:
             setattr(persistent, key, value)
         try:
-            store.renpy.save_persistent()
+            os_persist()
         except Exception:
-            pass
+            try:
+                store.renpy.save_persistent()
+            except Exception:
+                pass
         try:
             apply_theme()
         except Exception:
@@ -1311,6 +1314,9 @@ init -10 python in mas_os:
         "log": "#E8D0DC",
         "link_card": "#1E0C14",
         "link_card_hover": "#3A1524",
+        "warn": "#4A1820",
+        "warn_title": "#FF9AA4",
+        "warn_text": "#FFD4D8",
     }
 
     THEME_LIGHT = {
@@ -1338,6 +1344,9 @@ init -10 python in mas_os:
         "log": "#5A2038",
         "link_card": "#FFFFFF",
         "link_card_hover": "#FFE6F0",
+        "warn": "#FFE4E8",
+        "warn_title": "#B42040",
+        "warn_text": "#7A2030",
     }
 
     def theme_light():
@@ -1450,9 +1459,12 @@ init -10 python in mas_os:
             return
         store.persistent._mas_os_theme = mode
         try:
-            store.renpy.save_persistent()
+            os_persist()
         except Exception:
-            pass
+            try:
+                store.renpy.save_persistent()
+            except Exception:
+                pass
         apply_theme()
 
     def _motion_delay(delay):
@@ -1605,6 +1617,14 @@ init -10 python in mas_os:
             apply_theme()
         except Exception:
             pass
+        try:
+            prefs_save()
+        except Exception:
+            pass
+        try:
+            apply_user_data_tree()
+        except Exception:
+            pass
 
     def mark_game_entered():
         """
@@ -1612,6 +1632,10 @@ init -10 python in mas_os:
         """
         global game_entered
         game_entered = True
+        try:
+            apply_user_data_tree()
+        except Exception:
+            pass
 
     def _quit(relaunch=False):
         """
@@ -1719,9 +1743,12 @@ init -10 python in mas_os:
         """
         store.persistent._mas_os_reopen = True
         try:
-            store.renpy.save_persistent()
+            os_persist()
         except Exception:
-            pass
+            try:
+                store.renpy.save_persistent()
+            except Exception:
+                pass
         store.renpy.utter_restart()
 
     def return_to_shell():
@@ -2211,12 +2238,51 @@ init -10 python in mas_os:
         return _norm(os.path.join(renpy.config.savedir, "persistent"))
 
     def characters_dir():
+        try:
+            path = user_data_dir("characters")
+            if path:
+                return path
+        except Exception:
+            pass
         return _norm(os.path.join(renpy.config.basedir, "characters"))
+
+    def custom_bgm_dir():
+        try:
+            path = user_data_dir("custom_bgm")
+            if path:
+                return path
+        except Exception:
+            pass
+        return _norm(os.path.join(renpy.config.basedir, "custom_bgm"))
+
+    def chess_games_dir():
+        try:
+            path = user_data_dir("chess_games")
+            if path:
+                return path
+        except Exception:
+            pass
+        return _norm(os.path.join(renpy.config.basedir, "chess_games"))
+
+    def piano_songs_dir():
+        try:
+            path = user_data_dir("piano_songs")
+            if path:
+                return path
+        except Exception:
+            pass
+        return _norm(os.path.join(renpy.config.basedir, "piano_songs"))
 
     def submods_dir():
         return _norm(os.path.join(writable_gamedir(), "Submods"))
 
     def log_dir():
+        try:
+            path = user_data_dir("log")
+            if path:
+                return path
+        except Exception:
+            pass
         return _norm(os.path.join(renpy.config.basedir, "log"))
 
     def list_dir_names(path, limit=24):
@@ -2366,6 +2432,12 @@ label mas_os_files_loop:
     call screen mas_os_files with mas_os_trans
     if _return == "view":
         jump mas_os_fm_view_loop
+    if _return == "image":
+        call screen mas_os_fm_image with mas_os_trans
+        jump mas_os_files_loop
+    if _return == "persistent":
+        call screen mas_os_fm_persistent with mas_os_trans
+        jump mas_os_files_loop
     if _return == "gifts":
         jump mas_os_gifts
     if _return == "logs":
@@ -2769,6 +2841,8 @@ screen mas_os_home_cards():
 
             text _("Оболочка до запуска игры. Сессия не начинается."):
                 style "mas_os_hint"
+
+    use mas_os_app_folder_warn(xpos=520, ypos=16, xsize=720)
 
     button:
         style "mas_os_launch"

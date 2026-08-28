@@ -3,12 +3,14 @@
 init -5 python in mas_os:
     import os
     import shutil
+    import datetime
     import store
 
     TEXT_EXTS = set([
         ".txt", ".log", ".json", ".rpy", ".md", ".csv", ".gift", ".xml",
         ".html", ".css", ".ini", ".cfg", ".mcal", ".py", ".json5",
     ])
+    IMAGE_EXTS = set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"])
     EDIT_MAX = 12000
     VIEW_BYTES = 48000
     VIEW_MAX_LINES = 240
@@ -33,6 +35,10 @@ init -5 python in mas_os:
     fm_clip = ""
     fm_clip_name = ""
     fm_keep_cwd = False
+    fm_image_rel = ""
+    fm_image_wh = (0, 0)
+    fm_image_size_s = ""
+    fm_per_meta = None
 
     def _abs(path):
         return _norm(os.path.abspath(path))
@@ -44,6 +50,14 @@ init -5 python in mas_os:
             sd = _abs(sd)
             if sd not in roots:
                 roots.append(sd)
+        try:
+            ud = user_data_root()
+            if ud:
+                ud = _abs(ud)
+                if ud not in roots:
+                    roots.append(ud)
+        except Exception:
+            pass
         return roots
 
     def fm_in_sandbox(path):
@@ -99,6 +113,9 @@ init -5 python in mas_os:
         mapping = {
             "game": game_dir(),
             "characters": characters_dir(),
+            "custom_bgm": custom_bgm_dir(),
+            "chess_games": chess_games_dir(),
+            "piano_songs": piano_songs_dir(),
             "log": log_dir(),
             "submods": submods_dir(),
             "saves": save_dir(),
@@ -107,7 +124,7 @@ init -5 python in mas_os:
         if not path:
             fm_status = "Папка не задана."
             return False
-        if kind in ("characters", "log", "submods") and not os.path.isdir(path):
+        if kind in ("characters", "custom_bgm", "chess_games", "piano_songs", "log", "submods") and not os.path.isdir(path):
             try:
                 os.makedirs(path)
             except Exception:
@@ -129,11 +146,37 @@ init -5 python in mas_os:
         ext = os.path.splitext(name)[1].lower()
         return ext in TEXT_EXTS or ext == ""
 
+    def fm_is_image(name):
+        ext = os.path.splitext(name or "")[1].lower()
+        return ext in IMAGE_EXTS
+
+    def fm_kind(name, is_dir):
+        if is_dir:
+            return "dir"
+        if fm_is_persistent_name(name):
+            return "persistent"
+        if fm_is_image(name):
+            return "image"
+        if fm_is_text(name):
+            return "text"
+        return "file"
+
+    def fm_kind_label(kind):
+        return {
+            "dir": _("папка"),
+            "persistent": _("persistent"),
+            "image": _("картинка"),
+            "text": _("текст"),
+            "file": _("файл"),
+        }.get(kind, _("файл"))
+
     def fm_icon_for(name, is_dir):
         if is_dir:
             return "files"
+        if fm_is_persistent_name(name):
+            return "data"
         ext = os.path.splitext(name or "")[1].lower()
-        if ext in (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"):
+        if ext in IMAGE_EXTS:
             return "gallery"
         if ext in (".mp3", ".ogg", ".wav", ".opus", ".flac"):
             return "sound"
@@ -168,17 +211,32 @@ init -5 python in mas_os:
         for name in names:
             path = os.path.join(cwd, name)
             is_dir = os.path.isdir(path)
-            meta = ""
+            kind = fm_kind(name, is_dir)
+            size_s = ""
+            mtime_s = ""
             if not is_dir:
                 try:
-                    meta = _fmt_size(os.path.getsize(path))
+                    size_s = _fmt_size(os.path.getsize(path))
                 except Exception:
-                    meta = "?"
+                    size_s = "?"
+                try:
+                    mtime_s = datetime.datetime.fromtimestamp(
+                        os.path.getmtime(path)
+                    ).strftime("%d.%m.%Y %H:%M")
+                except Exception:
+                    mtime_s = ""
+            bits = [fm_kind_label(kind)]
+            if size_s:
+                bits.append(size_s)
+            if mtime_s:
+                bits.append(mtime_s)
+            meta = "  ·  ".join(bits)
             ui_name = name.replace("[", "[[").replace("{", "{{")
             iname = fm_icon_for(name, is_dir)
             items.append({
                 "name": name,
                 "dir": is_dir,
+                "kind": kind,
                 "path": _abs(path),
                 "meta": meta,
                 "icon": iname,
@@ -187,6 +245,33 @@ init -5 python in mas_os:
             })
         items.sort(key=lambda row: (not row["dir"], row["name"].lower()))
         return items
+
+    def fm_places():
+        return (
+            ("game", _("Игра"), "files"),
+            ("saves", _("Сейвы"), "save"),
+            ("characters", _("characters"), "characters"),
+            ("custom_bgm", _("custom_bgm"), "sound"),
+            ("chess_games", _("chess_games"), "files"),
+            ("piano_songs", _("piano_songs"), "files"),
+            ("log", _("log"), "logs"),
+            ("submods", _("Submods"), "submods"),
+        )
+
+    def fm_place_selected(kind):
+        mapping = {
+            "game": game_dir(),
+            "saves": save_dir(),
+            "characters": characters_dir(),
+            "custom_bgm": custom_bgm_dir(),
+            "chess_games": chess_games_dir(),
+            "piano_songs": piano_songs_dir(),
+            "log": log_dir(),
+            "submods": submods_dir(),
+        }
+        target = _abs(mapping.get(kind) or "")
+        cwd = _abs(fm_cwd or game_dir())
+        return bool(target) and cwd == target
 
     def fm_enter(name):
         global fm_status
@@ -197,12 +282,102 @@ init -5 python in mas_os:
         if os.path.isdir(path):
             fm_open(path)
             return None
+        if fm_is_persistent_name(name):
+            if fm_prepare_persistent(name):
+                return "persistent"
+            return None
+        if fm_is_image(name):
+            if fm_prepare_image(name):
+                return "image"
+            return None
         if fm_is_text(name):
             if fm_prepare_named(name):
                 return "view"
             return None
         fm_status = "Бинарный файл ({0}). Можно удалить, но не открыть.".format(name)
         return None
+
+    def fm_prepare_persistent(name):
+        # Карточка как в «Данных»: читаем bak через mas_per_check.
+        global fm_per_meta, fm_edit_path, fm_edit_name, fm_status
+        path = _abs(os.path.join(fm_cwd, name))
+        if not fm_in_sandbox(path) or not os.path.isfile(path):
+            fm_status = "Файл не найден."
+            fm_per_meta = None
+            return False
+        fm_edit_path = path
+        fm_edit_name = name
+        if name == "persistent":
+            try:
+                fm_per_meta = data_live_meta()
+            except Exception as err:
+                fm_per_meta = _meta_broken(path, name, err)
+            fm_status = ""
+            return True
+        try:
+            ok, data = store.mas_per_check.tryper(path, get_data=True)
+            if not ok:
+                fm_per_meta = _meta_broken(path, name, "не прочитан")
+            else:
+                fm_per_meta = _meta_from_obj(data, path, name)
+        except Exception as err:
+            fm_per_meta = _meta_broken(path, name, err)
+        fm_status = ""
+        return True
+
+    def fm_prepare_image(name):
+        # Копируем в overlay, чтобы Image() на Android не брал /data/data.
+        global fm_image_rel, fm_image_wh, fm_image_size_s, fm_edit_path, fm_edit_name, fm_status
+        path = _abs(os.path.join(fm_cwd, name))
+        if not fm_in_sandbox(path) or not os.path.isfile(path):
+            fm_status = "Картинка не найдена."
+            return False
+        fm_edit_path = path
+        fm_edit_name = name
+        rel = asset_rel_from_fs(path)
+        if rel:
+            try:
+                if store.renpy.loadable(rel):
+                    fm_image_rel = rel
+                    try:
+                        fm_image_wh = store.renpy.image_size(rel) or (0, 0)
+                    except Exception:
+                        fm_image_wh = (0, 0)
+                    try:
+                        fm_image_size_s = _fmt_size(os.path.getsize(path))
+                    except Exception:
+                        fm_image_size_s = ""
+                    fm_status = ""
+                    return True
+            except Exception:
+                pass
+        ext = os.path.splitext(name)[1].lower() or ".png"
+        if ext not in IMAGE_EXTS:
+            ext = ".png"
+        dest_dir = os.path.join(writable_gamedir(), "mas_os_preview")
+        try:
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir)
+            dest = os.path.join(dest_dir, "view" + ext)
+            shutil.copy2(path, dest)
+        except Exception as err:
+            fm_status = "Не открыть картинку: {0}".format(err)
+            return False
+        rel = "mas_os_preview/view" + ext
+        fm_image_rel = rel
+        try:
+            fm_image_wh = store.renpy.image_size(rel) or (0, 0)
+        except Exception:
+            try:
+                fm_image_wh = store.renpy.image_size(dest) or (0, 0)
+            except Exception:
+                fm_image_wh = (0, 0)
+        try:
+            fm_image_size_s = _fmt_size(os.path.getsize(path))
+        except Exception:
+            fm_image_size_s = ""
+        fm_status = ""
+        return True
 
     def fm_prepare_named(name):
         global fm_status, fm_edit_path
@@ -584,18 +759,15 @@ init python:
             self.is_dir = is_dir
 
         def __call__(self):
-            if self.is_dir:
-                store.mas_os.fm_enter(self.name)
+            kind = store.mas_os.fm_enter(self.name)
+            if self.is_dir or not kind:
                 renpy.restart_interaction()
                 return None
-            if store.mas_os.fm_prepare_named(self.name):
-                if store.mas_os.wm_embedded():
-                    store.mas_os.fm_sub = "view"
-                    renpy.restart_interaction()
-                    return None
-                return "view"
-            renpy.restart_interaction()
-            return None
+            if store.mas_os.wm_embedded():
+                store.mas_os.fm_sub = kind
+                renpy.restart_interaction()
+                return None
+            return kind
 
 
 init 1 python:
@@ -611,64 +783,82 @@ screen mas_os_files():
     $ cwd_label = store.mas_os.fm_rel()
     $ status = store.mas_os.fm_status
     $ at_root = store.mas_os.fm_is_root()
+    $ nfiles = len(entries)
     $ del_icon = store.mas_os.icon_path("delete")
     $ up_icon = store.mas_os.icon_path("folder-up")
     $ copy_icon = store.mas_os.icon_path("add")
     $ persist_icon = store.mas_os.icon_path("save")
+    $ places = store.mas_os.fm_places()
 
     use mas_os_bg
 
     text _("Файлы") at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
-        ypos 16
+        ypos 12
+
+    use mas_os_app_folder_warn(xpos=280, ypos=8, xsize=960)
 
     text cwd_label:
         style "mas_os_hint"
         xpos 48
-        ypos 58
-        xsize 1180
+        ypos 48
+        xsize 900
         substitute False
+
+    text _("[nfiles] элементов"):
+        style "mas_os_hint"
+        xpos 1000
+        ypos 48
+        substitute True
 
     hbox:
         xpos 48
-        ypos 86
+        ypos 78
         spacing 8
 
-        textbutton _("Игра"):
+        button:
+            style "mas_os_nav_btn"
+            xsize 140
+            ysize 40
+            sensitive (not at_root)
+            action MASOSFn(store.mas_os.fm_go_parent)
+
+            hbox:
+                spacing 6
+                xalign 0.5
+                yalign 0.5
+
+                if up_icon:
+                    add store.mas_os.fit_image(up_icon, 18, 18):
+                        yalign 0.5
+                text _("Вверх"):
+                    style "mas_os_nav_btn_text"
+                    yalign 0.5
+
+        textbutton _("Папка"):
             style "mas_os_nav_btn"
             text_style "mas_os_nav_btn_text"
             xsize 110
-            action MASOSFn(store.mas_os.fm_jump, "game")
+            action MASOSFn(store.mas_os.fm_begin_create, "folder")
 
-        textbutton _("characters"):
-            style "mas_os_nav_btn"
-            text_style "mas_os_nav_btn_text"
-            xsize 160
-            action MASOSFn(store.mas_os.fm_jump, "characters")
-
-        textbutton _("log"):
+        textbutton _("txt"):
             style "mas_os_nav_btn"
             text_style "mas_os_nav_btn_text"
             xsize 90
-            action MASOSFn(store.mas_os.fm_jump, "log")
+            action MASOSFn(store.mas_os.fm_begin_create, "file")
 
-        textbutton _("Submods"):
+        textbutton _("Вставить"):
             style "mas_os_nav_btn"
             text_style "mas_os_nav_btn_text"
-            xsize 140
-            action MASOSFn(store.mas_os.fm_jump, "submods")
-
-        textbutton _("saves"):
-            style "mas_os_nav_btn"
-            text_style "mas_os_nav_btn_text"
-            xsize 110
-            action MASOSFn(store.mas_os.fm_jump, "saves")
+            xsize 130
+            sensitive store.mas_os.fm_can_paste()
+            action MASOSFn(store.mas_os.fm_paste_or_ask)
 
         textbutton _("Подарки"):
             style "mas_os_nav_btn"
             text_style "mas_os_nav_btn_text"
-            xsize 140
+            xsize 130
             action MASOSGo("gifts")
 
         textbutton _("Логи"):
@@ -677,164 +867,168 @@ screen mas_os_files():
             xsize 100
             action MASOSGo("logs")
 
-    hbox:
+    # Слева места, справа список: меньше прыжков по верхнему ряду кнопок.
+    vbox:
         xpos 48
-        ypos 136
-        spacing 8
+        ypos 128
+        spacing 6
+        xsize 200
 
-        button:
-            style "mas_os_nav_btn"
-            xsize 160
-            ysize 44
-            sensitive (not at_root)
-            action MASOSFn(store.mas_os.fm_go_parent)
+        text _("Места"):
+            style "mas_os_subtitle"
+            size 16
 
-            hbox:
-                spacing 8
-                xalign 0.5
-                yalign 0.5
+        for pkind, plabel, picon in places:
+            $ pip = store.mas_os.icon_path(picon)
+            button:
+                style "mas_os_side_btn"
+                xsize 200
+                ysize 44
+                selected store.mas_os.fm_place_selected(pkind)
+                action MASOSFn(store.mas_os.fm_jump, pkind)
 
-                if up_icon:
-                    add store.mas_os.fit_image(up_icon, 22, 22):
-                        yalign 0.5
-                text _("вверх"):
-                    style "mas_os_nav_btn_text"
+                hbox:
+                    spacing 8
                     yalign 0.5
+                    xoffset 8
 
-        textbutton _("Папка"):
-            style "mas_os_nav_btn"
-            text_style "mas_os_nav_btn_text"
-            xsize 120
-            action MASOSFn(store.mas_os.fm_begin_create, "folder")
-
-        textbutton _("txt"):
-            style "mas_os_nav_btn"
-            text_style "mas_os_nav_btn_text"
-            xsize 100
-            action MASOSFn(store.mas_os.fm_begin_create, "file")
-
-        textbutton _("Вставить"):
-            style "mas_os_nav_btn"
-            text_style "mas_os_nav_btn_text"
-            xsize 140
-            sensitive store.mas_os.fm_can_paste()
-            action MASOSFn(store.mas_os.fm_paste_or_ask)
+                    if pip:
+                        add store.mas_os.fit_image(pip, 22, 22):
+                            yalign 0.5
+                    text plabel:
+                        style "mas_os_side_btn_text"
+                        size 15
+                        yalign 0.5
+                        substitute False
 
     viewport:
-        xpos 48
-        ypos 184
-        xysize (1184, 420)
+        xpos 260
+        ypos 128
+        xysize (972, 470)
         draggable True
         mousewheel True
         scrollbars "vertical"
 
         vbox:
-            spacing 4
+            spacing 3
 
             if not entries:
                 text _("Папка пустая."):
                     style "mas_os_hint"
             else:
                 for item in entries:
-                    hbox:
-                        spacing 8
+                    frame:
+                        background Solid(store.mas_os.theme_color("panel2"))
+                        xsize 948
+                        padding (0, 0)
 
-                        button:
-                            style "mas_os_side_btn"
-                            xsize 880
-                            ysize 48
-                            padding (8, 6)
-                            action MASOSFMOpen(item["name"], item["dir"])
+                        hbox:
+                            spacing 6
+                            yalign 0.5
 
-                            hbox:
-                                spacing 12
-                                yalign 0.5
-                                xoffset 8
+                            button:
+                                style "mas_os_side_btn"
+                                xsize 780
+                                ysize 56
+                                padding (10, 6)
+                                action MASOSFMOpen(item["name"], item["dir"])
 
-                                if item["ipath"]:
-                                    add store.mas_os.fit_image(item["ipath"], 32, 32):
-                                        yalign 0.5
-                                else:
-                                    frame:
-                                        xysize (32, 32)
-                                        background Solid("#3A1524")
-                                        yalign 0.5
-
-                                text item["label"]:
-                                    style "mas_os_side_btn_text"
-                                    yalign 0.5
-                                    substitute False
-
-                                if item["meta"]:
-                                    text item["meta"]:
-                                        style "mas_os_hint"
-                                        yalign 0.5
-
-                        button:
-                            style "mas_os_nav_btn"
-                            xsize 48
-                            ysize 48
-                            action MASOSFn(store.mas_os.fm_copy, item["name"])
-
-                            if copy_icon:
-                                add store.mas_os.fit_image(copy_icon, 24, 24):
-                                    xalign 0.5
-                                    yalign 0.5
-                            else:
-                                text _("C"):
-                                    style "mas_os_nav_btn_text"
-                                    xalign 0.5
+                                hbox:
+                                    spacing 12
                                     yalign 0.5
 
-                        if (not item["dir"]) and store.mas_os.fm_is_persistent_name(item["name"]):
+                                    if item["ipath"]:
+                                        add store.mas_os.fit_image(item["ipath"], 36, 36):
+                                            yalign 0.5
+                                    else:
+                                        frame:
+                                            xysize (36, 36)
+                                            background Solid(store.mas_os.theme_color("btn"))
+                                            yalign 0.5
+
+                                    vbox:
+                                        spacing 2
+                                        yalign 0.5
+
+                                        text item["label"]:
+                                            style "mas_os_side_btn_text"
+                                            size 16
+                                            substitute False
+
+                                        text item["meta"]:
+                                            style "mas_os_hint"
+                                            size 13
+                                            substitute False
+
                             button:
                                 style "mas_os_nav_btn"
                                 xsize 48
                                 ysize 48
-                                action Show(
-                                    "mas_os_confirm",
-                                    message="Подставить {0} как текущий persistent и перезапустить оболочку? Живой persistent из памяти не правим — только файл, затем перезапуск.".format(item["name"].replace("[", "[[").replace("{", "{{")),
-                                    yes_action=[MASOSFn(store.mas_os.fm_use_as_persistent, item["name"]), Hide("mas_os_confirm")],
-                                    no_action=Hide("mas_os_confirm")
-                                )
+                                yalign 0.5
+                                action MASOSFn(store.mas_os.fm_copy, item["name"])
 
-                                if persist_icon:
-                                    add store.mas_os.fit_image(persist_icon, 24, 24):
+                                if copy_icon:
+                                    add store.mas_os.fit_image(copy_icon, 22, 22):
                                         xalign 0.5
                                         yalign 0.5
                                 else:
-                                    text _("P"):
+                                    text _("C"):
                                         style "mas_os_nav_btn_text"
                                         xalign 0.5
                                         yalign 0.5
 
-                        button:
-                            style "mas_os_nav_btn"
-                            xsize 48
-                            ysize 48
-                            action Show(
-                                "mas_os_confirm",
-                                message="Удалить {0}?".format(item["name"].replace("[", "[[").replace("{", "{{")),
-                                yes_action=[MASOSFn(store.mas_os.fm_delete, item["name"]), Hide("mas_os_confirm")],
-                                no_action=Hide("mas_os_confirm")
-                            )
+                            if (not item["dir"]) and item.get("kind") == "persistent":
+                                button:
+                                    style "mas_os_nav_btn"
+                                    xsize 48
+                                    ysize 48
+                                    yalign 0.5
+                                    action Show(
+                                        "mas_os_confirm",
+                                        message="Назначить {0} текущим persistent после перезапуска?".format(item["name"].replace("[", "[[").replace("{", "{{")),
+                                        yes_action=[MASOSFn(store.mas_os.fm_use_as_persistent, item["name"]), Hide("mas_os_confirm")],
+                                        no_action=Hide("mas_os_confirm")
+                                    )
 
-                            if del_icon:
-                                add store.mas_os.fit_image(del_icon, 24, 24):
-                                    xalign 0.5
-                                    yalign 0.5
-                            else:
-                                text _("X"):
-                                    style "mas_os_nav_btn_text"
-                                    xalign 0.5
-                                    yalign 0.5
+                                    if persist_icon:
+                                        add store.mas_os.fit_image(persist_icon, 22, 22):
+                                            xalign 0.5
+                                            yalign 0.5
+                                    else:
+                                        text _("P"):
+                                            style "mas_os_nav_btn_text"
+                                            xalign 0.5
+                                            yalign 0.5
+
+                            button:
+                                style "mas_os_nav_btn"
+                                xsize 48
+                                ysize 48
+                                yalign 0.5
+                                action Show(
+                                    "mas_os_confirm",
+                                    message="Удалить {0}?".format(item["name"].replace("[", "[[").replace("{", "{{")),
+                                    yes_action=[MASOSFn(store.mas_os.fm_delete, item["name"]), Hide("mas_os_confirm")],
+                                    no_action=Hide("mas_os_confirm")
+                                )
+
+                                if del_icon:
+                                    add store.mas_os.fit_image(del_icon, 22, 22):
+                                        xalign 0.5
+                                        yalign 0.5
+                                else:
+                                    text _("X"):
+                                        style "mas_os_nav_btn_text"
+                                        xalign 0.5
+                                        yalign 0.5
 
     if status:
         text status:
             style "mas_os_subtitle"
-            xpos 48
+            xpos 260
             ypos 608
             xsize 900
+            substitute False
 
     if not store.mas_os.wm_embedded():
         textbutton _("Назад"):
@@ -844,6 +1038,185 @@ screen mas_os_files():
             ypos 640
             action Return("back")
 
+        key "K_ESCAPE" action Return("back")
+        key "K_AC_BACK" action Return("back")
+
+
+screen mas_os_fm_persistent():
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
+
+    $ meta = store.mas_os.fm_per_meta or {}
+    $ fname = store.mas_os.fm_edit_name or "persistent"
+    $ ok = meta.get("ok", False)
+    $ d_nick = _("Моника: ") + unicode(meta.get("nick", "—"))
+    $ d_player = _("Игрок: ") + unicode(meta.get("player", "—"))
+    $ d_ver = _("Версия: ") + unicode(meta.get("version", "—"))
+    $ d_aff = _("Привязанность: ") + unicode(meta.get("aff_s", "—")) + "  " + unicode(meta.get("state_s", ""))
+    $ d_ses = _("Сессии: ") + unicode(meta.get("sessions", "—")) + "  /  " + unicode(meta.get("play", "—"))
+    $ d_first = _("Первая: ") + unicode(meta.get("first", "—"))
+    $ d_last = _("Последняя: ") + unicode(meta.get("last", "—"))
+    $ d_file = _("Файл: ") + unicode(meta.get("mtime", "—")) + "  " + unicode(meta.get("size", "—"))
+    $ err = unicode(meta.get("error", "") or "")
+
+    use mas_os_bg
+
+    text fname at store.mas_os.t_pop(0.0):
+        style "mas_os_title"
+        xpos 48
+        ypos 16
+        substitute False
+
+    text _("Карточка как в «Данных». Живой persistent из памяти не правим."):
+        style "mas_os_hint"
+        xpos 48
+        ypos 56
+        xsize 1100
+
+    frame:
+        style "mas_os_panel"
+        xpos 48
+        ypos 96
+        xysize (720, 500)
+        padding (20, 16)
+
+        vbox:
+            spacing 8
+            xfill True
+
+            if not ok:
+                text _("Файл не прочитан"):
+                    style "mas_os_subtitle"
+                if err:
+                    text err:
+                        style "mas_os_hint"
+                        xsize 660
+                        substitute False
+            else:
+                text d_nick:
+                    style "mas_os_body"
+                    substitute False
+                text d_player:
+                    style "mas_os_body"
+                    substitute False
+                text d_ver:
+                    style "mas_os_body"
+                    substitute False
+                text d_aff:
+                    style "mas_os_body"
+                    substitute False
+                text d_ses:
+                    style "mas_os_body"
+                    substitute False
+                text d_first:
+                    style "mas_os_hint"
+                    substitute False
+                text d_last:
+                    style "mas_os_hint"
+                    substitute False
+                text d_file:
+                    style "mas_os_hint"
+                    substitute False
+
+    vbox:
+        xpos 800
+        ypos 96
+        spacing 10
+        xsize 420
+
+        textbutton _("Загрузить после перезапуска"):
+            style "mas_os_button"
+            text_style "mas_os_button_text"
+            xsize 420
+            sensitive (ok and not meta.get("is_current"))
+            action Show(
+                "mas_os_confirm",
+                message=_("Этот persistent станет текущим после перезапуска. Вид MAS OS по умолчанию не сбросится."),
+                yes_action=[MASOSFn(store.mas_os.fm_use_as_persistent, fname), Hide("mas_os_confirm")],
+                no_action=Hide("mas_os_confirm")
+            )
+
+        textbutton _("Копировать"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xsize 420
+            action MASOSFn(store.mas_os.fm_copy, fname)
+
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xsize 420
+            action If(store.mas_os.wm_embedded(), Function(store.mas_os.fm_embed_go, None), Return("back"))
+
+    if not store.mas_os.wm_embedded():
+        key "K_ESCAPE" action Return("back")
+        key "K_AC_BACK" action Return("back")
+
+
+screen mas_os_fm_image():
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
+
+    $ fname = store.mas_os.fm_edit_name or _("картинка")
+    $ rel = store.mas_os.fm_image_rel
+    $ wh = store.mas_os.fm_image_wh or (0, 0)
+    $ w = int(wh[0] or 0)
+    $ h = int(wh[1] or 0)
+    $ size_s = store.mas_os.fm_image_size_s or ""
+    $ dim_s = ("{0} x {1}").format(w, h) if w and h else _("размер неизвестен")
+
+    use mas_os_bg
+
+    text fname at store.mas_os.t_pop(0.0):
+        style "mas_os_title"
+        xpos 48
+        ypos 12
+        substitute False
+
+    text dim_s + ( ("  ·  " + size_s) if size_s else "" ):
+        style "mas_os_hint"
+        xpos 48
+        ypos 50
+        substitute False
+
+    frame:
+        style "mas_os_panel"
+        xpos 48
+        ypos 82
+        xysize (1184, 530)
+        background Solid("#0A0408")
+        padding (8, 8)
+
+        if rel:
+            add store.mas_os.fit_image(rel, 1168, 514):
+                xalign 0.5
+                yalign 0.5
+        else:
+            text _("Не удалось показать картинку."):
+                style "mas_os_hint"
+                xalign 0.5
+                yalign 0.5
+
+    hbox:
+        xpos 48
+        ypos 628
+        spacing 12
+
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xsize 160
+            action If(store.mas_os.wm_embedded(), Function(store.mas_os.fm_embed_go, None), Return("back"))
+
+        textbutton _("Копировать"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xsize 180
+            action MASOSFn(store.mas_os.fm_copy, fname)
+
+    if not store.mas_os.wm_embedded():
         key "K_ESCAPE" action Return("back")
         key "K_AC_BACK" action Return("back")
 

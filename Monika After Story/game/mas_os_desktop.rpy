@@ -11,12 +11,13 @@ init -5 python in mas_os:
     )
 
     start_open = False
+    # Панель задач снизу, окно приложения занимает всё над ней.
     TASKBAR_Y = 676
     TASKBAR_H = 44
-    WIN_X0 = 24
-    WIN_Y0 = 16
-    WIN_W = 1232
-    WIN_H = 652
+    WIN_X0 = 0
+    WIN_Y0 = 0
+    WIN_W = 1280
+    WIN_H = 676
     WIN_TITLE = 34
 
     WM_APPS = (
@@ -61,9 +62,12 @@ init -5 python in mas_os:
         start_open = False
         wm_close_all()
         try:
-            store.renpy.save_persistent()
+            os_persist()
         except Exception:
-            pass
+            try:
+                store.renpy.save_persistent()
+            except Exception:
+                pass
         return None
 
     def set_start_open(value):
@@ -148,17 +152,13 @@ init -5 python in mas_os:
         return None
 
     def wm_pos(app_id):
-        pos = wm_geom.get(app_id)
-        if pos:
-            return pos
-        n = 0
-        if app_id in wm_apps:
-            n = wm_apps.index(app_id)
-        return (WIN_X0 + 20 * (n % 4), WIN_Y0 + 16 * (n % 4))
+        # Всегда на весь стол: без каскада как в старом DDLC Plus.
+        return (WIN_X0, WIN_Y0)
 
     def wm_open(app_id, reset_fm=True):
-        global start_open, wm_focus, fm_sub
+        global start_open, wm_focus, fm_sub, notify_open
         start_open = False
+        notify_open = False
         if app_id == "files":
             try:
                 if reset_fm or not fm_cwd:
@@ -168,12 +168,8 @@ init -5 python in mas_os:
             if app_id not in wm_apps:
                 fm_sub = None
         if app_id not in wm_apps:
-            n = len(wm_apps)
             wm_apps.append(app_id)
-            wm_geom[app_id] = (
-                WIN_X0 + 20 * (n % 4),
-                WIN_Y0 + 16 * (n % 4),
-            )
+            wm_geom[app_id] = (WIN_X0, WIN_Y0)
         if app_id in wm_minimized:
             wm_minimized.remove(app_id)
         if app_id in wm_apps:
@@ -259,7 +255,10 @@ init -5 python in mas_os:
         return None
 
     def wm_esc():
-        global start_open
+        global start_open, notify_open
+        if notify_open:
+            notify_open = False
+            return None
         if start_open:
             start_open = False
             return None
@@ -453,6 +452,10 @@ screen mas_os_wm_body(app_id):
             use mas_os_fm_edit
         elif store.mas_os.fm_sub == "view":
             use mas_os_fm_view
+        elif store.mas_os.fm_sub == "image":
+            use mas_os_fm_image
+        elif store.mas_os.fm_sub == "persistent":
+            use mas_os_fm_persistent
         else:
             use mas_os_files
     elif app_id == "browser":
@@ -498,47 +501,59 @@ screen mas_os_app_window(app_id):
                 ypos 0
                 xsize _ww
                 ysize _th
-                padding (8, 0)
+                padding (0, 0)
 
-                hbox:
-                    spacing 8
-                    yalign 0.5
-                    xfill True
+                # Заголовок слева, свернуть/закрыть строго справа как в Windows.
+                fixed:
+                    xysize (_ww, _th)
 
-                    if _icon:
-                        add store.mas_os.fit_image(_icon, 18, 18):
-                            yalign 0.5
-
-                    text _title:
-                        style "mas_os_desk_titlebar_text"
-                        size 16
+                    hbox:
+                        xpos 12
                         yalign 0.5
-                        substitute False
+                        spacing 8
 
-                    null:
-                        xfill True
+                        if _icon:
+                            add store.mas_os.fit_image(_icon, 18, 18):
+                                yalign 0.5
 
-                    button:
-                        style "mas_os_win_tool"
-                        action Function(store.mas_os.wm_minimize, app_id)
-                        hover_sound store.mas_os.os_hover()
-                        activate_sound store.mas_os.os_activate()
-
-                        text "-":
-                            style "mas_os_win_tool_text"
-                            xalign 0.5
+                        text _title:
+                            style "mas_os_desk_titlebar_text"
+                            size 16
                             yalign 0.5
+                            substitute False
 
-                    button:
-                        style "mas_os_win_tool"
-                        action Function(store.mas_os.wm_close, app_id)
-                        hover_sound store.mas_os.os_hover()
-                        activate_sound store.mas_os.os_activate()
+                    hbox:
+                        xalign 1.0
+                        yalign 0.5
+                        spacing 0
 
-                        text "x":
-                            style "mas_os_win_tool_text"
-                            xalign 0.5
-                            yalign 0.5
+                        button:
+                            style "mas_os_win_tool"
+                            xsize 46
+                            ysize _th
+                            action Function(store.mas_os.wm_minimize, app_id)
+                            hover_sound store.mas_os.os_hover()
+                            activate_sound store.mas_os.os_activate()
+
+                            text "_":
+                                style "mas_os_win_tool_text"
+                                size 16
+                                xalign 0.5
+                                yalign 0.5
+
+                        button:
+                            style "mas_os_win_close"
+                            xsize 46
+                            ysize _th
+                            action Function(store.mas_os.wm_close, app_id)
+                            hover_sound store.mas_os.os_hover()
+                            activate_sound store.mas_os.os_activate()
+
+                            text "x":
+                                style "mas_os_win_tool_text"
+                                size 16
+                                xalign 0.5
+                                yalign 0.5
 
             fixed:
                 xpos 0
@@ -688,14 +703,6 @@ screen mas_os_taskbar():
             null:
                 xfill True
 
-            fixed:
-                xysize (92, 36)
-                yalign 0.5
-
-                add MASOSClockText(size=13, color=_clock_col):
-                    xalign 1.0
-                    yalign 0.5
-
             button:
                 style "mas_os_tb_btn"
                 xsize 40
@@ -732,6 +739,137 @@ screen mas_os_taskbar():
                         add store.mas_os.fit_image(store.mas_os.icon_path("shutdown"), 20, 20):
                             xalign 0.5
                             yalign 0.5
+
+            # Центр уведомлений + часы/дата в правом нижнем углу, как Win10.
+            button:
+                style "mas_os_tb_btn"
+                xsize 40
+                selected store.mas_os.notify_open
+                action Function(store.mas_os.toggle_notify)
+                hover_sound store.mas_os.os_hover()
+                activate_sound store.mas_os.os_activate()
+
+                if store.mas_os.icon_path("notify"):
+                    add store.mas_os.fit_image(store.mas_os.icon_path("notify"), 20, 20):
+                        xalign 0.5
+                        yalign 0.5
+                else:
+                    text "i":
+                        style "mas_os_tb_btn_text"
+                        xalign 0.5
+                        yalign 0.5
+
+                if store.mas_os.notify_count() > 0:
+                    frame:
+                        xysize (10, 10)
+                        background Solid("#FF3B5C")
+                        xalign 0.92
+                        yalign 0.18
+
+            button:
+                style "mas_os_tb_btn"
+                xsize 108
+                selected store.mas_os.notify_open
+                action Function(store.mas_os.toggle_notify)
+                hover_sound store.mas_os.os_hover()
+                activate_sound store.mas_os.os_activate()
+
+                add MASOSClockText(size=12, color=_clock_col):
+                    xalign 1.0
+                    yalign 0.5
+                    xoffset -6
+
+
+screen mas_os_notify_panel():
+    $ items = store.mas_os.notify_items
+    $ ncount = store.mas_os.notify_count()
+
+    button:
+        xpos 0
+        ypos 0
+        xysize (1280, store.mas_os.TASKBAR_Y)
+        background Solid("#00000055")
+        action Function(store.mas_os.set_notify_open, False)
+
+    frame:
+        style "mas_os_notify_flyout"
+        xalign 1.0
+        ypos 0
+        xsize 400
+        ysize store.mas_os.TASKBAR_Y
+        padding (0, 0)
+
+        vbox:
+            xfill True
+            spacing 0
+
+            frame:
+                background Solid(store.mas_os.theme_color("accent"))
+                xfill True
+                padding (16, 12)
+
+                hbox:
+                    spacing 8
+                    xfill True
+
+                    text _("Уведомления"):
+                        style "mas_os_desk_titlebar_text"
+                        size 18
+                        yalign 0.5
+
+                    null:
+                        xfill True
+
+                    textbutton _("Очистить все"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        ysize 32
+                        action Function(store.mas_os.notify_clear)
+                        sensitive (ncount > 0)
+
+            viewport:
+                xysize (400, store.mas_os.TASKBAR_Y - 56)
+                draggable True
+                mousewheel True
+                scrollbars "vertical"
+
+                vbox:
+                    spacing 8
+                    xsize 384
+                    xoffset 8
+                    yoffset 8
+
+                    if not items:
+                        text _("Пока пусто. Реакции браузера появятся здесь."):
+                            style "mas_os_hint"
+                            xsize 360
+                    else:
+                        for item in reversed(items):
+                            frame:
+                                style "mas_os_panel"
+                                background Solid(store.mas_os.theme_color("panel2"))
+                                xsize 360
+                                padding (12, 10)
+
+                                vbox:
+                                    spacing 4
+                                    xfill True
+
+                                    text item.get("title", "Моника"):
+                                        style "mas_os_subtitle"
+                                        size 16
+                                        substitute False
+
+                                    text item.get("body", ""):
+                                        style "mas_os_body"
+                                        size 15
+                                        xsize 330
+                                        substitute False
+
+                                    text item.get("time", ""):
+                                        style "mas_os_hint"
+                                        size 12
+                                        substitute False
 
 
 screen mas_os_start_flyout():
@@ -849,6 +987,8 @@ screen mas_os_home_desktop():
 
     use mas_os_bg(show_brand=False)
 
+    use mas_os_app_folder_warn(xpos=280, ypos=16, xsize=560)
+
     for i in range(len(icons)):
         $ caption, ret, icon, hue, badge = icons[i]
         $ _cx = 28 + (i % 2) * 118
@@ -893,6 +1033,9 @@ screen mas_os_home_desktop():
 
     if store.mas_os.start_open:
         use mas_os_start_flyout
+
+    if store.mas_os.notify_open:
+        use mas_os_notify_panel
 
 
 style mas_os_desk_icon is default:
@@ -957,6 +1100,14 @@ style mas_os_win_tool_text is default:
     color "#FFFFFF"
     outlines []
     text_align 0.5
+
+
+style mas_os_win_close is mas_os_win_tool:
+    hover_background Solid("#C42B1C")
+
+
+style mas_os_notify_flyout is default:
+    background Solid("#1A0C12F5")
 
 
 style mas_os_desk_win is default:

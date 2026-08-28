@@ -291,9 +291,9 @@ init -5 python in mas_os:
         mapping = {
             "wallpaper": os.path.join(root, "mod_assets", "mas_os", "wallpapers"),
             "font": os.path.join(root, "mod_assets", "font"),
-            "music": os.path.join(based, "custom_bgm"),
+            "music": custom_bgm_dir() or os.path.join(based, "custom_bgm"),
             "submod": os.path.join(root, "Submods"),
-            "gift": os.path.join(based, "characters"),
+            "gift": characters_dir() or os.path.join(based, "characters"),
             "textbox": os.path.join(root, "gui"),
             "other": os.path.join(root, "mod_assets", "mas_os", "import"),
         }
@@ -1067,14 +1067,21 @@ init -5 python in mas_os:
                 _inventory_add(kind, [name])
                 dl_last_name = name
                 extra = ""
-                if kind in ("submod", "font", "music"):
+                if kind == "submod" or kind == "font":
                     extra = " Перезапусти игру, чтобы подхватилось."
+                elif kind == "music":
+                    extra = " Трек в custom_bgm. Открой плеер или зайди в MAS."
                 elif kind == "wallpaper":
                     extra = " Обои появятся в настройках оформления."
                 elif kind == "textbox":
                     extra = " Если имя textbox_d_цвет.png — подхватим как цвет бокса позже."
                 dl_status = "Готово: {0}{1}".format(name, extra)
                 _append_history(kind, name, True, dl_status)
+                if kind in ("music", "gift"):
+                    try:
+                        apply_user_data_tree()
+                    except Exception:
+                        pass
         except Exception as err:
             dl_status = "Не вышло: {0}".format(err)
             _append_history(kind, url[:48], False, dl_status)
@@ -1158,6 +1165,8 @@ screen mas_os_store():
         style "mas_os_title"
         xpos 48
         ypos 16
+
+    use mas_os_app_folder_warn(xpos=280, ypos=10, xsize=960)
 
     text _("Скачать файл по прямой ссылке. Для телефона: GitHub raw, Google Drive, Яндекс.Диск, Dropbox.") at store.mas_os.t_pop(0.04):
         style "mas_os_hint"
