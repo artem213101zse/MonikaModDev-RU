@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_history.rpy — что игрок делал в прошлые годы
+#
+# mas_HistLookup: проводил ли Рождество, Валентин, день рождения Моники.
+# Топики спрашивают «ты был со мной в прошлом году?» — ответ отсюда.
+#
+# Store: mas_history
+# ---
+
 # Historical data module
 #
 # How this works:

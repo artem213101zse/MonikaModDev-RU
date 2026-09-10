@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# special-effects.rpy — визуальные фокусы поверх комнаты
+#
+# Параллакс, декали и прочее, что не обычный спрайт Моники и не погода.
+#
+# Store: mas_parallax
+# Класс: ParallaxDecal
+# ---
+
 # This file is meant to store any special effects.
 # These can be some images or transforms.
 init -500 python in mas_parallax:

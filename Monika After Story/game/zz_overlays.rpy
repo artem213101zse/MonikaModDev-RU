@@ -1,3 +1,11 @@
+# --- FILE MAP ---
+# zz_overlays.rpy — картинки-оверлеи поверх комнаты
+#
+# Затемнение, виньетка, штуки «поверх всего», которые не декор праздника
+# (это zz_spritedeco) и не Extra-меню (zz_extrasmenu).
+# Диалогов мало. Если «экран странно затемнён» — смотри сюда.
+# ---
+
 # module for handling of overlay screens nicely
 # NOTE: do not write screen overlays that need to be past 500 init level.
 # this should be ran last to setup proper linkages

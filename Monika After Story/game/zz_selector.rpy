@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_selector.rpy — меню «переодеть / причёска / аксессуар»
+#
+# Игрок выбирает вид Моники. Базы ACS/hair/clothes.
+#
+# Store: mas_selspr
+# persistent._mas_selspr_acs_db, _hair_db, _clothes_db
+# ---
+
 ## module that contains a workable selection screen?
 #
 # NOTE: i have no idea how generic this can get.

@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# script.rpy — старт новой игры, не диалоги
+#
+# label start: anticheat, имена девочек, глава 0, дальше уходит в интро MAS.
+# Самих разговоров почти нет — только каркас запуска.
+#
+# Labels: start, endgame
+# Дальше: script-introduction.rpy, потом script-ch30.rpy
+# ---
+
 # This is used for top-level game strucutre.
 # Should not include any actual events or scripting; only logic and calling other labels.
 #

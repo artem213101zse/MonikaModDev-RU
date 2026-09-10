@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_threading.rpy — фоновые потоки
+#
+# Ren'Py на одном потоке: долгий HTTP или диск = игра зависает.
+# MASAsyncWrapper гоняет работу рядом и отдаёт результат обратно.
+# Диалогов нет. Если «кнопка качает и всё встало» — либо забыли
+# обернуть в этот модуль, либо поток держит GIL (как с zip).
+#
+# Store: mas_threading
+# ---
 
 init -2000 python in mas_threading:
     # threading related vars

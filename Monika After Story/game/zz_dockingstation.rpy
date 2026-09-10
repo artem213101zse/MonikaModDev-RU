@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_dockingstation.rpy — папка characters / «док-станция»
+#
+# Видит файлы рядом с игрой (подарки, note). Класс MASDockingStation.
+#
+# Store: mas_ics
+# Подарки дальше обрабатывает zz_reactions.rpy
+# ---
+
 # Module that provides an interface for loading / saving files that we interact with
 #
 # NOTE: this is meant purely for reading / writing files into base64 with

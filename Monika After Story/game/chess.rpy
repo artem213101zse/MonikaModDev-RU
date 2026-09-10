@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# chess.rpy — шахматы
+#
+# Партия, Stockfish (уровень + глубина), статистика, быстрый сейв,
+# разборки если игрок крутил файл сохранения.
+#
+# Store: mas_chess
+# persistent._mas_chess_stats, _mas_chess_difficulty
+# Меню игр: zz_games.rpy  |  комплимент: script-compliments
+# ---
+
 #We now will keep track of player wins/losses/draws/whatever
 default persistent._mas_chess_stats = {
     "wins": 0,

@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# sprite-decoder.rpy — расшифровка кода экспрессии «1hua»
+#
+# В топиках пишут `m 1hua \"привет\"`. Цифры и буквы — это не магия:
+# декодер раскладывает их на глаза/брови/рот/руки. Без этого файла
+# спрайт-чарт не поймёт выражение.
+#
+# Store: mas_sprite_decoder
+# Связано: sprite-chart.rpy (сборка), sprite-generator.rpy (картинка)
+# ---
+
 #Runtime code equivalent of our spritemaker tool
 init python in mas_sprite_decoder:
     import json

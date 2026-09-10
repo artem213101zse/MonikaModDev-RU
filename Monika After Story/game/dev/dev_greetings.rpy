@@ -120,7 +120,7 @@ init 5 python:
         )
 
 label greeting_fast:
-    m "{fast}Hello!{nw}"
+    m "{fast}Привет!{nw}"
     return
 
 # greeting testing label

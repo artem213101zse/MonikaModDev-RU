@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_poemgame.rpy — мини-игра стихов из DDLC
+#
+# Слова, очки, act 1/2. MAS использует это редко, но движок здесь.
+#
+# Store: mas_poemgame_consts, mas_poemgame_fun
+# Классы: MASPoemWord, MASPoemWordList
+# ---
+
 # Module that contains a modified version of the poem minigame so we can use
 # it seamlessly in topics
 #

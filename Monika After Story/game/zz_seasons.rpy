@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_seasons.rpy — весна / лето / осень / зима
+#
+# Даты равноденствий, текущий сезон, сезонные progpoints
+# (поменять декор, одежду и т.д.).
+#
+# Store: mas_seasons
+# persistent._mas_current_season
+# ---
+
 ## seasonal module.
 # contains season functions and seasonal programming points.
 

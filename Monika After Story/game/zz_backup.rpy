@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_backup.rpy — копии persistent, если сейв сгнил
+#
+# Перенос, удаление, «этот сейв от другой версии». Когда в early.log
+# «persistent was corrupted» и подхватывается persistent00.bak — логика тут.
+#
+# Классы: PersistentMoveFailedError, PersistentDeleteFailedError,
+# IncompatiblePersistentError
+# ---
+
 # module that does some file backup work
 
 # NOTE: these shoudl never be true for a standard persistent.

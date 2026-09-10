@@ -1,3 +1,15 @@
+# --- FILE MAP ---
+# script-ch30.rpy — бесконечный день в комнате
+#
+# После интро игра живёт здесь: Моника сидит, болтает, ждёт.
+# Сессии (зашёл/вышел), skip, first_run, reload после закрытия,
+# mailbox для idle. «Комната крутится» = этот файл.
+#
+# Store: mas_globals
+# persistent.monika_reload, first_run, tried_skip, monika_kill
+# Очередь реплик берёт из event-handler.rpy
+# ---
+
 default persistent.monika_reload = 0
 # Has the player tried to skip?
 # (this is None because the player might tried to skip, but hasn't merged the saves yet)

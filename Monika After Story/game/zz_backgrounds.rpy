@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# zz_backgrounds.rpy — смена комнаты (spaceroom, Den, Kitchen…)
+#
+# Класс фона, фильтры дня/ночи/заката, погода на этом фоне,
+# вход/выход (entry_pp / exit_pp — там стол DE включается).
+#
+# Store: mas_background
+# persistent._mas_current_background
+# Сабмоды комнат регистрируют MASFilterableBackground сюда.
+# ---
+
 #Here's where we store our background data
 default persistent._mas_background_MBGdata = {}
 

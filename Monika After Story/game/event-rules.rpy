@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# event-rules.rpy — когда Event вообще можно показать
+#
+# Не текст. Классы правил (даты, повторы, флаги). У Event есть dict rules —
+# его разбирают отсюда методом evaluate_rule.
+#
+# Если топик «должен был выпасть, но молчит», чаще виноваты rules, не перевод.
+# ---
+
 # Module that defines static classes used to create the rule tuples used in the
 # Event class.
 # The static classes are the ones used to manipulate the rule tuples

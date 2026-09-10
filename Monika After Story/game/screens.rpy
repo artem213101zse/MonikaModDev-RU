@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# screens.rpy — почти весь интерфейс, который видит игрок
+#
+# Окно реплики, выборы, confirm, игровое меню, скролл-меню MAS, тултипы.
+# Очень большой файл: и DDLC, и доработки MAS вперемешку.
+#
+# Искать: screen say, screen choice, mas_gen_scrollable_menu
+# Стили ещё в styles.rpy. Перевод: кнопки, заголовки, тексты confirm.
+# ---
+
 init 100 python:
     layout.QUIT = store.mas_layout.QUIT
     layout.UNSTABLE = store.mas_layout.UNSTABLE

@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# script-holidays.rpy — праздники (огромный файл)
+#
+# Хэллоуин (O31), Рождество (D25), Валентин (F14), дни рождения,
+# праздничная одежда и декор, подарки.
+#
+# Внутри файла метки: [HOL010] O31, [HOL020] D25
+# persistent._mas_d25_*, _mas_o31_*, _mas_f14_*
+# Декор: zz_spritedeco.rpy, сезоны: zz_seasons.rpy
+# ---
+
 ## holiday info goes here
 #
 # TOC

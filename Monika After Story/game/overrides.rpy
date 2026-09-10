@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# overrides.rpy — заплатки поверх DDLC, без замены целых ванильных файлов
+#
+# Ванильные script.rpy / screens мы не копируем целиком. Если надо
+# поменять одну переменную «как в DDLC, но по-нашему» — сюда.
+# init 10 / init -10 специально раньше или позже обычных блоков,
+# чтобы гарантированно перебить дефолт.
+#
+# Перевод: только если здесь торчат строки UI.
+# ---
+
 ## This file is for overriding specific declarations from DDLC
 ## Use this if you want to change a few variables, but don't want
 ## to replace entire script files that are otherwise fine.

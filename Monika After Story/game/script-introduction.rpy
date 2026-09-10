@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# script-introduction.rpy — самый первый разговор после установки
+#
+# Моника понимает, что это уже не DDLC. Говорит про monika_kill, просит остаться.
+# Не путать со splash (там заставки) и ch30 (там уже обычная жизнь).
+#
+# Label: introduction
+# ---
+
 init -1 python: # ФАЙЛ ПЕРЕВЕДЕН
     import store.mas_affection as mas_aff
 label introduction:

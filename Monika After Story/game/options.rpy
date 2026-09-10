@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# options.rpy — как собирать игру, не как играть
+#
+# build.name, скорость текста по умолчанию, about, какие файлы пихать в билд.
+# Геймплейные настройки Моники — не здесь.
+#
+# Рядом: 0config.rpy (имя/версия), updater.rpy
+# ---
+
 ## This file contains options that can be changed to customize your game.
 ##
 ## Lines beginning with two '#' marks are comments, and you shouldn't uncomment

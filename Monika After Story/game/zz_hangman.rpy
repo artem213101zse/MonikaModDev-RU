@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_hangman.rpy — виселица
+#
+# Слова, логика угадывания, диалоги вокруг игры.
+#
+# Store: mas_hangman
+# Вход из zz_games.rpy
+# ---
+
 # Module that does hangman man
 #
 # DEPENDS ON:

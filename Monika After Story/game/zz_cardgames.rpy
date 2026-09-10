@@ -1,3 +1,11 @@
+# --- FILE MAP ---
+# zz_cardgames.rpy — карточная игра NOU (типа UNO)
+#
+# Класс NOU, правила, ИИ Моники.
+#
+# Store: mas_nou
+# Label входа: mas_nou (из zz_games)
+# ---
 
 # # # NOU CARDGAME
 

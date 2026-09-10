@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_poems.rpy — стихи Моники (показ текста)
+#
+# Класс MASPoem, label mas_showpoem — вывести стихотворение на экран.
+#
+# Store: mas_poems
+# Не путать с poemgame (мини-игра выбора слов).
+# ---
+
 #Dict holding seen poems and amount of times seen
 #poem_id:shown_count
 default persistent._mas_poems_seen = dict()

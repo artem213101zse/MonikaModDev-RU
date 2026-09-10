@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# script-affection.rpy — привязанность как число и как характер
+#
+# Шкала from heartbroken до love. mas_gainAffection / mas_loseAffection.
+# Проверки mas_isMoniAff(higher=True) решают, какую ветку показать.
+# Никнеймы, «я люблю тебя», progpoints.
+#
+# Store: mas_affection
+# Пороги «высокая привязанность» живут здесь, тексты топиков — в script-*.
+# ---
+
 # AFF010 is progpoints
 #
 # Affection module:

@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# script-songs.rpy — песни Моники
+#
+# «Спой», тексты, разблокировки. Не путать с zz_music_selector (плеер комнаты)
+# и zz_pianokeys (играть самой).
+#
+# Store: mas_songs
+# ---
+
 #Event database for songs
 default persistent._mas_songs_database = dict()
 

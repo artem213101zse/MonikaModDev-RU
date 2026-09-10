@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# script-topics.rpy — главная куча разговоров
+#
+# Самый жирный файл диалогов: label monika_* обо всём (жизнь, клуб, книги).
+# addEvent пишет в persistent.event_database. Random / pool / по условию —
+# смотри поля Event, не имя файла.
+#
+# Искать: label monika_<тема>
+# Сюда идёт львиная доля перевода реплик.
+# ---
+
 #This file contains all of monika's topics she can talk about
 #Each entry should start with a database entry, including the appropriate flags
 #to either be a random topic, a prompt "pool" topics, or a special conditional

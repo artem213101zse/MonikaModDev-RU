@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# zz_spriteobjects.rpy — конкретные предметы на спрайте
+#
+# Регистрация ACS, причёсок, одежды. Здесь table/chair (в т.ч. table-DE
+# для комнаты Den), giftname_map (какой файл-подарок что надевает).
+#
+# Store: mas_sprites
+# Искать: giftname_map, chair, table, ACS
+# Подарки с диска ещё в zz_reactions.rpy
+# ---
+
 # All Sprite objects belong here
 #
 # For documentation on classes, see sprite-chart

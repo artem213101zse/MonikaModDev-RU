@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# script-stories.rpy — «расскажи историю»
+#
+# Меню коротких историй: премению, выбор, тексты.
+#
+# Store: mas_stories
+# Labels: monika_short_stories, _premenu, _menu
+# ---
+
 # Module for Monika story telling
 #
 # Stories will get unlocked one at by session

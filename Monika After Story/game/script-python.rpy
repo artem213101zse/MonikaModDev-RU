@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# script-python.rpy — уроки Python (PTOD)
+#
+# Как grammar tips, только про язык: что такое Python, типы, синтаксис.
+# Следующий урок открывается не сразу. Не путать с script-topics.
+#
+# Store: mas_ptod
+# Labels: monika_ptod_tip000, tip001, …
+# ---
+
 # Monika's Python Tip of the Day (PTOD)
 #
 # I probably will be adding many of these, so For the sake of organization

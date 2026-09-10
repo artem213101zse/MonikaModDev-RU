@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# sprite-generator.rpy — склеить финальную картинку экспрессии
+#
+# Берёт части из sprite-chart + код из decoder и клеит то, что видно
+# на экране. Если «выражение есть в коде, а на спрайте не то» —
+# смотри генератор и чарт, не топик.
+#
+# Store: mas_sprites
+# ---
+
 init python in mas_sprites:
     #START: main funcs
 

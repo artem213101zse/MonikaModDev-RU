@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_transforms.rpy — t11, dissolve_monika и прочий ATL
+#
+# Как Моника стоит (t11), подъезжает, растворяется, уезжает влево.
+# Топики пишут `show monika 5hub at t11 zorder MAS_MONIKA_Z with dissolve_monika`
+# — определения этих at/with живут здесь.
+# Зависит от poemgame из-за старых анимаций. Текста почти нет.
+# ---
+
 # Module containing custom transform functions.
 # Last just because
 # NOTE: Depends on script-poemgame

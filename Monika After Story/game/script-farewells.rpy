@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# script-farewells.rpy — все «мне пора»
+#
+# Спать, на работу, быстро выйти. Выбор зависит от времени суток, affection
+# и того, как уже прощались. Есть late farewell (ушёл слишком поздно).
+#
+# Store: mas_farewells
+# Вход: mas_farewell_start
+# БД: farewell_database
+# ---
+
 ##This file contains all of the variations of goodbye that monika can give. # ФАЙЛ ПЕРЕВЕДЕН
 ## This also contains a store with a utility function to select an appropriate
 ## farewell

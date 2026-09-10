@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_weather.rpy — дождь, снег, пасмурно
+#
+# Картинки погоды, режим auto, текущая погода.
+# Фон комнаты спрашивает отсюда, какой слой показать.
+#
+# Store: mas_weather
+# persistent._mas_current_weather
+# ---
+
 #Stores the last weather the player had chosen
 #Default: "auto"
 default persistent._mas_current_weather = "auto"

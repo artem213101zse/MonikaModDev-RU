@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_shields.rpy — временно выключить кнопки и хоткеи
+#
+# Во время важной сцены (интро, поцелуй, hold me) нельзя открыть
+# Talk/Extra и жать хоткеи. Функции raise/drop shield.
+# Диалогов нет — только выключатели. Если «кнопки внезапно мертвые»
+# после сцены, щит могли не опустить.
+# ---
+
 # Module that contains both work-flow specific shield functions and
 # generalized shield functions.
 #

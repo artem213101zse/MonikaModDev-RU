@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# splash.rpy — первое, что видит игрок при запуске
+#
+# Проверка архивов audio/images/scripts/fonts. Если чего-то нет — ошибка и выход.
+# Ворнинги, first_run, дисклеймеры, потом главное меню.
+#
+# Labels: splashscreen, warningscreen, after_load
+# Если чёрный экран на старте — часто сюда.
+# ---
+
 ## This splash screen is the first thing that Renpy will show the player
 ##
 ## Before load, check to be sure that the archive files were found.

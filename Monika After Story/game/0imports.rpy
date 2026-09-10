@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# 0imports.rpy — какие Python-модули вообще можно трогать
+#
+# На Windows есть ssl/win32, на Android — нет. Если просто сделать import,
+# игра падает. Этот файл заранее спрашивает: модуль есть? тогда пользуемся.
+#
+# Store: mas_can_import
+# Классы: MASImport_certifi, MASImport_ssl
+# Сюда смотреть, если в логе Failed to import ssl — часто это штатно.
+# ---
+
 # mas can import paradigm.
 
 init -1500 python in mas_can_import:

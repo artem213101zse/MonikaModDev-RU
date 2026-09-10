@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# script-easter-eggs.rpy — пасхалки имён из DDLC
+#
+# В тексте мелькнула Sayori / Yuri / Natsuki — скример, музыка, голод Нацуки.
+# Включается через mas_egg_manager.
+#
+# Labels: sayori_name_scare, yuri_name_scare, natsuki_name_scare(_hungry)
+# Голод из moods может прыгнуть сюда.
+# ---
+
 # script stuff that is actually easter eggs
 
 # sayori music chnage/scare

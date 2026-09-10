@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# progression.rpy — XP за время, проведённое вместе
+#
+# Не сюжетный уровень. Часы сегодня → опыт → уровень. Сброс за день.
+#
+# Store: mas_xp
+# persistent._mas_xp_lvl, _mas_xp_tnl, _mas_xp_hrx
+# ---
+
 # Module that defines functions for handling game progression and leveling up
 
 

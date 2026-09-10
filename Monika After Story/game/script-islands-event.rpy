@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# script-islands-event.rpy — острова за окном
+#
+# Отдельный экран поверх комнаты: карта, клики по зонам, прогресс открытия.
+# Много реакций Моники на каждую точку.
+#
+# Store: mas_island_event
+# Класс: IslandsDataDefinition
+# ---
+
 # Monika's ???? Event
 # deserves it's own file because of how much dialogue these have
 # it basically shows a new screen over everything, and has an image map

@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_consumables.rpy — кофе, еда, расходники
+#
+# Моника «пьёт кофе», ест, подарки-еда. Класс MASConsumable, включение
+# предметов (mas_consumable_coffee.enabled() из moods).
+#
+# Store: mas_consumables
+# ---
+
 default persistent._mas_current_consumable = {
     0: {
         "prep_time": None,

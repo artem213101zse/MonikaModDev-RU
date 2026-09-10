@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# styles.rpy — шрифты, цвета, рамки, отступы
+#
+# Не раскладка экранов (это screens.rpy), а style: как выглядит текст и кнопки.
+#
+# Store: mas_ui, mas_settings
+# Если «поехал шрифт» или цвет текста — начинай отсюда.
+# ---
+
 # START: vars
 # Whether dark mode is enabled or not
 default persistent._mas_dark_mode_enabled = False

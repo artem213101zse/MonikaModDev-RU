@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# definitions.rpy — большой ящик «определений на всю игру»
+#
+# Z-order спрайта (MAS_MONIKA_Z), заглушки dummy, куча persistent/define,
+# никнеймы, функции которым не дали отдельный файл. Толстый и опасный:
+# правка в середине легко задевает пол-игры.
+#
+# Искать: mas_get_player_nickname, MAS_MONIKA_Z, MASDummyClass, MASFormatter
+# ---
+
 define persistent.demo = False
 
 define config.developer = True # не забыть потом отключить (пока что временно включено в целях разработки)
