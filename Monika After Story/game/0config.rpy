@@ -154,7 +154,7 @@ python early:
     renpy.config.name = "Моника: Эпилог"
 
     ## The version of the game.
-    renpy.config.version = "0.12.18"
+    renpy.config.version = "0.12.19"
 
     #Triple space suffix to avoid potential issues with same names in window title
     config.window_title = "Моника: Эпилог   "
