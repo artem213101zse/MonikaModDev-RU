@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_submods.rpy — загрузчик папки game/Submods
+#
+# Класс Submod(), карта установленных сабмодов, зависимости, версии.
+# Файлы сабмодов сами регистрируются через Submod(...) в своём rpy.
+#
+# Store: mas_submod_utils
+# Комнаты Den/Kitchen цепляются отсюда + zz_backgrounds
+# ---
+
 init -999:
     default persistent._mas_submod_version_data = dict()
 

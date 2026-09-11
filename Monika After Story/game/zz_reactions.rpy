@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# zz_reactions.rpy — подарки файлами (.gift)
+#
+# Кинул файл в characters/ — Моника реагирует. Карта имя → реакция,
+# история что уже дарили.
+#
+# Store: mas_filereacts
+# Искать: addReaction, filereact_map
+# Какие ACS дарит файл — ещё giftname_map в zz_spriteobjects.rpy
+# ---
+
 # FileReactions framework.
 # not too different from events
 

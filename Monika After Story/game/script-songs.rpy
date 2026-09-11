@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# script-songs.rpy — песни Моники
+#
+# «Спой», тексты, разблокировки. Не путать с zz_music_selector (плеер комнаты)
+# и zz_pianokeys (играть самой).
+#
+# Store: mas_songs
+# ---
+
 #Event database for songs
 default persistent._mas_songs_database = dict()
 
@@ -215,7 +224,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="monika_sing_song_pool",
             prompt="Can you sing me a song?",
-            category=["music"],
+            category=["музыка"],
             pool=True,
             aff_range=(mas_aff.NORMAL,None),
             rules={"no_unlock": None}
@@ -297,7 +306,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="monika_sing_song_analysis",
             prompt="Let's talk about a song",
-            category=["music"],
+            category=["музыка"],
             pool=True,
             unlocked=False,
             aff_range=(mas_aff.NORMAL, None),
@@ -339,7 +348,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="mas_sing_song_rerandom",
             prompt="Can you sing a song on your own again?",
-            category=['music'],
+            category=['музыка'],
             pool=True,
             unlocked=False,
             aff_range=(mas_aff.NORMAL, None),

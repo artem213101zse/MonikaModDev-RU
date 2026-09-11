@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# script-apologies.rpy — извинения игрока
+#
+# После обиды/косяка висит «прости». Срок, пока извинение актуально,
+# разные формулировки под причину.
+#
+# Store: mas_apology
+# Labels: monika_playerapologizes, mas_apology_generic
+# persistent._mas_apology_time_db
+# ---
+
 #Create an apology db for storing our times  # ФАЙЛ ПЕРЕВЕДЕН
 #Stores the event label as a key, its corresponding data is a tuple where:
 #   [0] -> timedelta defined by: current total playtime + apology_active_expiry time

@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_graphicsmenu.rpy — меню графики
+#
+# Качество, фильтры, «выключить анимации». Класс MASGraphicsMenu.
+# Не путать со styles.rpy (как выглядит текст) и screens.rpy (раскладка).
+#
+# Store: mas_gmenu
+# persistent._mas_disable_animations связан, но объявлен в ch30.
+# ---
+
 # graphics selection menu
 # we do this instead of the actual one because the real one breaks everything
 

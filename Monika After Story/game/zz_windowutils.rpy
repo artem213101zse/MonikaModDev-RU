@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_windowutils.rpy — виджеты Windows: активное окно и уведомления
+#
+# Может ли Моника слать нотификации, слышать звук, видеть текущее окно.
+# Сами шутки на окна — script-windowreacts.rpy
+#
+# Store: mas_windowreacts, mas_windowutils
+# persistent._mas_enable_notifications, _mas_windowreacts_*
+# ---
+
 #NOTE: This ONLY works for Windows atm
 
 #Whether Monika can use notifications or not

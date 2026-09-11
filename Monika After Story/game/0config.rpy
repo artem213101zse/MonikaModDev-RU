@@ -1,3 +1,16 @@
+# --- FILE MAP ---
+# 0config.rpy — паспорт игры для Ren'Py
+#
+# Не диалоги. Здесь игра представляется движку: имя в заголовке окна,
+# версия, куда класть сейвы. Сейчас это «Моника: Эпилог», 0.12.18,
+# папка сейвов Monika After Story.
+#
+# Менять название/версию/save_directory — только сюда.
+# Базовый звук тоже задаётся рано (python early / init -1200).
+#
+# Рядом: options.rpy (сборка дистрибутива), splash.rpy (первый экран).
+# ---
+
 ## This file contains options that can be changed to customize your game.
 ##
 ## Lines beginning with two '#' marks are comments, and you shouldn't uncomment

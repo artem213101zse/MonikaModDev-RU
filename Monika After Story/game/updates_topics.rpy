@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# updates_topics.rpy — склеить базы Event между версиями
+#
+# У каждой версии свои event_database / compliments / farewells.
+# merge_db переносит новые топики в старый сейв, не затирая прогресс.
+# Особые мерджи вроде merge_post0810. Крутится раньше updates.rpy.
+#
+# Store: mas_db_merging, mas_versions
+# Текстов почти нет — это данные, не диалоги.
+# ---
+
 # Module that defines changed topics between versions
 # this should run before updates.rpy
 

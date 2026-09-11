@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# 0statements.rpy — свои команды скрипта, не топики
+#
+# Главное: jump с аргументами. mas_jump_with_args(label, ...) кладёт
+# args/kwargs в store._args/_kwargs и прыгает. Нужно другим файлам,
+# чтобы не городить глобальные переменные ради одного перехода.
+#
+# Искать: mas_jump_with_args, python early in mas_statements
+# ---
+
 python early in mas_statements:
     from collections import namedtuple
 

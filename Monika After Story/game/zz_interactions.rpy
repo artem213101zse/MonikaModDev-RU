@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_interactions.rpy — куда именно кликнули по Монике
+#
+# Зоны: нос, голова, и т.д. MASClickZoneManager считает попадание.
+# Extra-меню только открывает режим, попадания — здесь.
+#
+# Store: mas_interactions
+# ---
+
 # all complicated interactions go here
 # mainly:
 #   boop

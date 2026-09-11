@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# script-windowreacts.rpy — «о, ты в YouTube / Википедии…»
+#
+# Короткие реакции, если включено слежение за окном Windows.
+# Каждое приложение — свой label mas_wrs_*.
+#
+# Labels: mas_wrs_youtube, _wikipedia, _twitter, _pinterest, _duolingo…
+# Техника окон: zz_windowutils.rpy (вкл/выкл, фильтры).
+# ---
+
 init 5 python:
     addEvent(
         Event(

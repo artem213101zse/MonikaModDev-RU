@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_time.rpy — время, если у системы нет таймзоны
+#
+# На части Android/кривых Windows Python не знает timezone.
+# Класс MASLocalTz подставляет локальную зону, чтобы календарь,
+# сессии и «сейчас ночь?» не врали.
+#
+# Нужен: zz_calendar.rpy, script-ch30 (сессии), праздники.
+# ---
+
 # special time classes in case we have no timezones
 
 python early:

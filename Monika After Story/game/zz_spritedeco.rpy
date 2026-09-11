@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_spritedeco.rpy — ёлка, подарки, хэллоуин на фоне
+#
+# Декор комнаты по тегам, не одежда Моники. Праздники цепляют отсюда.
+#
+# Store: mas_deco
+# Классы: MASDecoration, MASImageTagDecoration
+# Связано: script-holidays.rpy
+# ---
 
 # large rewrite incoming
 

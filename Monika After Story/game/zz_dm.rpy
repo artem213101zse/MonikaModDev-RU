@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_dm.rpy — миграция persistent как данных (не топиков)
+#
+# dm_data_version, список баз (event, compliments, farewell, greeting…).
+# Когда структура сейва меняется — патч здесь.
+#
+# Store: _mas_dm_dm
+# ---
+
 # data migration module
 
 init -999 python in _mas_dm_dm:

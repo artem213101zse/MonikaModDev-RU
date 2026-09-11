@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# zz_hotkey_buttons.rpy — кнопки Talk / Music / Extra на экране
+#
+# То, что внизу комнаты: Поговорить, Музыка, Extra. Screens hkb_overlay
+# и movie_overlay. Клавиатура — zz_hotkeys.rpy, логика меню Talk —
+# event-handler.rpy.
+#
+# Store: hkb_button
+# Перевод: подписи на кнопках, если они здесь, а не в screens.
+# ---
+
 # Module that handles hotkey button screen
 #
 

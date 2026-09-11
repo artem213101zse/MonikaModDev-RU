@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# script-grammar.rpy — грамматические советы (GTOD)
+#
+# Моника-учитель: clauses, запятые, conjunctions. Отдельный пул, чтобы
+# не раздувать script-topics. Тон более «лекционный».
+#
+# Store: mas_gtod
+# Labels: monika_gtod_tip000, tip001, …
+# ---
+
 # Monika's Grammar Tip of the Day (GTOD)
 # TIPS
 # 0 - Intro

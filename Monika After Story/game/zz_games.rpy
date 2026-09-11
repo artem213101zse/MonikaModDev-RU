@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_games.rpy — «давай поиграем» — список мини-игр
+#
+# Реестр: понг, шахматы, виселица, пианино, NOU. Unlock и меню выбора.
+# Сами игры — в своих файлах, здесь только вход.
+#
+# Store: mas_games
+# Labels: mas_pick_a_game, mas_pong, mas_chess, mas_hangman, mas_piano, mas_nou
+# ---
+
 default persistent._mas_game_database = dict()
 
 init -10 python in mas_games:

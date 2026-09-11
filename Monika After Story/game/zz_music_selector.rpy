@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_music_selector.rpy — что играет в комнате
+#
+# Список треков, custom_bgm, выбор игрока. Не «спой песню» (script-songs)
+# и не пианино (zz_pianokeys).
+#
+# Store: songs
+# ---
+
 # Module that handles the music selection screen
 # we start with zz to ensure this loads LAST
 #

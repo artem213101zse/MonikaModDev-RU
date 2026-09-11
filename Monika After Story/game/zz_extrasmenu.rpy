@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_extrasmenu.rpy — кнопка Extra: зум, буп, первые разы
+#
+# Меню поверх комнаты. Диалоги «ты впервые приблизил» / «ткнул в нос».
+#
+# Store: mas_extramenu
+# Labels: mas_extra_menu, mas_idle_loop, mas_extra_menu_zoom_*, _boop_intro
+# Сами клики по зонам: zz_interactions.rpy
+# ---
+
 # module containing what we call interactive modes (extras)
 # basically things like headpats and other mouse-based interactions should be
 # defined here

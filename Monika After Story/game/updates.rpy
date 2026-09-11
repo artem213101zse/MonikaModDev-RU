@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# updates.rpy — «обновились с версии X — починить флаги и ивенты»
+#
+# Когда игрок ставит новый MAS поверх старого сейва: открыть топик,
+# сбросить флаг, переименовать событие. Не качалка (updater.rpy).
+#
+# Рядом: updates_topics.rpy (слияние баз Event), zz_dm.rpy (структура сейва).
+# Перевод: если есть changelog-реплики Моники про обновление.
+# ---
+
 # Module that handles updates between versions
 # Assumes:
 #   updates.topics

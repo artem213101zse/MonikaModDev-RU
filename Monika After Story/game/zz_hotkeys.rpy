@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_hotkeys.rpy — горячие клавиши в комнате
+#
+# Что делает клавиатура, пока мы в spaceroom. Не экранные кнопки
+# (они в zz_hotkey_buttons.rpy).
+#
+# Store: mas_hotkeys
+# ---
+
 # Module that is just for hotkeys and other keymaps
 #
 

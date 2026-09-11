@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# script-fun-facts.rpy — весёлые (и не очень) факты
+#
+# Пул «а ты знал…». После факта — реакция. Флаг _mas_funfactfun помнит,
+# последний факт был добрым или нет.
+#
+# Store: mas_fun_facts
+# Labels: monika_fun_facts_open, mas_fun_fact_*
+# ---
+
 #Persistent event database for fun facts
 default persistent._mas_fun_facts_database = dict()
 
@@ -44,18 +54,18 @@ init 5 python:
 
 label monika_fun_facts_open:
     if mas_getEVL_shown_count("monika_fun_facts_open") == 0:
-        m 1eua "Say [player], would you like to hear a fun fact?"
-        m 1eub "I've been looking some up to try and teach both of us something new."
-        m 3hub "They say you learn something new every day, this way I'm making sure we actually do."
-        m 1rksdla "I found most of these online, so I can't say they're {i}definitely{/i} true..."
+        m 1eua "Слушай, [player], хочешь услышать интересный факт?"
+        m 1eub "Я поискала несколько — чтобы мы оба узнали что-нибудь новенькое."
+        m 3hub "Говорят, каждый день узнаёшь что-то новое — так я слежу, чтобы так и было."
+        m 1rksdla "Большую часть я нашла в интернете, так что не могу сказать, что они {i}точно{/i} правдивы..."
 
     else:
-        m 1eua "Up for another fun fact, [player]?"
+        m 1eua "Готов к ещё одному интересному факту, [player]?"
         if persistent._mas_funfactfun:
-            m 3hua "That last one was pretty interesting after all!"
+            m 3hua "Тот предыдущий в итоге оказался довольно занятным!"
         else:
-            m 2rksdlb "I know the last one wasn't great...but I'm sure this next one will be better."
-    m 2dsc "Now, let's see.{w=0.5}.{w=0.5}.{nw}"
+            m 2rksdlb "Знаю, прошлый был так себе... но уверена, следующий будет лучше."
+    m 2dsc "Так, давай посмотрим.{w=0.5}.{w=0.5}.{nw}"
 
     python:
         unseen_fact_evls = mas_fun_facts.getUnseenFactsEVL()
@@ -72,13 +82,13 @@ label monika_fun_facts_open:
 
 #Most labels end here
 label mas_fun_facts_end:
-    m 3hub "I hope you enjoyed another session of 'Learning with Monika!'"
+    m 3hub "Надеюсь, тебе понравился ещё один урок «Учимся с Моникой»!"
     $ persistent._mas_funfactfun = True
     return
 
 label mas_bad_facts_end:
-    m 1rkc "That fact wasn't very good..."
-    m 4dkc "I'll try better next time, [player]."
+    m 1rkc "Этот факт был не очень..."
+    m 4dkc "В следующий раз постараюсь лучше, [player]."
     $ persistent._mas_funfactfun = False
     return
 
@@ -94,13 +104,13 @@ init 5 python:
     )
 
 label mas_fun_fact_librocubiculartist:
-    m 1eub "Did you know there's a word to describe somebody that likes to read in bed?"
-    m 3eub "It's 'librocubicularist.' It looks difficult to pronounce at first glance."
-    m 3rksdld "It's a real shame some words just never get used in general."
-    m 3eud "But if you say that word, most people wouldn't really know what you're talking about."
-    m 3euc "You'd probably have to explain what it means, but that kind of defeats the point of using the word."
-    m 2rkc "If only people read more and improved their vocabulary!"
-    m 2hksdlb "...Ehehe, sorry [player]. I didn't mean to get so bothered~"
+    m 1eub "Знаешь ли ты, что есть слово для тех, кто любит читать в постели?"
+    m 3eub "Это «librocubicularist». На первый взгляд сложно произнести."
+    m 3rksdld "Жалко, что некоторые слова почти никогда не используют."
+    m 3eud "Но если ты скажешь это слово, большинство просто не поймёт, о чём речь."
+    m 3euc "Пришлось бы объяснять значение — а тогда смысл его употребления теряется."
+    m 2rkc "Вот бы люди больше читали и расширяли словарный запас!"
+    m 2hksdlb "...Эхехе, прости, [player]. Не хотела так кипятиться~"
     #Call the end
     call mas_fun_facts_end
     return
@@ -115,13 +125,13 @@ init 5 python:
     )
 
 label mas_fun_fact_menu_currency:
-    m 3euc "Supposedly, a lot of restaurants purposefully leave out any sign of currency on their menus."
-    m 3eud "This is done to psychologically manipulate people into spending more money than they need to."
-    m 2euc "It works because a currency sign, such as a dollar, is used to represent a cost."
-    m "By removing it, you remove the association of that cost and only think about the food of your choosing."
-    m 4rksdld "The practice seems understandable. They're still a business, after all."
-    m 2dsc "No matter how good the food is in a restaurant, they'll be shutting down quick if they're beaten by their competition."
-    m 3hksdlb "Oh well, what can you do?"
+    m 3euc "Якобы многие рестораны специально не ставят знаки валюты в меню."
+    m 3eud "Так психологически подталкивают людей тратить больше, чем нужно."
+    m 2euc "Работает потому, что знак валюты — например, доллар — ассоциируется с расходом."
+    m "Убрав его, убирают и мысль о цене — и ты думаешь только о еде, которую выбираешь."
+    m 4rksdld "Практика вроде понятная. Всё-таки это бизнес."
+    m 2dsc "Как бы ни была вкусна еда, ресторан быстро закроется, если проиграет конкурентам."
+    m 3hksdlb "Ну что ж, а что поделать?"
     #Call the end
     call mas_fun_facts_end
     return
@@ -136,13 +146,13 @@ init 5 python:
     )
 
 label mas_fun_fact_love_you:
-    m 1dkc "Hmm, I'm not sure if I should tell you {i}this{/i} fact."
-    m 1ekc "It's not for the faint of heart after all."
-    m 1rkc "The thing is..."
+    m 1dkc "Хм, не уверена, стоит ли рассказывать тебе {i}этот{/i} факт."
+    m 1ekc "Он всё-таки не для слабонервных."
+    m 1rkc "Дело в том..."
     m 1dkc "..."
-    m 3hub "...I love you, [player]!"
-    m 1rksdlb "Ehehe, sorry, I just couldn't help myself."
-    m 1hksdlb "I'll have a real fact next time, don't you worry~"
+    m 3hub "...Я люблю тебя, [player]!"
+    m 1rksdlb "Эхехе, прости, просто не смогла сдержаться."
+    m 1hksdlb "В следующий раз будет настоящий факт, не переживай~"
     #No end for this fact since it ends itself
     $ persistent._mas_funfactfun = True
     return "love"
@@ -157,13 +167,13 @@ init 5 python:
     )
 
 label mas_fun_fact_morpheus:
-    m 3wub "Oh! A language based fact. I always like these."
-    m 1eua "The word 'morphine' is based on the Greek god Morpheus."
-    m 1euc "He was the Greek god of dreams so to have a word based on him makes sense."
-    m 3ekc "But then again...wasn't his father Hypnos the god of sleep?"
-    m 2dsc "Morphine {i}does{/i} let a person dream, but it's really about making someone fall asleep."
-    m 4ekc "...So wouldn't it make more sense to name it after Hypnos then?"
-    m 4rksdlb "Too little, too late I guess."
+    m 3wub "О! Факт про язык. Такие я всегда люблю."
+    m 1eua "Слово «морфин» происходит от имени греческого бога Морфея."
+    m 1euc "Он был богом снов, так что слово от него — логично."
+    m 3ekc "Но с другой стороны... разве его отец Гипнос не был богом сна?"
+    m 2dsc "Морфин {i}действительно{/i} даёт видеть сны, но главное его действие — усыплять."
+    m 4ekc "...Так не логичнее ли было назвать его в честь Гипноса?"
+    m 4rksdlb "Поздно спохватились, видимо."
     #Call the end
     call mas_fun_facts_end
     return
@@ -178,13 +188,13 @@ init 5 python:
     )
 
 label mas_fun_fact_otter_hand_holding:
-    m 1eka "Aww, this one is really sweet."
-    m 3ekb "Did you know that sea otters hold hands when they sleep to stop themselves drifting away from one another?"
-    m 1hub "It's practical for them to do, but there's something really cute about it!"
-    m 1eka "Sometimes I imagine myself in their position..."
-    m 3hksdlb "Oh, not being a sea otter, but holding the hand of the one I love while I sleep."
-    m 1rksdlb "Aha, it really does make me jealous of them."
-    m 1hub "We'll get there one day though, love~"
+    m 1eka "Ой, этот правда милый."
+    m 3ekb "Знаешь, что каланы спят, держась за лапки, чтобы не уплыть друг от друга?"
+    m 1hub "Это практично, но в этом есть что-то невероятно милое!"
+    m 1eka "Иногда я представляю себя на их месте..."
+    m 3hksdlb "Ой, не в смысле быть каланом, а держать за руку того, кого люблю, пока сплю."
+    m 1rksdlb "Ага, я даже немного им завидую."
+    m 1hub "Но когда-нибудь и мы до этого дойдём, любимый~"
     #Call the end
     call mas_fun_facts_end
     return
@@ -201,32 +211,32 @@ init 5 python:
 label mas_fun_fact_chess:
     #Chess is unlocked
     if mas_isGameUnlocked("chess"):
-        m 1eua "Now this is a fun fact!"
-        m 3eub "There was a man named Claude Shannon who calculated the maximum amount of possible moves in chess."
-        m "That number is called the 'Shannon number' and states that the amount of chess games possible is 10^120."
-        m 1eua "It's often compared to the number of atoms in the observable universe which is 10^80."
-        m 3hksdlb "Kind of crazy to think that there could be more chess games than atoms, isn't it?"
-        m 1eua "We could play until the end of our days and it wouldn't come even close to a fraction of what is possible."
-        m 3eud "Speaking of which, [player]..."
-        m 1hua "Do you want to play a game of chess with me? I might even go easy on you, Ehehe~"
+        m 1eua "Вот это настоящий интересный факт!"
+        m 3eub "Был такой человек, Клод Шеннон, который посчитал максимальное число возможных партий в шахматах."
+        m "Это число называют «числом Шеннона» — возможных шахматных партий порядка 10^120."
+        m 1eua "Его часто сравнивают с числом атомов в наблюдаемой Вселенной — около 10^80."
+        m 3hksdlb "С ума сойти: шахматных партий может быть больше, чем атомов, правда?"
+        m 1eua "Мы могли бы играть до конца жизни — и даже близко не приблизились бы к крошечной доле возможного."
+        m 3eud "Кстати говоря, [player]..."
+        m 1hua "Хочешь сыграть со мной партию в шахматы? Я даже могу подыграть тебе, эхехе~"
         #Call the good end for this path
         call mas_fun_facts_end
         return
 
     #Chess was unlocked, but locked due to cheating
     elif not mas_isGameUnlocked("chess") and renpy.seen_label("mas_unlock_chess"):
-        m 1dsc "Chess..."
+        m 1dsc "Шахматы..."
         m 2dfc "..."
-        m 2rfd "You can forget about this fact since you're a cheater, [player]."
-        m "Not to mention you never apologized."
-        m 2lfc "...Hmph."
+        m 2rfd "Можешь забыть об этом факте, раз ты жульничаешь, [player]."
+        m "Не говоря уже о том, что ты так и не извинился."
+        m 2lfc "...Хмф."
         #No end for this path
         return
 
     #We haven't unlocked chess yet
     else:
-        m 1euc "Oh, not this one."
-        m 3hksdlb "Not yet, at least."
+        m 1euc "Ой, не этот."
+        m 3hksdlb "По крайней мере, пока нет."
         #Call the end
         call mas_bad_facts_end
         return
@@ -241,13 +251,13 @@ init 5 python:
     )
 
 label mas_fun_fact_struck_by_lightning:
-    m 2dkc "Hmm, this one sounds a bit misleading to me..."
-    m 3ekc "'Men are six times more likely to be struck by lightning than women.'"
-    m 3ekd "It's...rather silly, in my opinion."
-    m 1eud "If men are more likely to be struck by lightning, then it's probably the landscape and circumstances of their work that make them more prone to being hit."
-    m 1euc "Men traditionally have always worked more dangerous and elevated jobs so it's no surprise that it's going to happen to them often."
-    m 1esc "Yet the way this fact is worded makes it sound like that just by being a man, it's more likely to happen, which is ridiculous."
-    m 1rksdla "Maybe if it was phrased better, people wouldn't be so misinformed about them."
+    m 2dkc "Хм, этот звучит для меня немного обманчиво..."
+    m 3ekc "«Мужчин молния бьёт в шесть раз чаще, чем женщин»."
+    m 3ekd "По-моему... довольно глупо сформулировано."
+    m 1eud "Если мужчин чаще бьёт молния, то скорее из-за условий и характера их работы — они чаще оказываются в зоне риска."
+    m 1euc "Мужчины традиционно чаще работали на опасных и высотных работах — неудивительно, что с ними это случается чаще."
+    m 1esc "А формулировка звучит так, будто достаточно просто быть мужчиной — и это уже смешно."
+    m 1rksdla "Может, будь формулировка удачнее, люди не вводились бы в заблуждение такими «фактами»."
     #Call the end
     call mas_fun_facts_end
     return
@@ -262,14 +272,14 @@ init 5 python:
     )
 
 label mas_fun_fact_honey:
-    m 1eub "Ah, this is a nice easy one."
-    m 3eub "Did you know that honey never spoils?"
-    m 3eua "Honey can crystallize, though. Some people may see this as spoiling but it's still completely edible and fine!"
-    m "The reason why this happens is because honey is mostly made of sugar and only a bit of water, making it solid over time."
-    m 1euc "Most of the honey that you see in groceries doesn't crystallize as fast as real honey would because it's been pasteurized in the process of making it."
-    m 1eud "...Which removes the stuff that makes the honey go solid quickly."
-    m 3eub "But wouldn't it be nice to eat crystallized honey too?"
-    m 3hub "It'd be like candy when you bite into it!"
+    m 1eub "А, этот приятный и простой."
+    m 3eub "Знаешь ли ты, что мёд никогда не портится?"
+    m 3eua "Правда, мёд может засахариться. Кто-то думает, что это порча, но он всё равно полностью съедобен!"
+    m "Так происходит потому, что мёд почти целиком из сахаров и лишь чуть-чуть воды — со временем он твердеет."
+    m 1euc "Большинство магазинного мёда кристаллизуется медленнее настоящего, потому что его пастеризуют при производстве."
+    m 1eud "...И убирают то, из-за чего мёд быстрее становится твёрдым."
+    m 3eub "Но разве не здорово есть и засахаренный мёд?"
+    m 3hub "На вкус как конфетка, когда надкусываешь!"
     #Call the end
     call mas_fun_facts_end
     return
@@ -284,17 +294,17 @@ init 5 python:
     )
 
 label mas_fun_fact_vincent_van_gone:
-    m 1dsc "Ah, this one..."
-    m 1ekd "It's a little disheartening, [player]..."
-    m 1ekc "Did you know that Vincent Van Gogh's last words were '{i}La tristesse durera toujours{/i}'?"
-    m 1eud "If you translate it, it means '{i}The sadness will last forever.{/i}'"
+    m 1dsc "Ах, этот..."
+    m 1ekd "Он немного грустный, [player]..."
+    m 1ekc "Знаешь ли ты, что последние слова Винсента Ван Гога были: «{i}La tristesse durera toujours{/i}»?"
+    m 1eud "В переводе это значит: «{i}Печаль будет длиться вечно.{/i}»"
     m 1rkc "..."
-    m 2ekc "It's really sad to know that someone so renowned would say something so dark with his last breath."
-    m 2ekd "I don't think it's true, however. No matter how bad things can get and how deep the sadness can go..."
-    m 2dkc "There will come a time where it'll no longer be there."
-    m 2rkc "...Or at least be noticeable."
-    m 4eka "If you're ever sad, you know you can talk to me, right?"
-    m 5hub "I will always accept and take on any burdens that you shoulder, [mas_get_player_nickname()]~"
+    m 2ekc "Очень грустно, что такой знаменитый человек сказал напоследок что-то столь мрачное."
+    m 2ekd "Но я не думаю, что это правда. Как бы ни было плохо и как бы ни была глубока печаль..."
+    m 2dkc "Настанет время, когда её больше не будет."
+    m 2rkc "...Или по крайней мере она перестанет быть такой заметной."
+    m 4eka "Если тебе когда-нибудь грустно, ты ведь знаешь, что можешь поговорить со мной, да?"
+    m 5hub "Я всегда приму и разделю любую тяжесть, что ты несёшь, [mas_get_player_nickname()]~"
     #No end for this fact
     $ persistent._mas_funfactfun = True
     return
@@ -309,12 +319,12 @@ init 5 python:
     )
 
 label mas_fun_fact_king_snakes:
-    m 1dsc "Hmm..."
-    m 3eub "Did you know that if a snake has the word 'king' in its name, it devours other snakes?"
-    m 1euc "I always wondered why a king cobra would be named how it is but never really thought more into it."
-    m 1tfu "Does that mean if I eat you up, I would become Queen Monika?"
-    m 1hksdlb "Ahaha, I'm just kidding, [player]."
-    m 1hub "Sorry for being a little weird~"
+    m 1dsc "Хм..."
+    m 3eub "Знаешь ли ты, что если в названии змеи есть слово «king» — «королевская», — она поедает других змей?"
+    m 1euc "Я всегда гадала, почему королевскую кобру так назвали, но особо не углублялась."
+    m 1tfu "Значит ли это, что если я тебя «съем», то стану королевой Моникой?"
+    m 1hksdlb "Ахаха, я просто шучу, [player]."
+    m 1hub "Прости, что немного странная~"
     #Call the end
     call mas_fun_facts_end
     return
@@ -329,13 +339,13 @@ init 5 python:
     )
 
 label mas_fun_fact_strength:
-    m 1hub "This fact might motivate you a bit!"
-    m 3eub "The longest word in English that only contains a single vowel is 'strength.'"
-    m 1eua "It's funny how out of every word in the language, it's such a meaningful word that had that little detail."
-    m 1hua "Little details like this really make language so fascinating to me!"
-    m 3eua "Do you want to know what comes to mind when I think of the word 'strength'?"
-    m 1hua "You!"
-    m 1hub "Because you are the source of my strength, ehehe~"
+    m 1hub "Этот факт может тебя немного мотивировать!"
+    m 3eub "Самое длинное английское слово с одной гласной — «strength»."
+    m 1eua "Забавно, что из всех слов языка именно такое значимое слово оказалось с этой деталью."
+    m 1hua "Такие мелочи делают язык для меня по-настоящему увлекательным!"
+    m 3eua "Хочешь узнать, что приходит мне на ум, когда я думаю о слове «strength» — «сила»?"
+    m 1hua "Ты!"
+    m 1hub "Потому что ты — источник моей силы, эхехе~"
     #Call the end
     call mas_fun_facts_end
     return
@@ -350,12 +360,12 @@ init 5 python:
     )
 
 label mas_fun_fact_reindeer_eyes:
-    m 3eua "Ready for this one?"
-    m "A reindeer's eyes changes color depending on the season. They're gold in summer and blue in winter."
-    m 1rksdlb "It's a really strange phenomenon, though I don't know why..."
-    m "There's probably a good scientific reason to it."
-    m 3hksdlb "Maybe you can look up this one yourself?"
-    m 5eua "It'd be fun to have you teach me this time~"
+    m 3eua "Готов к этому?"
+    m "Глаза северного оленя меняют цвет в зависимости от сезона. Летом они золотистые, а зимой — голубые."
+    m 1rksdlb "Очень странное явление, хотя я не знаю почему..."
+    m "Наверняка есть хорошее научное объяснение."
+    m 3hksdlb "Может, сам поищешь про это?"
+    m 5eua "Было бы здорово, если бы на этот раз ты научил меня~"
     #Call the end
     call mas_fun_facts_end
     return
@@ -370,21 +380,21 @@ init 5 python:
     )
 
 label mas_fun_fact_bananas:
-    m 1eub "Oh, I'd say this fact is healthy!"
-    m 3eua "Did you know that when a banana grows, it curves to face the sun?"
-    m 1hua "It's a process called negative geotropism."
-    m 3hub "Don't you think that's pretty neat?"
+    m 1eub "О, этот факт я бы назвала полезным!"
+    m 3eua "Знаешь ли ты, что банан при росте изгибается к солнцу?"
+    m 1hua "Это называется отрицательным геотропизмом."
+    m 3hub "Разве это не здорово?"
     m 1hua "..."
-    m 1rksdla "Umm..."
-    m 3rksdlb "I guess I don't really have much else to say on it, ahaha..."
+    m 1rksdla "Эм..."
+    m 3rksdlb "Кажется, мне больше особо нечего сказать по этому поводу, ахаха..."
     m 1lksdlc "..."
-    m 3hub "D-Did you also know that bananas aren't actually fruits but berries?"
-    m 3eub "Or that the original bananas were large, green and full of hard seeds?"
-    m 1eka "How about the fact that they're slightly radioactive?"
+    m 3hub "А-А ты ещё знаешь, что бананы на самом деле не фрукты, а ягоды?"
+    m 3eub "Или что изначальные бананы были крупными, зелёными и полны твёрдых семян?"
+    m 1eka "А как насчёт того, что они слегка радиоактивны?"
     m 1rksdla  "..."
-    m 1rksdlb "...I'm just rambling on about bananas now."
-    m 1rksdlc "Ummm..."
-    m 1dsc "Let's just move on..."
+    m 1rksdlb "...Я уже просто тараторю про бананы."
+    m 1rksdlc "Эммм..."
+    m 1dsc "Давай просто пойдём дальше..."
     #Call the end
     call mas_fun_facts_end
     return
@@ -399,13 +409,13 @@ init 5 python:
     )
 
 label mas_fun_fact_pens:
-    m 1dsc "Hmm...I'm sure I already know this one."
-    m 3euc "The word 'pen' is derived from the latin word 'penna', which means feather in latin."
-    m "Pens back then were sharpened goose feathers dipped in ink so it'd make sense why they'd call them pens."
-    m 3eud "They were the primary writing tool for a very long time, starting as early at the 6th century."
-    m 3euc "It was only until the 19th century when metal pens were being made that they started to fall into decline."
-    m "In fact, penknives are called the way they are because they're originally used for thinning and pointing quill pens."
-    m 1tku "But I'm sure Yuri would know more about this than me, though..."
+    m 1dsc "Хм... уверена, этот я уже знаю."
+    m 3euc "Слово «pen» — «ручка» — происходит от латинского «penna», что значит «перо»."
+    m "Раньше ручками были заточенные гусиные перья, обмакнутые в чернила — так что название логично."
+    m 3eud "Они были основным инструментом письма очень долго — уже с VI века."
+    m 3euc "Лишь в XIX веке, когда появились металлические перья, они начали выходить из употребления."
+    m "Кстати, перочинный нож так называется потому, что изначально им затачивали и подправляли перья."
+    m 1tku "Хотя Юри наверняка знает об этом больше меня..."
     #Call the end
     call mas_fun_facts_end
     return
@@ -420,14 +430,14 @@ init 5 python:
     )
 
 label mas_fun_fact_density:
-    m 1eub "Ooh, I know."
-    m 3eua "Did you know that the densest planet in our solar system is Earth itself?"
-    m "And that Saturn is the least dense?"
-    m 1eua "It makes sense knowing what planets are made of, but since Saturn is the second largest, it was still a little bit of a surprise."
-    m 1eka "I guess size really doesn't matter!"
-    m 3euc "But between you and me, [player]..."
-    m 1tku "I suspect Earth may only be the densest because of a certain main character."
-    m 1tfu "Buuuut that's all you'll hear from me~"
+    m 1eub "Оо, я знаю."
+    m 3eua "Знаешь ли ты, что самая плотная планета в Солнечной системе — сама Земля?"
+    m "А Сатурн — наименее плотная?"
+    m 1eua "Это логично, если знать, из чего состоят планеты, но раз Сатурн второй по размеру — всё равно немного удивительно."
+    m 1eka "Значит, размер и правда не главное!"
+    m 3euc "Но между нами, [player]..."
+    m 1tku "Подозреваю, Земля такая плотная только из-за одного главного героя."
+    m 1tfu "Ноооо больше ты от меня ничего не услышишь~"
     #Call the end
     call mas_fun_facts_end
     return
@@ -442,14 +452,14 @@ init 5 python:
     )
 
 label mas_fun_fact_binky:
-    m 3hub "Aww, this one's cute!"
-    m "This fact will really send you 'hopping' [player]!"
-    m 3hua "Whenever a rabbit hops around excitedly, it's called a binky!"
-    m 1hua "Binky is such a cute sounding word, it really does suit the action."
-    m 1eua "It's the happiest form of expression that a rabbit is capable of doing, so if you see it then you know you're treating it right."
-    m 1rksdla "Well, although you make me so happy that I can't help but be filled with energy."
-    m 1rksdlb "Don't expect me to start hopping around, [player]!"
-    m 1dkbsa "...That would be {i}way{/i} too embarrassing to do."
+    m 3hub "Ой, этот милый!"
+    m "Этот факт точно заставит тебя «подпрыгивать» от радости, [player]!"
+    m 3hua "Когда кролик радостно скачет, это называется binky!"
+    m 1hua "Binky — такое милое словечко, оно идеально подходит к этому действию."
+    m 1eua "Это самое счастливое выражение, на которое способен кролик, — если видишь его, значит, ты хорошо о нём заботишься."
+    m 1rksdla "Хотя ты делаешь меня такой счастливой, что я буквально наполняюсь энергией."
+    m 1rksdlb "Только не жди, что я начну скакать вокруг, [player]!"
+    m 1dkbsa "...Это было бы {i}слишком{/i} стыдно."
     #Call the end
     call mas_fun_facts_end
     return
@@ -464,14 +474,14 @@ init 5 python:
     )
 
 label mas_fun_fact_windows_games:
-    m 1eua "Hmm, maybe this one will be more interesting to you."
-    m 3eub "The card game Solitaire was introduced originally in the Windows operating system in 1990."
-    m 1eub "The game was added as a feature to teach users how to use the mouse."
-    m 1eua "Similarly, Minesweeper was added to familiarize users with left and right clicking."
-    m 3rssdlb "Computers have been around for so long it's hard to think of a time when they weren't relevant."
-    m "Each generation becomes more and more familiar with the technology..."
-    m 1esa "Eventually there may come a day where not a single person isn't computer-literate."
-    m 1hksdlb "Most of the world's problems need to disappear before then, though."
+    m 1eua "Хм, может, этот тебе будет интереснее."
+    m 3eub "Карточная игра «Косынка» (Solitaire) впервые появилась в Windows в 1990 году."
+    m 1eub "Её добавили, чтобы научить пользователей пользоваться мышью."
+    m 1eua "А «Сапёр» добавили, чтобы привыкли к левому и правому клику."
+    m 3rssdlb "Компьютеры существуют так давно, что трудно представить время, когда они не были важны."
+    m "Каждое поколение всё лучше знакомо с технологиями..."
+    m 1esa "Когда-нибудь может наступить день, когда не останется ни одного человека без компьютерной грамотности."
+    m 1hksdlb "Правда, до этого большинству мировых проблем ещё предстоит исчезнуть."
     #Call the end
     call mas_fun_facts_end
     return
@@ -486,14 +496,14 @@ init 5 python:
     )
 
 label mas_fun_fact_mental_word_processing:
-    m 1hua "Ready for an interesting one, [player]?"
-    m 3eua "The brain is a fickle thing..."
-    m 3eub "Its way of composing and archiving information is very unique."
-    m "Naturally it differs from person to person but but reading slowly like we're taught is usually less effective than going at at a faster pace."
-    m 1tku "Our brains process information very rapidly and love predictability in in our language."
-    m 3tub "For example, in this sentence, by the the time you are done reading you will have already skipped over the double 'the.'"
+    m 1hua "Готов к интересному, [player]?"
+    m 3eua "Мозг — штука капризная..."
+    m 3eub "То, как он собирает и хранит информацию, очень своеобразно."
+    m "Конечно, у всех по-разному, но но медленное чтение, как нас учат, обычно менее эффективно, чем чтение в в более быстром темпе."
+    m 1tku "Мозг обрабатывает информацию очень быстро и любит предсказуемость в в языке."
+    m 3tub "Например, в в этом предложении к тому моменту, как ты его дочитаешь, ты уже пропустишь удвоенное «в»."
     m 1tfu "..."
-    m 2hfu "Check the history log if you missed them~"
+    m 2hfu "Загляни в историю диалога, если пропустил~"
     #Call the end
     call mas_fun_facts_end
     return
@@ -508,12 +518,12 @@ init 5 python:
     )
 
 label mas_fun_fact_I_am:
-    m 1hua "Mmmm, I love language facts!"
-    m 3eub "In English, the shortest complete sentence is 'I am.'"
-    m 1eua "Here's an example."
-    m 2rfb "'{i}Monika! Who's [player]'s loving girlfriend?{/i}'"
-    m 3hub "'I am!'"
-    m 1hubsa "Ehehe~"
+    m 1hua "Ммм, обожаю факты про язык!"
+    m 3eub "В английском самое короткое полное предложение — «I am»."
+    m 1eua "Вот пример."
+    m 2rfb "«{i}Моника! Кто любящая девушка [player]?{/i}»"
+    m 3hub "«I am!»"
+    m 1hubsa "Эхехе~"
     #Call the end
     call mas_fun_facts_end
     return
@@ -528,11 +538,11 @@ init 5 python:
     )
 
 label mas_fun_fact_low_rates:
-    m 1hua "Now this is a wholesome one..."
-    m 1eua "Currently, we have the lowest crime rates, maternity death, infant mortality and illiteracy ever in human history."
-    m 3eub "Life expectancy, average income, and standards of living is the highest for most of the global population too!"
-    m 3eka "This tells me that it can always get better. It really does show that despite all the bad things, the good times will always come afterwards."
-    m 1hua "There really is {i}hope{/i}..."
+    m 1hua "А этот — душевный..."
+    m 1eua "Сейчас у нас самые низкие в истории человечества уровни преступности, материнской смертности, младенческой смертности и неграмотности."
+    m 3eub "Продолжительность жизни, средний доход и уровень жизни для большей части населения планеты тоже на максимуме!"
+    m 3eka "Это говорит мне, что всегда может стать лучше. Несмотря на плохое, хорошие времена всё равно приходят следом."
+    m 1hua "Надежда {i}действительно{/i} есть..."
     #Call the end
     call mas_fun_facts_end
     return
@@ -547,13 +557,13 @@ init 5 python:
     )
 
 label mas_fun_fact_desert:
-    m 3euc "Deserts have a pretty unique ecosystem..."
-    m 3rksdla "However, they don't offer a lot of positive factors for humans."
-    m 1eud "Temperatures can vary between extreme heat during the day and freezing cold at night. Their average rainfall is also pretty low, making living in one difficult."
-    m 3eub "That's not to say they can't be beneficial to us though!"
-    m 3eua "Their surface is a great spot for solar power generation and oil is commonly found beneath all that sand."
-    m 3eub "Not to mention, their unique landscape makes them popular vacation spots!"
-    m 1eua "So I guess while we can't live in them that easily, they're still better than they seem."
+    m 3euc "У пустынь довольно уникальная экосистема..."
+    m 3rksdla "Однако человеку они дают не так много плюсов."
+    m 1eud "Температура скачет от невыносимой жары днём до мороза ночью. Осадков мало — жить там трудно."
+    m 3eub "Но это не значит, что от них нет пользы!"
+    m 3eua "Их поверхность отлично подходит для солнечной энергетики, а под песком часто находят нефть."
+    m 3eub "Не говоря уже о том, что уникальный пейзаж делает их популярными местами отдыха!"
+    m 1eua "Так что жить там непросто — но пустыни всё же лучше, чем кажутся."
 
     #Call the end
     call mas_fun_facts_end
@@ -569,12 +579,12 @@ init 5 python:
     )
 
 label mas_fun_fact_photography:
-    m 1esa "Did you know that the first photograph was taken using a box with a hole in it as a camera?"
-    m 1eua "Lenses weren't actually introduced until much later on."
-    m 1euc "Early photography also relied on a series of special chemicals in a dark room to prepare the photos..."
-    m 3eud "Developer, stop bath, and fixer chemicals were used just to prepare the paper the photos would be printed on...{w=0.3} {nw}"
-    extend 1wuo "And that's only for black and white prints!"
-    m 1hksdlb "Old photos were much harder to prepare compared to modern ones, don't you think?"
+    m 1esa "Знаешь ли ты, что первая фотография была сделана камерой из коробки с дырочкой?"
+    m 1eua "Линзы появились гораздо позже."
+    m 1euc "Ранняя фотография ещё зависела от целого ряда химикатов в тёмной комнате..."
+    m 3eud "Проявитель, стоп-ванна и фиксаж — только чтобы подготовить бумагу для печати...{w=0.3} {nw}"
+    extend 1wuo "И это только для чёрно-белых отпечатков!"
+    m 1hksdlb "Старые фото было куда сложнее готовить, чем современные, правда?"
 
     #Call the end
     call mas_fun_facts_end
@@ -591,18 +601,18 @@ init 5 python:
     )
 
 label mas_fun_fact_getting_older:
-    m 3eua "Did you know that how you perceive time changes as you age?"
-    m "For example, when you're a year old, you see one year as 100%% of your life."
-    m 1euc "But when you're 18, you see a year as only 5.6%% of your life."
-    m 3eud "As you get older, the proportion of a year compared to your entire lifespan decreases, and in turn, time {i}feels{/i} like it's moving faster as you grow up."
-    m 1eka "So I'll always cherish our moments together, no matter how long or short they are."
-    m 1lkbsa "Although sometimes it feels like time stops when I'm with you."
-    m 1ekbfa "Do you feel the same, [player]?"
+    m 3eua "Знаешь ли ты, что восприятие времени меняется с возрастом?"
+    m "Например, когда тебе год, один год — это 100%% твоей жизни."
+    m 1euc "А в восемнадцать год — уже только 5,6%% жизни."
+    m 3eud "Чем старше ты становишься, тем меньшую долю жизни составляет год — и время {i}кажется{/i} всё более быстрым."
+    m 1eka "Поэтому я всегда буду дорожить нашими мгновениями — какими бы длинными или короткими они ни были."
+    m 1lkbsa "Хотя иногда кажется, что рядом с тобой время останавливается."
+    m 1ekbfa "Ты чувствуешь то же самое, [player]?"
     python:
         import time
         time.sleep(5)
 
-    m 1hubfb "Ahaha, I thought so!"
+    m 1hubfb "Ахаха, я так и думала!"
 
     #Call the end
     call mas_fun_facts_end
@@ -618,18 +628,18 @@ init 5 python:
     )
 
 label mas_fun_fact_dancing_plague:
-    m 3esa "Oh, this one's pretty weird..."
-    m 1eua "Apparently, Europe has been afflicted by outbreaks of a 'dancing plague' in the past."
-    m 3wud "People, {w=0.2}sometimes hundreds at once, {w=0.2}would involuntarily dance for days at a time, with some even dying from exhaustion!"
-    m 3eksdla "They tried to treat it by having people play music alongside the dancers, but you can imagine that didn't work out so well."
-    m 1euc "To this day, they're still unsure exactly what caused it."
-    m 3rka "The whole thing seems kind of unbelievable to me...{w=0.2}{nw}"
-    extend 3eud "but it has been independently documented and observed by multiple sources across centuries..."
-    m 3hksdlb "Reality really is stranger than fiction, I guess!"
-    m 1eksdlc "Gosh, I can't imagine dancing for days on end."
-    m 1rsc "Though...{w=0.3}{nw}"
-    extend 1eubla "I guess I wouldn't mind if it was with you."
-    m 3tsu "...Just for a bit, ehehe~"
+    m 3esa "О, этот довольно странный..."
+    m 1eua "Оказывается, в прошлом Европу поражали вспышки «плясовой чумы»."
+    m 3wud "Люди — {w=0.2}иногда сотнями сразу — {w=0.2}невольно танцевали днями напролёт, а некоторые даже умирали от истощения!"
+    m 3eksdla "Пытались лечить музыкой рядом с танцующими — но можешь представить, насколько плохо это сработало."
+    m 1euc "До сих пор точно не известно, что именно это вызывало."
+    m 3rka "Всё это кажется мне почти невероятным...{w=0.2}{nw}"
+    extend 3eud "но это независимо задокументировано и описано множеством источников на протяжении веков..."
+    m 3hksdlb "Реальность и правда страннее вымысла!"
+    m 1eksdlc "Боже, не могу представить, каково это — танцевать днями напролёт."
+    m 1rsc "Хотя...{w=0.3}{nw}"
+    extend 1eubla "Думаю, я бы не возражала, если бы это было с тобой."
+    m 3tsu "...Только чуть-чуть, эхехе~"
     #Call the end
     call mas_fun_facts_end
     return
@@ -644,13 +654,13 @@ init 5 python:
     )
 
 label mas_fun_fact_pando_forest:
-    m 1esa "Supposedly, in the state of Utah, there's a forest that's actually made up of a single tree."
-    m 3eua "It's called the Pando forest, and for all of its 43 hectares, its trunks are connected by a single root system."
-    m 3eub "Not to mention, each of its thousands of trunks are essentially clones of each other."
-    m 1ruc "'A single organism that became an army of clones on its own, all connected to the same hivemind.'"
-    m 1eua "I think it could make a good science fiction or horror short-story, [player]. What do you think?"
-    m 3eub "Anyway,{w=0.2} I feel like this really changes the meaning of the phrase 'missing the forest for the trees'{w=0.1}{nw} "
-    extend 3hub "ahaha!"
+    m 1esa "Якобы в штате Юта есть лес, который на самом деле — одно дерево."
+    m 3eua "Его называют лесом Пандо: на всех 43 гектарах стволы связаны одной корневой системой."
+    m 3eub "Не говоря уже о том, что тысячи стволов — по сути клоны друг друга."
+    m 1ruc "«Один организм, сам ставший армией клонов, связанных одним коллективным разумом.»"
+    m 1eua "Думаю, из этого вышел бы хороший короткий научно-фантастический или хоррор-рассказ, [player]. А ты как думаешь?"
+    m 3eub "В общем,{w=0.2} кажется, это совсем по-новому звучит выражение «за деревьями леса не видеть»{w=0.1}{nw} "
+    extend 3hub "ахаха!"
     #Call the end
     call mas_fun_facts_end
     return
@@ -665,11 +675,11 @@ init 5 python:
     )
 
 label mas_fun_fact_immortal_jellyfish:
-    m 3eub "Here's one!"
-    m 1eua "Apparently, immortality has been achieved by one species of jellyfish."
-    m 3eua "The aptly named immortal jellyfish has the ability to return to its polyp state once it has reproduced."
-    m 1eub "...And it can keep doing this forever!{w=0.3} {nw}"
-    extend 1rksdla "Unless of course it's eaten or infected by a disease."
+    m 3eub "Вот ещё один!"
+    m 1eua "Оказывается, бессмертие удалось одному виду медуз."
+    m 3eua "Метко названная бессмертная медуза умеет возвращаться в стадию полипа после размножения."
+    m 1eub "...И так может продолжать вечно!{w=0.3} {nw}"
+    extend 1rksdla "Если, конечно, её не съедят и она не заразится."
     #Call the end
     call mas_fun_facts_end
     return
@@ -684,14 +694,14 @@ init 5 python:
     )
 
 label mas_fun_fact_arrhichion:
-    m 3eua "Okay...{w=0.2}here's a historical one."
-    m 1esa "An ancient Greek athlete was able to win his fighting match even though he'd already died."
-    m 1eua "Reigning champion Arrhichion was fighting in a pankration match when his competitor started to choke him out using both his hands and legs."
-    m 3eua "Instead of yielding, Arrhichion still aimed for the win by dislocating his opponent's toe."
-    m 3ekd "His opponent quit from the pain, but when they went to announce Arrhichion as the victor they found him dead from suffocation."
-    m 1rksdlc "Some people are really dedicated to their ideals to victory and to honour.{w=0.2} {nw}"
-    extend 3eka "I think it's admirable, in a way."
-    m 1etc "But I wonder...{w=0.2}if we could ask Arrhichion now if he thought it was worth it, what would he say?"
+    m 3eua "Ладно...{w=0.2}вот исторический."
+    m 1esa "Древнегреческий атлет смог выиграть бой, уже будучи мёртвым."
+    m 1eua "Действующий чемпион Аррихион дрался в панкратионе, когда соперник начал душить его руками и ногами."
+    m 3eua "Вместо того чтобы сдаться, Аррихион всё равно рвался к победе — вывихнул сопернику палец ноги."
+    m 3ekd "Соперник сдался от боли, но когда хотели объявить Аррихиона победителем, оказалось, что он умер от удушья."
+    m 1rksdlc "Некоторые люди по-настоящему преданы идеалам победы и чести.{w=0.2} {nw}"
+    extend 3eka "В каком-то смысле это достойно восхищения."
+    m 1etc "Но интересно...{w=0.2}если бы мы сейчас спросили Аррихиона, стоило ли оно того — что бы он ответил?"
     #Call the end
     call mas_fun_facts_end
     return
@@ -716,26 +726,26 @@ label mas_fun_fact_antarctica_brain:
             or (persistent._mas_pm_have_fam_mess and persistent._mas_pm_have_fam_mess_better in ["YES", "MAYBE"])
         )
 
-        dlg_prefix = "But make sure you keep up with your "
+        dlg_prefix = "Только не забывай поддерживать связь с "
 
         if has_fam_to_talk and has_friends:
-            dlg_line = dlg_prefix + "family and friends too, okay?"
+            dlg_line = dlg_prefix + "семьёй и друзьями тоже, хорошо?"
 
         elif has_fam_to_talk and not has_friends:
-            dlg_line = dlg_prefix + "family too, okay?"
+            dlg_line = dlg_prefix + "семьёй тоже, хорошо?"
 
         elif has_friends and not has_fam_to_talk:
-            dlg_line = dlg_prefix + "friends too, okay?"
+            dlg_line = dlg_prefix + "друзьями тоже, хорошо?"
 
         else:
-            dlg_line = "Just be sure you find some people to talk to in your reality too, okay?"
+            dlg_line = "Просто постарайся найти и в своей реальности кого-то, с кем можно поговорить, хорошо?"
 
-    m 3eud "Apparently, spending a year in Antarctica can shrink one part of your brain by about 7 percent."
-    m 3euc "It looks like it results in reduced memory capacity and spatial thinking ability."
-    m 1ekc "The research indicates that it's due to social isolation, monotony of life, and the environment over there."
-    m 1eud "I think this serves as a cautionary tale for us, [player]."
-    m 3ekd "Even if you don't end up going to Antarctica, your brain can still get pretty messed up if you're isolated all the time, or stay cooped up in one room."
-    m 3eka "I love being with you [player], and I hope we can keep talking like this long into the future. {w=0.2}[dlg_line]"
+    m 3eud "Оказывается, год в Антарктиде может уменьшить одну часть мозга примерно на 7 процентов."
+    m 3euc "Похоже, это снижает объём памяти и способность к пространственному мышлению."
+    m 1ekc "Исследования связывают это с социальной изоляцией, однообразием жизни и тамошней средой."
+    m 1eud "Думаю, это предостережение и для нас, [player]."
+    m 3ekd "Даже если ты не поедешь в Антарктиду, мозг всё равно может серьёзно пострадать от постоянной изоляции или если сидеть взаперти в одной комнате."
+    m 3eka "Мне так нравится быть с тобой, [player], и я надеюсь, мы ещё долго будем вот так разговаривать. {w=0.2}[dlg_line]"
     return
 
 init 5 python:
@@ -748,12 +758,12 @@ init 5 python:
     )
 
 label mas_fun_fact_cloud_weight:
-    m 3eub "Did you know that the average cloud weighs 500 tonnes?"
-    m 3eua "I have to admit, this one caught me by surprise, more so than some of the other facts."
-    m 1hua "I mean, they just look {i}really{/i} light and fluffy.{w=0.3} {nw}"
-    extend 1eua "It's hard to imagine that something so heavy can just float in the air like that."
-    m 3eub "It kind of reminds me of the classic question...what's heavier, a kilogram of steel or a kilogram of feathers?"
-    m 1tua "You most likely already know the answer to that though, right [player]? Ehehe~"
+    m 3eub "Знаешь ли ты, что среднее облако весит 500 тонн?"
+    m 3eua "Признаюсь, этот удивил меня сильнее многих других."
+    m 1hua "Ну в смысле, они же выглядят {i}такими{/i} лёгкими и пушистыми.{w=0.3} {nw}"
+    extend 1eua "Трудно представить, что что-то настолько тяжёлое может вот так просто парить в воздухе."
+    m 3eub "Немного напоминает классический вопрос... что тяжелее — килограмм стали или килограмм перьев?"
+    m 1tua "Хотя ты наверняка уже знаешь ответ, правда, [player]? Эхехе~"
     #Call the end
     call mas_fun_facts_end
     return
@@ -768,24 +778,24 @@ init 5 python:
     )
 
 label mas_fun_fact_coffee_origin:
-    m 1eua "Oh, here's one that's particularly interesting to me..."
-    m 1eud "The last time I had a cup of coffee, I got a little curious about its origins..."
-    m 3euc "The use of coffee has been recorded consistently since around the 15th century, but...{w=0.2}it's unclear {i}how{/i} exactly it was discovered."
-    m 3eud "...There are actually quite a few legends claiming to be the very first."
-    m 1eua "Several accounts involve farmers or monks observing animals acting oddly after eating some strange, bitter berries."
-    m 3wud "Upon trying the beans for themselves, they were amazed to find that they too were energized!"
-    m 2euc "One such myth claims that an Ethiopian monk named Kaldi brought the berries to a nearby monastery, wanting to share what he'd found."
-    m 7eksdld "...But when he did so, he was met with disapproval and the coffee beans were thrown into a fire."
-    m 3duu "As they burned, however, the beans began to let off the most {i}delicious{/i} aroma. {w=0.3}It was so enticing that the monks scrambled to save the beans and put them in water."
-    m 3eub "...Thus producing the first cup of coffee!"
-    m 2euc "Another claim states that an Islamic scholar named Omar discovered coffee beans during his exile from Mecca."
-    m 2eksdld "At the time, he was starving and struggling to survive. {w=0.3}{nw}"
-    extend 7wkd "If not for the energy they provided, he may have died!"
-    m 3hua "However, when word of his discovery spread, he was asked to return and made a saint."
-    m 1esd "Whether or not that was truly its first use, coffee became very prevalent in the Islamic world after its discovery."
-    m 3eud "For example, during fasting periods it was used to ease hunger and help people remain energized."
-    m 3eua "When its use spread to Europe, many countries initially used it for medicinal purposes. {w=0.3}By the 17th century, coffeehouses were becoming plentiful and popular."
-    m 3hub "...And I for one can certainly attest that the love of coffee has remained strong to this day!"
+    m 1eua "О, вот этот мне особенно интересен..."
+    m 1eud "В последний раз, когда пила кофе, немного заинтересовалась его происхождением..."
+    m 3euc "Употребление кофе стабильно фиксируют примерно с XV века, но...{w=0.2}неясно, {i}как{/i} именно его открыли."
+    m 3eud "...На самом деле есть сразу несколько легенд, претендующих на первенство."
+    m 1eua "В ряде историй фермеры или монахи замечают, как животные странно себя ведут после странных горьких ягод."
+    m 3wud "Попробовав зёрна сами, они с изумлением обнаружили, что тоже полны энергии!"
+    m 2euc "Один миф гласит, что эфиопский монах по имени Калди принёс ягоды в соседний монастырь, желая поделиться находкой."
+    m 7eksdld "...Но его встретили неодобрением, а кофейные зёрна бросили в огонь."
+    m 3duu "Однако, сгорая, зёрна стали источать самый {i}восхитительный{/i} аромат. {w=0.3}Он был так манящ, что монахи бросились спасать зёрна и положили их в воду."
+    m 3eub "...Так появилась первая чашка кофе!"
+    m 2euc "По другой версии, исламский учёный Омар открыл кофейные зёрна в изгнании из Мекки."
+    m 2eksdld "Тогда он голодал и боролся за жизнь. {w=0.3}{nw}"
+    extend 7wkd "Не будь энергии, которую они дали, он мог бы умереть!"
+    m 3hua "Но когда весть об открытии разнеслась, его позвали обратно и причислили к святым."
+    m 1esd "Было ли это первым употреблением или нет — после открытия кофе очень распространился в исламском мире."
+    m 3eud "Например, в периоды поста им облегчали голод и поддерживали бодрость."
+    m 3eua "Когда он дошёл до Европы, во многих странах сначала его применяли как лекарство. {w=0.3}К XVII веку кофейни стали многочисленны и популярны."
+    m 3hub "...И я лично могу подтвердить: любовь к кофе сильна и по сей день!"
     call mas_fun_facts_end
     return
 
@@ -799,17 +809,17 @@ init 5 python:
     )
 
 label mas_fun_fact_synesthesia:
-    m 1esa "Okay, this one's pretty interesting..."
-    m 3eua "Some people experience a phenomenon known as {i}synesthesia{/i},{w=0.1} which is where something that stimulates one of our senses also triggers another sense simultaneously."
-    m 1hua "That's kind of a wordy explanation, ehehe...{w=0.2} Let's find an example!"
-    m 1eua "It says here that a common form of synesthesia is {i}grapheme–color synesthesia{/i},{w=0.1} which is where people 'experience' letters and numbers as colors."
-    m 3eua "Another kind is {i}spatial sequence synesthesia{/i},{w=0.1} which is where numbers and figures are 'seen' at specific locations in space."
-    m "Like, one number appears 'closer' or 'further' away than another number. {w=0.2}{nw}"
-    extend 3eub "It's kinda like a map!"
-    m 1eua "...And there's a whole bunch of other kinds of synesthesia too."
-    m 1esa "Researchers aren't really sure how prevalent it is--{w=0.1}some have suggested as much as 25 percent of the population experiences it, but I seriously doubt that since I'd never heard of it until now."
-    m 3eub "Probably the most accurate estimate so far is that it's just over 4 percent of people, so that's what I'll go with!"
-    m 1eua "Experiencing synesthesia sounds like it'd be pretty neat,{w=0.2} don't you think so [player]?"
+    m 1esa "Ладно, этот довольно интересный..."
+    m 3eua "У некоторых бывает явление под названием {i}синестезия{/i},{w=0.1} когда раздражение одного чувства одновременно запускает другое."
+    m 1hua "Объяснение немного многословное, эхехе...{w=0.2} Давай найдём пример!"
+    m 1eua "Здесь сказано, что распространённая форма — {i}графемно-цветовая синестезия{/i},{w=0.1} когда буквы и цифры «ощущаются» как цвета."
+    m 3eua "Другой вид — {i}пространственно-последовательная синестезия{/i},{w=0.1} когда числа и фигуры «видятся» в определённых местах пространства."
+    m "Ну, одно число кажется «ближе» или «дальше» другого. {w=0.2}{nw}"
+    extend 3eub "Как будто карта!"
+    m 1eua "...И есть ещё целая куча других видов синестезии."
+    m 1esa "Исследователи не уверены, насколько это распространено—{w=0.1}кто-то говорил даже о 25 процентах населения, но я в этом серьёзно сомневаюсь: до сих пор я об этом не слышала."
+    m 3eub "Самая точная оценка на сейчас — чуть больше 4 процентов людей; на ней и остановлюсь!"
+    m 1eua "Испытывать синестезию звучит довольно круто,{w=0.2} тебе не кажется, [player]?"
     #Call the end
     call mas_fun_facts_end
     return
@@ -824,12 +834,12 @@ init 5 python:
     )
 
 label mas_fun_fact_dream_faces:
-    m 3eub "Okay, got one!"
-    m 1eua "Supposedly, our minds don't invent new faces when we dream.{w=0.2} Every person you've met in your dreams is someone you've seen in real life at some point."
-    m 3wud "You don't even have to talk to them in real life!"
-    m 3eud "If you just walked past them while shopping or something, their face gets registered in your mind and they can appear in your dreams."
-    m 1hua "I think it's incredible how much info the brain can store!"
-    m 1ekbla "I wonder...{w=0.2}do you ever dream about me, [player]?"
+    m 3eub "Окей, нашла!"
+    m 1eua "Якобы во сне разум не придумывает новые лица.{w=0.2} Каждый человек во сне — кто-то, кого ты когда-то видел наяву."
+    m 3wud "С ними даже не обязательно разговаривать в жизни!"
+    m 3eud "Если просто прошёл мимо в магазине — лицо уже отложилось, и оно может появиться во сне."
+    m 1hua "Поразительно, сколько информации способен хранить мозг!"
+    m 1ekbla "Интересно...{w=0.2}тебе когда-нибудь снилась я, [player]?"
     #Call the end
     call mas_fun_facts_end
     return
@@ -844,13 +854,13 @@ init 5 python:
     )
 
 label mas_fun_fact_monochrome_dreams:
-    m 3eua "Did you know that from 1915 to the 1950s, most people's dreams were in black and white?"
-    m 1esa "Nowadays, it's a relatively rare phenomenon for people with unimpaired vision."
-    m 3eua "Researchers have linked this to the fact that movies and shows were almost exclusively black and white back then."
-    m 3eud "...But I think that's kinda weird, because people still saw everything in color.{w=0.3} {nw}"
-    extend 3hksdlb "It's not like the world went black and white!"
-    m 1esd "It just goes to show that the content you absorb can have all kinds of effects on your mind, even if it's trivial."
-    m 3eua "I think if there's a lesson to be learned here, it's that we should be very careful about the kind of media we consume, okay [player]?"
+    m 3eua "Знаешь ли ты, что с 1915-го по 1950-е сны у большинства людей были чёрно-белыми?"
+    m 1esa "Сейчас для людей с нормальным зрением это сравнительно редкое явление."
+    m 3eua "Исследователи связывают это с тем, что фильмы и передачи тогда были почти сплошь чёрно-белыми."
+    m 3eud "...Но мне это кажется странным: люди же всё равно видели мир в цвете.{w=0.3} {nw}"
+    extend 3hksdlb "Мир же не становился чёрно-белым!"
+    m 1esd "Просто показывает: то, что ты в себя впитываешь, влияет на разум самыми разными способами — даже если кажется мелочью."
+    m 3eua "Если и есть здесь урок — то что нужно очень осторожно выбирать, что смотреть и читать, хорошо, [player]?"
     #Call the end
     call mas_fun_facts_end
     return
@@ -865,40 +875,40 @@ init 5 python:
     )
 
 label mas_fun_fact_round_earth:
-    m 1rsa "Hmm..."
-    m 1eua "[player], do you think the Earth is round or flat?{nw}"
+    m 1rsa "Хм..."
+    m 1eua "[player], как ты думаешь — Земля круглая или плоская?{nw}"
     $ _history_list.pop()
     menu:
-        m "[player], do you think the Earth is round or flat?{fast}"
+        m "[player], как ты думаешь — Земля круглая или плоская?{fast}"
 
-        "Round.":
-            m 3hua "Right! Pretty much everyone agrees on that nowadays."
+        "Круглая.":
+            m 3hua "Верно! Сейчас с этим почти все согласны."
 
-        "Flat.":
-            m 3hksdlb "Oh come on, [player]! Are you making fun of me?"
+        "Плоская.":
+            m 3hksdlb "Да ладно тебе, [player]! Ты что, надо мной шутишь?"
 
-    m 1eua "Actually, the Earth being round is something that has been known for a pretty long time."
-    m 3esd "Aristotle taught that the Earth was round in the fourth century BC."
-    m 3esa "He knew that because different stars could be seen from different parts of the world, which wouldn't happen if the Earth was just a flat surface."
-    m 1eua "Ancient astronomers and mathematicians around the world had figured out that the Earth was round long before anyone had actually traveled all the way around it."
-    m 7rksdla "But Earth being the center of the universe?{w=0.2} {nw}"
-    extend 4hksdlb "Oh man!"
-    m 7dsd "People fought about that so hard and for so long, it became a matter of life and death."
-    m 1dkd "The astronomer Galileo was put on trial for heresy just because he said the Earth was not the center of the universe.{w=0.2} {nw}"
-    extend 1esc "He was placed under house arrest for the rest of his life."
-    m 3euc "But as astronomers got better at tracking the movement of planets, it became kind of difficult to reconcile with the Earth being at the center."
-    m 1eud "People had to come up with crazy complex models to explain why planets seemed to zig-zag back and forth across the night sky if they were really going around the Earth."
+    m 1eua "На самом деле, что Земля круглая, известно довольно давно."
+    m 3esd "Аристотель учил, что Земля круглая, ещё в IV веке до нашей эры."
+    m 3esa "Он знал это потому, что с разных частей света видны разные звёзды — чего не было бы, будь Земля плоской."
+    m 1eua "Древние астрономы и математики по всему миру поняли, что Земля круглая, задолго до того, как кто-то её обогнул."
+    m 7rksdla "А вот Земля в центре Вселенной?{w=0.2} {nw}"
+    extend 4hksdlb "Ох уж это!"
+    m 7dsd "Из-за этого так долго и яростно спорили, что дело доходило до жизни и смерти."
+    m 1dkd "Астронома Галилея судили за ересь только за то, что он сказал: Земля — не центр Вселенной.{w=0.2} {nw}"
+    extend 1esc "Его посадили под домашний арест до конца жизни."
+    m 3euc "Но по мере того как астрономы лучше отслеживали движение планет, всё труднее становилось согласовать это с Землёй в центре."
+    m 1eud "Приходилось придумывать безумные сложные модели, чтобы объяснить, почему планеты будто зигзагами ходят по небу, если они и правда кружат вокруг Земли."
 
     if renpy.seen_label("monika_science"):
-        m 3eua "And like we discussed before, it's also known that the sun isn't the center of the universe{nw}"
+        m 3eua "И как мы уже обсуждали, известно также, что Солнце — не центр Вселенной{nw}"
 
     else:
-        m 3eua "And now, it's even known that the sun isn't at the center of the universe{nw}"
+        m 3eua "А теперь известно даже, что Солнце — не в центре Вселенной{nw}"
 
-    extend "--it's just one of many stars in the galaxy."
-    m 1msblu "But do you know where science says the center of the universe is now?"
-    m 3kubsu "It's you.{w=0.2} You're the center of {i}my{/i} universe, [mas_get_player_nickname()]."
-    m 3hubsb "Ahaha!"
+    extend "— это просто одна из множества звёзд в галактике."
+    m 1msblu "А знаешь, где, по науке, сейчас центр Вселенной?"
+    m 3kubsu "Это ты.{w=0.2} Ты — центр {i}моей{/i} вселенной, [mas_get_player_nickname()]."
+    m 3hubsb "Ахаха!"
     return
 
 init 5 python:
@@ -911,29 +921,29 @@ init 5 python:
     )
 
 label mas_fun_fact_maplesyrup:
-    m 3hksdlb "Here's another {w=0.2}{i}sweet {/i}{w=0.2} fact for you..." #double space is intentional due to ital/no ital spacing
-    m 1eua "Every type of maple tree produces sap that can be used to make maple syrup, {w=0.1}{nw}"
-    extend 1eud "but commercially-made syrup usually comes from the sugar maple."
-    m 3eua "You can most easily tell the specific type of maple tree from the shape of the leaves..."
-    m 3eub "You might be able to recognize a sugar maple leaf already, because it's the one featured on the Canadian flag!"
-    m 1euc "That said, the sugar maple has a limited native range and doesn't grow in {i}all{/i} of Canada."
-    m 1wud "...Yet Canada produces over three quarters of the world's maple syrup!"
-    m 3wud "And it may even be more surprising to learn that to make just one gallon of maple syrup it takes {i}40{/i} gallons of sap!"
-    m 1eua "It also takes a lot more effort to produce it than I was expecting..."
-    m 1esc "The sap has to be boiled down to make it into syrup...which obviously takes a while, given how much is needed."
-    m 3eud "Also, I've heard that if you boil it just a little bit more and then pour it out on a fresh bed of snow...{w=0.2}{nw}"
-    extend 3hub "you can even make a candy!"
+    m 3hksdlb "Вот тебе ещё один {w=0.2}{i}сладкий {/i}{w=0.2} факт..." #double space is intentional due to ital/no ital spacing
+    m 1eua "У каждого вида клёна есть сок, из которого можно делать кленовый сироп, {w=0.1}{nw}"
+    extend 1eud "но промышленный сироп обычно делают из сахарного клёна."
+    m 3eua "Вид клёна проще всего узнать по форме листьев..."
+    m 3eub "Лист сахарного клёна ты, возможно, уже узнаешь — он на канадском флаге!"
+    m 1euc "Правда, ареал сахарного клёна ограничен — он растёт не по {i}всей{/i} Канаде."
+    m 1wud "...И всё же Канада производит больше трёх четвертей мирового кленового сиропа!"
+    m 3wud "И ещё удивительнее: чтобы получить всего один галлон сиропа, нужно {i}40{/i} галлонов сока!"
+    m 1eua "И усилий на производство уходит куда больше, чем я ожидала..."
+    m 1esc "Сок нужно долго вываривать до сиропа... что, понятно, занимает время — его нужно очень много."
+    m 3eud "Ещё я слышала: если проварить чуть дольше и вылить на свежий снег...{w=0.2}{nw}"
+    extend 3hub "можно даже сделать конфету!"
 
     if mas_isMoniNormal(higher=True):
         if persistent._mas_pm_gets_snow is not False:
-            m 3euu "Sounds like a fun thing we could try together, huh [player]?"
-            m 1etc "It might be a while before we get a chance, though..."
-            m 1eua "But it's alright if I have to wait a bit longer...{w=0.3}{nw}"
-            extend 1hublu "you're already sweet enough for me~"
+            m 3euu "Звучит как забавное занятие, которое мы могли бы попробовать вместе, а, [player]?"
+            m 1etc "Хотя до такого случая, возможно, ещё далеко..."
+            m 1eua "Но ничего, если придётся подождать ещё немного...{w=0.3}{nw}"
+            extend 1hublu "ты и так уже достаточно сладок для меня~"
 
         else:
-            m 1eua "Sure seems like that would be extremely sweet..."
-            m 1rkblu "But nowhere near as sweet as you, ehehe~"
+            m 1eua "Звучит крайне сладко..."
+            m 1rkblu "Но всё равно не так сладко, как ты, эхехе~"
 
     call mas_fun_facts_end
     return

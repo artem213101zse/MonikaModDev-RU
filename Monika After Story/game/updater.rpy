@@ -1,3 +1,15 @@
+# --- FILE MAP ---
+# updater.rpy — проверка и скачивание обновлений MAS
+#
+# Экран MASUpdaterDisplayable: сеть, прогресс-бар, «есть новая версия».
+# Это про качание файлов.
+#
+# Не путать:
+#   updates.rpy        — что сделать с данными, когда версия уже новая
+#   updates_topics.rpy — склеить базы топиков
+#   zz_dm.rpy          — миграция структуры persistent
+# ---
+
 # enabling unstable mode
 default persistent._mas_unstable_mode = False
 default persistent._mas_can_update = True

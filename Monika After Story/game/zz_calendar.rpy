@@ -1,3 +1,11 @@
+# --- FILE MAP ---
+# zz_calendar.rpy — календарь на стене
+#
+# UI календаря: дни, пометки, клики. Класс MASCalendar, JSON-кодер дат.
+# Годовщины как *диалоги* живут в script-anniversary.rpy — этот файл
+# только показывает даты и даёт другим модулям «добавь событие на день».
+# ---
+
 # Calendar module
 # A custom made Calendar like UI to help managing date based events
 # Contains also a store named mas_calendar which includes helper functions

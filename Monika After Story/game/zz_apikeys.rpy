@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_apikeys.rpy — ключи внешних API (погода и т.п.)
+#
+# Чтобы ключи не торчали в топиках. Экран обновления сертификата.
+#
+# Store: mas_api_keys
+# Screen: mas_update_cert
+# ---
+
 # NOTE: we do not store keys in persistent.
 #   this is for safety reasons since persistents may be shared online for
 #   troubleshooting purposes.

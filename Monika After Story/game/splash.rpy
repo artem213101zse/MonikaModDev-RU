@@ -1,3 +1,17 @@
+# --- FILE MAP ---
+# splash.rpy — первое, что видит игрок при запуске
+#
+# На порте проверка rpa-архивов отключена: на Android их нет, иначе игра
+# сразу падает с «архивы не найдены».
+# Сначала TOS (два согласия: мод + MAS OS), потом оболочка MAS OS.
+# Оболочка — не сессия: affection/playtime пишутся только после входа в игру.
+# Дальше сплэш, first_run, импорт сейвов DDLC, главное меню.
+#
+# Labels: splashscreen, mas_os_tos_seq, warningscreen, after_load, autoload, quit
+# Store: mas_os  |  persistent._mas_os_tos_agreed
+# Если чёрный экран на старте — часто сюда.
+# ---
+
 ## This splash screen is the first thing that Renpy will show the player
 ##
 ## Before load, check to be sure that the archive files were found.

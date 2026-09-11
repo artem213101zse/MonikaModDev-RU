@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# import_ddlc.rpy — забрать сейв из ванильной DDLC
+#
+# Читает persistent оригинала, не ломая его, и переносит нужные поля в MAS.
+# Для тех, кто ставит мод поверх пройденной DDLC.
+#
+# Labels: import_ddlc_persistent, import_ddlc_persistent_in_settings
+# ---
+
 # This file imports save data from DDLC without changing the original data.
 # By default, when this is run all relevant data from DDLC is imported.
 # Handling of individual variables can be handled by changing the settings below.

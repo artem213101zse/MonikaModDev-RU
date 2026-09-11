@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# event-handler.rpy — очередь «что Моника скажет дальше»
+#
+# Класс Event — это и топик, и прощание, и комплимент. Очередь MASEventList.
+# Меню Поговорить собирается здесь: непрочитанное, избранное, «слушай…»,
+# «я люблю тебя», «я чувствую…» (moods), «мне пора…».
+#
+# Искать: class Event, MASEventList.push, talk_menu
+# Правила показа — в event-rules.rpy, тексты — в script-*.rpy
+# ---
+
 # Module that defines functions for story event handling
 # Assumes:
 #   persistent.event_list
@@ -3323,7 +3334,7 @@ label prompt_menu:
             talk_menu.append((_("Избранное"),"bookmarks"))
         talk_menu.append((_("Слушай, [m_name]..."), "prompt"))
         if len(repeatable_events)>0:
-            talk_menu.append((_("Повторить разговор"), "repeat"))
+            talk_menu.append((_("Повторить тему"), "repeat"))
         if _mas_getAffection() > -50:
             if mas_passedILY(pass_time=datetime.timedelta(0,10)):
                 talk_menu.append((_("Я тоже тебя люблю!"),"love_too"))

@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# script-brbs.rpy — «я сейчас вернусь»
+#
+# Короткий уход: кухня, туалет, работа. Моника уходит в idle и встречает
+# по возвращению. Топики короткие, markSeen, return "idle".
+#
+# Store: mas_brbs
+# Label: mas_brb_back_to_idle
+# ---
+
 ## This script file holds all of the brb topics # ФАЙЛ ПЕРЕВЕДЕН
 # Some conventions:
 #   - All brbs should have their markSeen set to True so they don't show up in unseen

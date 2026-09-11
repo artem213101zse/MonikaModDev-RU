@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# main_menu.rpy — главный экран после сплэша
+#
+# Screen main_menu: фон, название, обвязка. Сами пункты (Новая игра / Загрузить)
+# чаще живут в screens.rpy как navigation.
+#
+# Искать: screen main_menu, style main_menu_title / main_menu_version
+# ---
+
 screen main_menu():
 
     # This ensures that any other menu screen is replaced.

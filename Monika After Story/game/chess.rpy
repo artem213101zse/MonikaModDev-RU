@@ -1,3 +1,14 @@
+# --- FILE MAP ---
+# chess.rpy — шахматы
+#
+# Партия, Stockfish (уровень + глубина), статистика, быстрый сейв,
+# разборки если игрок крутил файл сохранения.
+#
+# Store: mas_chess
+# persistent._mas_chess_stats, _mas_chess_difficulty
+# Меню игр: zz_games.rpy  |  комплимент: script-compliments
+# ---
+
 #We now will keep track of player wins/losses/draws/whatever
 default persistent._mas_chess_stats = {
     "wins": 0,
@@ -871,60 +882,60 @@ label mas_chess_remenu:
         menu_contents = {
             "gamemode_select": {
                 "options": [
-                    ("Normal Chess", mas_chess.MODE_NORMAL, False, (chessmode == mas_chess.MODE_NORMAL)),
-                    ("Randomized Chess", mas_chess.MODE_BAD_CHESS, False, (chessmode == mas_chess.MODE_BAD_CHESS)),
-                    ("Chess 960", mas_chess.MODE_960, False, (chessmode == mas_chess.MODE_960)),
+                    ("Обычные шахматы", mas_chess.MODE_NORMAL, False, (chessmode == mas_chess.MODE_NORMAL)),
+                    ("Шахматы со случайной расстановкой", mas_chess.MODE_BAD_CHESS, False, (chessmode == mas_chess.MODE_BAD_CHESS)),
+                    ("Шахматы 960", mas_chess.MODE_960, False, (chessmode == mas_chess.MODE_960)),
                     # Keep this last
-                    ("Can you explain these game-modes?", "explain_modes", False, False)
+                    ("Можешь объяснить, что это за режимы?", "explain_modes", False, False)
                 ],
                 "final_items": [
-                    ("Ruleset", "ruleset_select", False, False, 20),
-                    ("Practice or Play", "mode_select", False, False, 0),
-                    ("Color", "color_select", False, False, 0),
-                    ("Let's play!", "confirm", False, False, 20),
-                    ("Nevermind.", -1, False, False, 0)
+                    ("Правила", "ruleset_select", False, False, 20),
+                    ("Тренировка или Игра", "mode_select", False, False, 0),
+                    ("Цвет", "color_select", False, False, 0),
+                    ("Давай играть!", "confirm", False, False, 20),
+                    ("Неважно.", -1, False, False, 0)
                 ]
             },
             "ruleset_select": {
                 "options": [
-                    ("Casual Rules", True, False, casual_rules),
-                    ("Traditional Rules", False, False, not casual_rules),
+                    ("Упрощённые правила", True, False, casual_rules),
+                    ("Традиционные правила", False, False, not casual_rules),
                     # Keep this last
-                    ("What's the difference?", 0, False, False)
+                    ("А в чём разница?", 0, False, False)
                 ],
                 "final_items": [
-                    ("Gamemode", "gamemode_select", False, False, 20),
-                    ("Practice or Play", "mode_select", False, False, 0),
-                    ("Color", "color_select", False, False, 0),
-                    ("Let's play!", "confirm", False, False, 20),
-                    ("Nevermind.", -1, False, False, 0)
+                    ("Режим игры", "gamemode_select", False, False, 20),
+                    ("Тренировка или Игра", "mode_select", False, False, 0),
+                    ("Цвет", "color_select", False, False, 0),
+                    ("Давай играть!", "confirm", False, False, 20),
+                    ("Неважно.", -1, False, False, 0)
                 ]
             },
             "mode_select": {
                 "options": [
-                    ("Practice", True, False, practice_mode),
-                    ("Play", False, False, not practice_mode)
+                    ("Тренировка", True, False, practice_mode),
+                    ("Игра", False, False, not practice_mode)
                 ],
                 "final_items": [
-                    ("Gamemode", "gamemode_select", False, False, 20),
-                    ("Ruleset", "ruleset_select", False, False, 0),
-                    ("Color", "color_select", False, False, 0),
-                    ("Let's play!", "confirm", False, False, 20),
-                    ("Nevermind.", -1, False, False, 0)
+                    ("Режим игры", "gamemode_select", False, False, 20),
+                    ("Правила", "ruleset_select", False, False, 0),
+                    ("Цвет", "color_select", False, False, 0),
+                    ("Давай играть!", "confirm", False, False, 20),
+                    ("Неважно.", -1, False, False, 0)
                 ]
             },
             "color_select": {
                 "options": [
-                    ("White", True, False, is_player_white),
-                    ("Black", False, False, is_player_white is False),
-                    ("Let's draw lots!", 0, False, is_player_white is 0) #Is check here specifically for states
+                    ("Белые", True, False, is_player_white),
+                    ("Чёрные", False, False, is_player_white is False),
+                    ("Давай бросим жребий!", 0, False, is_player_white is 0) #Is check here specifically for states
                 ],
                 "final_items": [
-                    ("Gamemode", "gamemode_select", False, False, 20),
-                    ("Ruleset", "ruleset_select", False, False, 0),
-                    ("Practice or Play", "mode_select", False, False, 0),
-                    ("Let's play!", "confirm", False, False, 20),
-                    ("Nevermind.", -1, False, False, 0)
+                    ("Режим игры", "gamemode_select", False, False, 20),
+                    ("Правила", "ruleset_select", False, False, 0),
+                    ("Тренировка или Игра", "mode_select", False, False, 0),
+                    ("Давай играть!", "confirm", False, False, 20),
+                    ("Неважно.", -1, False, False, 0)
                 ]
             }
         }

@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# zz_spritejsons.rpy — JSON кастомных спрайтов → объекты
+#
+# Читает json из mod_assets (одежда/ACS от сабмодов). Prog points из json
+# специально не берутся (безопасность).
+#
+# Зависит от sprite-chart.rpy и sprite-chart-matrix.rpy
+# ---
+
 # Module for turning json formats into sprite objects
 # NOTE: This DEPENDS on sprite-chart.rpy and sprite-chart-matrix.rpy
 #

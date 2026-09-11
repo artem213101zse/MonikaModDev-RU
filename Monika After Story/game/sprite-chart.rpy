@@ -1,3 +1,16 @@
+# --- FILE MAP ---
+# sprite-chart.rpy — конструктор спрайта Моники
+#
+# Не одна картинка «1hua», а слои: тело, волосы, одежда, ACS (бантики, стол).
+# Фильтры дня/ночи. Отсюда растёт весь внешний вид.
+#
+# Store: mas_sprites, mas_core
+# Класс: ACSTemplate
+# Рендер слоёв: sprite-chart-matrix.rpy
+# Предметы (стол DE): zz_spriteobjects.rpy
+# Выбор игроком: zz_selector.rpy
+# ---
+
 # Monika's sprites!
 # To add new images, use the sprite adder tool in MonikaModDev/tools/toolsmenu
 #

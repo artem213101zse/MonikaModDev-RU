@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# sprite-chart-matrix.rpy — как слои реально рисуются
+#
+# Filterable-спрайты, MatrixColor (тонировка), _render_surf.
+# Если «Could not load image table-DE.png» — падает СЮДА при отрисовке
+# стола/стула, а не в топике про комнату.
+#
+# Классы: MASFilterable, MASFilterableSprite
+# ---
+
 # sprite generation using matrix for night sprites
 # TODO: look at adding a highlight option to ACS/Clothes/Hair
 

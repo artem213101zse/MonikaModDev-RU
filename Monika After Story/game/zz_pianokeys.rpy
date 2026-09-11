@@ -1,3 +1,13 @@
+# --- FILE MAP ---
+# zz_pianokeys.rpy — пианино
+#
+# Играть самой, выбрать песню, практика / полный комбо / провал.
+# Много label mas_piano_*.
+#
+# Вход: mas_piano_start
+# Песни как разговор — script-songs.rpy, фон музыки — zz_music_selector.rpy
+# ---
+
 # Module that lets you play the piano
 #
 # Adding custom Piano Songs:

@@ -1,3 +1,12 @@
+# --- FILE MAP ---
+# 0utils.rpy — лог и мелкие инструменты, которые нужны ещё на init
+#
+# Форматтеры логов (в т.ч. с переносами строк — MASNewlineLogFormatter),
+# пути, хелперы. Почти все zz_* на это опираются.
+#
+# Store: mas_utils
+# Если mas_log.log печатается криво или падает format() — смотри сюда.
+# ---
 
 #NOTE: This is done during init because exceptions are suppressed in early, singleton needs to raise an exception
 init -1500 python:
