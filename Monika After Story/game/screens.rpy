@@ -470,6 +470,7 @@ screen say(who, what):
 
     window:
         id "window"
+        background store.mas_os.say_bg()
 
         text what id "what"
 
@@ -477,6 +478,7 @@ screen say(who, what):
 
             window:
                 style "namebox"
+                background store.mas_os.namebox_bg()
                 text who id "who"
 
     # If there's a side image, display it above the text. Do not display

@@ -51,6 +51,8 @@ init 7 python in mas_games:
 
         IN:
             gamename - Name of the game we want to get
+                Accepts the visible prompt (any language), rules.display_name,
+                or the short id from the eventlabel (mas_piano -> piano).
 
         OUT:
             event object for the game entered if found. None if not found
@@ -62,8 +64,20 @@ init 7 python in mas_games:
 
         #Now search
         for ev in game_db.itervalues():
-            if renpy.substitute(ev.prompt, translate=False).lower() == gamename:
+            prompt = renpy.substitute(ev.prompt, translate=False).lower()
+            if prompt == gamename:
                 return ev
+
+            disp = None
+            if ev.rules:
+                disp = ev.rules.get("display_name")
+            if disp and disp.lower() == gamename:
+                return ev
+
+            if ev.eventlabel.startswith("mas_"):
+                short = ev.eventlabel[4:].lower()
+                if short == gamename:
+                    return ev
         return None
 
 #START: Global functions for handling games

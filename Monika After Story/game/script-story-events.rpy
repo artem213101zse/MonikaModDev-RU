@@ -54,12 +54,12 @@ label mas_gender:
             m 7rksdlb "...Наверно, поэтому говорят, что не стоит делать поспешных выводов, ахаха!"
             m 3eka "Но, честно говоря, для меня это совершенно не имеет значения..."
 
-        "Ни то, ни другое.":
+        "Ни то, ни другое." if not store.mas_os.hide_lgbt():
             $ persistent._mas_pm_is_trans = False
             $ persistent.gender = "X"
             call mas_gender_neither
 
-        "Я трансгендер.":
+        "Я трансгендер." if not store.mas_os.hide_lgbt():
             call mas_gender_trans
 
             if persistent.gender != "X":
@@ -123,7 +123,7 @@ label monika_gender_redo: # todo: Проверить перевод
                 m 2dkd "Я ненавижу, что я не убедила тебя достаточно раньше."
                 m 7eka "Но я надеюсь, что ты рассказываешь мне сейчас, потому что знаешь, что я буду любить тебя без разницы."
 
-            "Я гендерфлюид.":
+            "Я гендерфлюид." if not store.mas_os.hide_lgbt():
                 m 1eub "О, хорошо!"
                 m 3hub "Не стесняйся сообщать мне как часто, когда хочешь, чтобы я использовала другие местоимения!"
 
@@ -151,7 +151,7 @@ label monika_gender_redo: # todo: Проверить перевод
                 call mas_gender_redo_react
             $ persistent._mas_pm_is_trans = False
 
-        "Я ни то, ни другое.":
+        "Я ни то, ни другое." if not store.mas_os.hide_lgbt():
             $ persistent._mas_pm_is_trans = False
             if persistent.gender == "X":
                 call mas_gender_redo_neither_same
@@ -162,7 +162,7 @@ label monika_gender_redo: # todo: Проверить перевод
                 else:
                     call mas_gender_neither
 
-        "Я трансгендер.":
+        "Я трансгендер." if not store.mas_os.hide_lgbt():
             call mas_gender_trans
             if persistent.gender != "X":
                 call mas_gender_redo_react
@@ -218,7 +218,7 @@ label mas_gender_trans:
         "Женский":
             $ persistent.gender = "F"
 
-        "Ни то, ни другое":
+        "Ни то, ни другое" if not store.mas_os.hide_lgbt():
             if persistent.gender == "X":
                 call mas_gender_redo_neither_same
 

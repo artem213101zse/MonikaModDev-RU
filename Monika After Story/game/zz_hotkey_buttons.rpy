@@ -1,9 +1,9 @@
 # --- FILE MAP ---
 # zz_hotkey_buttons.rpy — кнопки Talk / Music / Extra на экране
 #
-# То, что внизу комнаты: Поговорить, Музыка, Extra. Screens hkb_overlay
-# и movie_overlay. Клавиатура — zz_hotkeys.rpy, логика меню Talk —
-# event-handler.rpy.
+# То, что внизу комнаты: Поговорить, Музыка, Extra, Играть. Screens
+# hkb_overlay и movie_overlay. Справа внизу кнопка Debug (если
+# MAS_DEBUG_MENU=True в definitions.rpy). Клавиатура — zz_hotkeys.rpy.
 #
 # Store: hkb_button
 # Перевод: подписи на кнопках, если они здесь, а не в screens.
@@ -159,6 +159,17 @@ screen hkb_overlay():
             textbutton _("Играть") action Function(pick_game)
         else:
             textbutton _("Играть")
+
+    if MAS_DEBUG_MENU:
+        key "shift_K_d" action Function(mas_debug_open)
+
+        vbox:
+            xpos 0.95
+            xanchor 1.0
+            yanchor 1.0
+            ypos 715
+
+            textbutton _("Отладка") action Function(mas_debug_open)
 
 
 screen movie_overlay():

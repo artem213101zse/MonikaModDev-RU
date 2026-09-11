@@ -38,6 +38,9 @@ init -20 python in mas_os:
         "_mas_os_tb_tint",
         "_mas_os_tb_strength",
         "_mas_os_ui_match",
+        "_mas_os_color_os",
+        "_mas_os_color_game",
+        "_mas_os_color_text",
         "_mas_os_font",
         "_mas_os_font_menu",
         "_mas_os_font_ui",
@@ -52,6 +55,7 @@ init -20 python in mas_os:
         "_mas_os_intro_skip",
         "_mas_os_boot_splash",
         "_mas_os_catalog_url",
+        "_mas_os_hide_lgbt",
     )
 
     notify_open = False

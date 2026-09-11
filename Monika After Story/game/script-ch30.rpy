@@ -830,6 +830,12 @@ init python:
         if key is None:
             key = store.persistent.gender
 
+        try:
+            if store.mas_os.hide_lgbt() and key == "X":
+                key = "M"
+        except Exception:
+            pass
+
         for word, sub_map in store.MAS_PRONOUN_GENDER_MAP.items():
             if key in sub_map:
                 value = sub_map[key]

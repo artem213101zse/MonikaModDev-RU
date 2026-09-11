@@ -665,6 +665,12 @@ init -900 python in mas_affection:
 
             __set_pers_data(__encode_data(*data))
 
+            if amount > 0.05:
+                try:
+                    store.mas_affhearts.play(amount=amount)
+                except Exception:
+                    pass
+
     def _remove_aff(amount, reason=None):
         """
         Removes some affection

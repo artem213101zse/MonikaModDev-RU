@@ -11,6 +11,7 @@
 define persistent.demo = False
 
 define config.developer = True # не забыть потом отключить (пока что временно включено в целях разработки)
+define MAS_DEBUG_MENU = True # False на релизе — прячет кнопку Debug в комнате
 # define persistent.steam = "steamapps" in config.basedir.lower()
 
 python early:

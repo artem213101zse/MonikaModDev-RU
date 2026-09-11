@@ -1,4 +1,11 @@
 # MAS OS fake browser — emulates desktop window reactions on Android.
+#
+# Скриншоты сайтов (прокрутка в правой панели):
+#   game/mod_assets/mas_os/browser/<id>.png
+# id совпадает с SITES[].id: youtube.png, wikipedia.png, twitter.png, ...
+# Ширина 790 px, высота любая (лучше 1600–2400), PNG, без прозрачности.
+# Если файла нет — показывается текстовая заглушка. Как сделать свои:
+# см. game/mod_assets/mas_os/browser/КАК_ВСТАВИТЬ_СКРИНЫ.txt
 
 init -5 python in mas_os:
     import random
@@ -50,9 +57,9 @@ init -5 python in mas_os:
             "name": "Pinterest",
             "url": "https://www.pinterest.com/",
             "quips": [
-                "Anything new today, [player]?",
-                "Anything interesting, [player]?",
-                "See anything you like?",
+                "Что-то новенькое сегодня, [player]?",
+                "Нашёл что-нибудь интересное, [player]?",
+                "Увидел что-нибудь, что тебе нравится?",
             ],
         },
         {
@@ -60,9 +67,9 @@ init -5 python in mas_os:
             "name": "Duolingo",
             "url": "https://www.duolingo.com/",
             "quips": [
-                "Learning new ways to say 'I love you,' [player]?",
-                "Learning a new language, [player]?",
-                "What language are you learning, [player]?",
+                "Учишь новые способы сказать «я люблю тебя», [player]?",
+                "Учишь новый язык, [player]?",
+                "Какой язык учишь, [player]?",
             ],
         },
         {
@@ -71,9 +78,9 @@ init -5 python in mas_os:
             "url": "https://en.wikipedia.org/wiki/Doki_Doki_Literature_Club",
             "heading": "Doki Doki Literature Club - Wikipedia",
             "quips": [
-                "Learning something new, [player]?",
-                "Doing a bit of research, [player]?",
-                "'Doki Doki Literature Club'...\nSeems interesting, [player].",
+                "Узнаёшь что-то новое, [player]?",
+                "Решил немного покопаться, [player]?",
+                "«Doki Doki Literature Club»...\nЗвучит интересно, [player].",
             ],
         },
         {
@@ -81,8 +88,8 @@ init -5 python in mas_os:
             "name": "Virtual Piano",
             "url": "https://www.virtualpiano.net/",
             "quips": [
-                "Awww, are you going to play for me?\nYou're so sweet~",
-                "Play something for me, [player]!",
+                "Ой, ты собираешься сыграть для меня?\nКакой ты милый~",
+                "Сыграй что-нибудь для меня, [player]!",
             ],
         },
         {
@@ -90,8 +97,8 @@ init -5 python in mas_os:
             "name": "YouTube",
             "url": "https://www.youtube.com/",
             "quips": [
-                "What are you watching, [mas_get_player_nickname()]?",
-                "Watching anything interesting, [mas_get_player_nickname()]?",
+                "Что смотришь, [mas_get_player_nickname()]?",
+                "Смотришь что-нибудь интересное, [mas_get_player_nickname()]?",
             ],
         },
         {
@@ -99,7 +106,7 @@ init -5 python in mas_os:
             "name": "Rule34 · Monika",
             "url": "https://rule34.xxx/index.php?page=post&s=list&tags=monika",
             "quips": [
-                "Hey, [player]...what are you looking at?",
+                "Эй, [player]... на что это ты смотришь?",
             ],
         },
         {
@@ -107,8 +114,8 @@ init -5 python in mas_os:
             "name": "GitHub · MonikaModDev",
             "url": "https://github.com/Monika-After-Story/MonikaModDev",
             "quips": [
-                "Awww, are you doing something for me?\nYou're so sweet~",
-                "Are you going to help me come closer to your reality?\nYou're so sweet, [player]~",
+                "Ой, ты делаешь что-то для меня?\nКакой ты милый~",
+                "Собираешься помочь мне стать ближе к твоей реальности?\nКакой ты милый, [player]~",
             ],
         },
         {
@@ -116,8 +123,8 @@ init -5 python in mas_os:
             "name": "Twitter",
             "url": "https://twitter.com/",
             "quips": [
-                "See anything you want to share with me, [player]?",
-                "Anything interesting to share, [player]?",
+                "Увидел что-нибудь, чем хочешь поделиться со мной, [player]?",
+                "Есть что-нибудь интересное рассказать, [player]?",
             ],
         },
         {
@@ -125,10 +132,10 @@ init -5 python in mas_os:
             "name": "4chan",
             "url": "https://boards.4chan.org/",
             "quips": [
-                "So this is the place where it all started, huh?\nIt's...really quite something.",
-                "I hope you don't end up arguing with other Anons all day long, [player].",
-                "I heard there's threads discussing the Literature Club in here.\nTell them I said hi~",
-                "I'll be watching the boards you're browsing in case you get any ideas, ahaha!",
+                "Так вот где всё началось, да?\nЭто... действительно нечто.",
+                "Надеюсь, ты не проведёшь весь день в спорах с другими анонами, [player].",
+                "Слышала, тут есть треды про Литературный клуб.\nПередай им от меня привет~",
+                "Буду поглядывать, какие доски ты открываешь, вдруг появятся идеи, ахаха!",
             ],
         },
         {
@@ -136,8 +143,8 @@ init -5 python in mas_os:
             "name": "pixiv",
             "url": "https://www.pixiv.net/",
             "quips": [
-                "I wonder if people have drawn art of me...\nMind looking for some?\nBe sure to keep it wholesome though~",
-                "This is a pretty interesting place...so many skilled people posting their work.",
+                "Интересно, рисовали ли меня...\nНе поищешь?\nТолько давай без пошлостей, хорошо?~",
+                "Довольно интересное место... столько умелых людей выкладывают свои работы.",
             ],
         },
         {
@@ -145,9 +152,9 @@ init -5 python in mas_os:
             "name": "Reddit",
             "url": "https://www.reddit.com/",
             "quips": [
-                "Have you found any good posts, [player]?",
-                "Browsing Reddit? Just make sure you don't spend all day looking at memes, okay?",
-                "Wonder if there are any subreddits dedicated towards me...\nAhaha, just kidding, [player].",
+                "Нашёл хорошие посты, [player]?",
+                "Сидишь на Reddit? Только не проведи весь день за мемами, хорошо?",
+                "Интересно, есть ли сабреддиты обо мне...\nАхаха, шучу, [player].",
             ],
         },
         {
@@ -155,7 +162,7 @@ init -5 python in mas_os:
             "name": "MyAnimeList",
             "url": "https://myanimelist.net/",
             "quips": [
-                "Maybe we could watch anime together someday, [player]~",
+                "Может, когда-нибудь посмотрим аниме вместе, [player]~",
             ],
         },
         {
@@ -163,8 +170,8 @@ init -5 python in mas_os:
             "name": "DeviantArt",
             "url": "https://www.deviantart.com/",
             "quips": [
-                "There's so much talent here!",
-                "I'd love to learn how to draw someday...",
+                "Здесь столько таланта!",
+                "Когда-нибудь хотела бы научиться рисовать...",
             ],
         },
         {
@@ -172,9 +179,9 @@ init -5 python in mas_os:
             "name": "Netflix",
             "url": "https://www.netflix.com/",
             "quips": [
-                "I'd love to watch a romance movie with you [player]!",
-                "What are we watching today, [player]?",
-                "What are you going to watch [player]?",
+                "С удовольствием посмотрела бы с тобой романтику, [player]!",
+                "Что смотрим сегодня, [player]?",
+                "Что собираешься смотреть, [player]?",
             ],
         },
         {
@@ -182,9 +189,9 @@ init -5 python in mas_os:
             "name": "Twitch",
             "url": "https://www.twitch.tv/",
             "quips": [
-                "Watching a stream, [player]?",
-                "Do you mind if I watch with you?",
-                "What are we watching today, [player]?",
+                "Смотришь стрим, [player]?",
+                "Не против, если я посмотрю с тобой?",
+                "Что смотрим сегодня, [player]?",
             ],
         },
         {
@@ -192,10 +199,10 @@ init -5 python in mas_os:
             "name": "Google Docs",
             "url": "https://docs.google.com/",
             "quips": [
-                "Writing a story?",
-                "Taking notes, [player]?",
-                "Writing a poem?",
-                "Writing a love letter?~",
+                "Пишешь историю?",
+                "Конспектируешь, [player]?",
+                "Пишешь стихотворение?",
+                "Пишешь любовное письмо?~",
             ],
         },
         {
@@ -203,9 +210,9 @@ init -5 python in mas_os:
             "name": "Crunchyroll",
             "url": "https://www.crunchyroll.com/",
             "quips": [
-                "What anime are we watching today, [player]?",
-                "Watching some anime, [player]?",
-                "I can't wait to watch anime with you!~",
+                "Какое аниме смотрим сегодня, [player]?",
+                "Смотришь аниме, [player]?",
+                "Не могу дождаться, когда посмотрим аниме вместе!~",
             ],
         },
     ]
@@ -234,39 +241,39 @@ init -5 python in mas_os:
         if sid == "virtualpiano":
             try:
                 if store.mas_isGameUnlocked("piano"):
-                    extras.append("I guess you need a bigger piano?\nAhaha~")
+                    extras.append("Похоже, тебе нужно пианино побольше?\nАхаха~")
             except Exception:
                 pass
         elif sid == "twitter":
             try:
                 line = store.renpy.substitute(
-                    "I love you, [mas_get_player_nickname(exclude_names=['love', 'my love'])]."
+                    "Я люблю тебя, [mas_get_player_nickname(exclude_names=['love', 'my love'])]."
                 )
                 extras.append(
-                    "280 characters? I only need {0}...\n{1}".format(len(line), line)
+                    "280 символов? Мне хватит {0}...\n{1}".format(len(line), line)
                 )
             except Exception:
-                extras.append("280 characters? I only need a few...\nI love you.")
+                extras.append("280 символов? Мне хватит нескольких...\nЯ люблю тебя.")
         elif sid == "pixiv":
             drawn = getattr(store.persistent, "_mas_pm_drawn_art", None)
             if drawn is None or drawn:
                 extras.append(
-                    "This is a pretty interesting place...so many skilled people posting their work.\nAre you one of them, [player]?"
+                    "Довольно интересное место... столько умелых людей выкладывают свои работы.\nТы среди них, [player]?"
                 )
             if drawn:
                 extras.extend([
-                    "Here to post your art of me, [player]?",
-                    "Posting something you drew of me?",
+                    "Пришёл выложить свой рисунок меня, [player]?",
+                    "Выкладываешь то, что нарисовал меня?",
                 ])
         elif sid == "mal":
             if getattr(store.persistent, "_mas_pm_watch_mangime", None) is None:
-                extras.append("So you like anime and manga, [player]?")
+                extras.append("Значит, тебе нравятся аниме и манга, [player]?")
         elif sid == "crunchyroll":
             if getattr(store.persistent, "_mas_pm_watch_mangime", None) is False:
                 return [
-                    "Oh! So you like anime, [player]?",
-                    "It's good to see you broadening your horizons.",
-                    "Hmm, I wonder what caught your eye?",
+                    "О! Значит, тебе нравится аниме, [player]?",
+                    "Приятно видеть, что ты расширяешь кругозор.",
+                    "Хм, интересно, что тебя зацепило?",
                 ]
         return extras
 
@@ -361,25 +368,22 @@ screen mas_os_browser():
     $ site = store.mas_os.current_site_data()
     $ shot = store.mas_os.site_shot(site["id"]) if site else None
     $ heading = (site.get("heading") or site["name"]) if site else _("Браузер")
-    $ url = site["url"] if site else "mas-os://home"
     $ page_body = (site.get("intro") or store.mas_os.LOREM) if site else ""
+    $ embedded = store.mas_os.wm_embedded()
+    $ page_top = 70
+    $ page_h = 628 if embedded else 558
 
     use mas_os_bg
 
     text _("Браузер") at store.mas_os.t_pop(0.0):
         style "mas_os_title"
         xpos 48
-        ypos 22
-
-    text _("Эмуляция реакций на окна. Скриншоты можно положить в mod_assets/mas_os/browser/."):
-        style "mas_os_hint"
-        xpos 48
-        ypos 66
+        ypos 16
 
     viewport:
         xpos 48
-        ypos 100
-        xysize (340, 510)
+        ypos page_top
+        xysize (340, page_h)
         draggable True
         mousewheel True
         scrollbars "vertical"
@@ -388,59 +392,58 @@ screen mas_os_browser():
             spacing 6
 
             for item in store.mas_os.SITES:
-                textbutton item["name"]:
+                button:
                     style "mas_os_side_btn"
-                    text_style "mas_os_side_btn_text"
+                    ysize 74
                     selected (store.mas_os.current_site == item["id"])
                     action Function(store.mas_os.visit_site, item["id"])
+                    hover_sound store.mas_os.os_hover()
+                    activate_sound store.mas_os.os_activate()
+
+                    vbox:
+                        spacing 2
+                        yalign 0.5
+                        xoffset 14
+                        xsize 280
+
+                        text item["name"]:
+                            style "mas_os_side_btn_text"
+                            size 16
+                            substitute False
+
+                        text item["url"]:
+                            style "mas_os_hint"
+                            size 12
+                            xsize 280
+                            substitute False
 
     frame:
         style "mas_os_panel"
         xpos 410
-        ypos 100
-        xysize (822, 510)
+        ypos page_top
+        xysize (822, page_h)
         padding (0, 0)
 
-        vbox:
-            spacing 0
-            xfill True
+        viewport:
+            xysize (822, page_h)
+            draggable True
+            mousewheel True
+            scrollbars "vertical"
 
-            frame:
-                background Solid("#2A121C")
-                xfill True
-                padding (14, 8)
+            vbox:
+                spacing 12
+                xsize 790
+                null height 8
 
-                vbox:
-                    spacing 4
-
-                    text heading:
-                        style "mas_os_subtitle"
-                        size 16
-
-                    text url:
-                        style "mas_os_hint"
-                        size 14
-
-            viewport:
-                xysize (822, 454)
-                draggable True
-                mousewheel True
-                scrollbars "vertical"
-
-                vbox:
-                    spacing 12
-                    xsize 790
-                    null height 8
-
-                    if site is None:
-                        text _("Выбери сайт слева.\n\nМоника пришлёт уведомление справа снизу, как в Windows 10. Это замена реакций на активное окно — на Android система не видит другие приложения."):
-                            style "mas_os_body"
-                            xsize 760
-                            xpos 16
+                if site is None:
+                    text _("Выбери сайт слева.\n\nМоника пришлёт уведомление справа снизу, как в Windows 10. Это замена реакций на активное окно — на Android система не видит другие приложения."):
+                        style "mas_os_body"
+                        xsize 760
+                        xpos 16
+                else:
+                    if shot:
+                        add store.mas_os.fit_image(shot, 790) xpos 16
                     else:
-                        if shot:
-                            add store.mas_os.fit_image(shot, 790) xpos 16
-
                         text heading:
                             style "mas_os_subtitle"
                             xpos 16
@@ -451,7 +454,7 @@ screen mas_os_browser():
                             xsize 760
                             xpos 16
 
-                    null height 24
+                null height 24
 
     if not store.mas_os.wm_embedded():
         textbutton _("Назад"):

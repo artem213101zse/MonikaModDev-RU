@@ -200,6 +200,8 @@ init python:
                 dark_style_name = style_name + mas_ui.dark_suffix
                 mas_swapStyle(style_name, dark_style_name, morning_flag)
 
+        keep_tb = mas_globals.change_textbox
+
         if not morning_flag:
             # Handle the global swaps
             mas_globals.dark_mode = True
@@ -209,7 +211,7 @@ init python:
             mas_globals.button_text_insensitive_color = mas_ui.dark_button_text_insensitive_color
 
             # Textbox
-            if mas_globals.change_textbox:
+            if keep_tb:
                 style.say_window = style.window_dark
 
         else:
@@ -221,7 +223,7 @@ init python:
             mas_globals.button_text_insensitive_color = mas_ui.light_button_text_insensitive_color
 
             # Textbox
-            if mas_globals.change_textbox:
+            if keep_tb:
                 style.say_window = style.window
 
         # Timefile changes
@@ -240,6 +242,14 @@ init python:
             store.mas_os.apply_font()
         except Exception:
             pass
+
+        # apply_textbox mutates window_dark; rebind say_window so the say
+        # screen does not keep the previous pink snapshot.
+        if keep_tb:
+            if mas_globals.dark_mode:
+                style.say_window = style.window_dark
+            else:
+                style.say_window = style.window
 
         style.rebuild()
 

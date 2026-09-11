@@ -179,6 +179,107 @@ screen mas_os_font_slot(slot, caption, hint):
                 null
 
 
+screen mas_os_textbox_color(width=760):
+    $ tb_hex = store.mas_os.tb_hex()
+    $ tb_str = store.mas_os.tb_strength()
+    $ tb_rgb = store.mas_os.tb_rgb()
+    $ tb_prev = store.mas_os.textbox_preview()
+    $ tint_on = store.mas_os.tb_tint_on()
+
+    vbox:
+        spacing 10
+        xsize width
+
+        text _("Цвет текстбокса"):
+            style "mas_os_subtitle"
+
+        text _("Выбери цвет, потом отметь куда его применить: только оболочка, только комната Моники, или оба."):
+            style "mas_os_hint"
+            xsize width
+
+        frame:
+            style "mas_os_panel"
+            background Solid(store.mas_os.theme_color("panel2"))
+            xsize width
+            ysize 100
+            padding (8, 8)
+            clipping True
+
+            add tb_prev:
+                xalign 0.5
+                yalign 1.0
+                zoom 0.58
+
+        text _("Палитра — нажми цвет"):
+            style "mas_os_hint"
+
+        grid 6 2:
+            spacing 8
+            xsize width
+
+            for hexc, title in store.mas_os.TINT_PRESETS:
+                button:
+                    style "mas_os_nav_btn"
+                    xysize (118, 44)
+                    selected (hexc == tb_hex and tint_on)
+                    hover_sound store.mas_os.os_hover()
+                    activate_sound store.mas_os.os_activate()
+                    action Function(store.mas_os.set_tb_tint, hexc)
+
+                    hbox:
+                        spacing 6
+                        xalign 0.5
+                        yalign 0.5
+
+                        frame:
+                            xysize (16, 16)
+                            background Solid(hexc)
+                            yalign 0.5
+
+                        text title:
+                            style "mas_os_nav_btn_text"
+                            size 13
+                            yalign 0.5
+                            substitute False
+
+        text _("Точная настройка"):
+            style "mas_os_hint"
+
+        use mas_os_rgb_bar(_("R"), 0, tb_rgb[0], 255)
+        use mas_os_rgb_bar(_("G"), 1, tb_rgb[1], 255)
+        use mas_os_rgb_bar(_("B"), 2, tb_rgb[2], 255)
+        use mas_os_rgb_bar(_("Сила окраски"), 3, tb_str, 100)
+
+        text _("Сейчас {0}  ·  сила {1}%").format(tb_hex, tb_str):
+            style "mas_os_hint"
+            substitute False
+
+        use mas_os_onoff(
+            _("Применить к MAS OS"),
+            _("Акценты оболочки: выделенные кнопки, плитки, рамки."),
+            "_mas_os_color_os",
+        )
+
+        use mas_os_onoff(
+            _("Применить к игре"),
+            _("Текстбокс, имя, Общение / Экстра / Играть и меню выбора в комнате."),
+            "_mas_os_color_game",
+        )
+
+        use mas_os_onoff(
+            _("Цветной текст на кнопках"),
+            _("Выкл — чёрный на светлой теме и белый на тёмной, чтобы не сливался с фоном. Вкл — текст в цвет кнопки, как сейчас."),
+            "_mas_os_color_text",
+            False,
+        )
+
+        textbutton _("Сбросить на стандартный розовый"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xsize width
+            action Function(store.mas_os.reset_textbox_color)
+
+
 screen mas_os_onoff(caption, hint, flag_name, default=True):
     $ on = store.mas_os.flag(flag_name, default)
 
@@ -573,116 +674,7 @@ screen mas_os_settings():
 
                     use mas_os_store_link("wallpaper", "settings")
 
-                    text _("Цвет текстбокса"):
-                        style "mas_os_subtitle"
-
-                    text _("Готовые картинки или свой цвет ниже — без Photoshop. Меняется у Моники и в оболочке."):
-                        style "mas_os_hint"
-
-                    $ tb_cur = store.mas_os.textbox_id()
-                    grid 2 2:
-                        spacing 10
-                        xsize 760
-
-                        for tid, ttitle, tpath in store.mas_os.TEXTBOX_COLORS:
-                            button:
-                                style "mas_os_side_btn"
-                                xsize 370
-                                ysize 92
-                                selected (tid == tb_cur)
-                                hover_sound store.mas_os.os_hover()
-                                activate_sound store.mas_os.os_activate()
-                                action Function(store.mas_os.set_textbox, tid)
-
-                                hbox:
-                                    spacing 10
-                                    yalign 0.5
-                                    xoffset 10
-
-                                    add store.mas_os.fit_image(tpath, 210, 56):
-                                        yalign 0.5
-
-                                    text ttitle:
-                                        style "mas_os_side_btn_text"
-                                        yalign 0.5
-
-                    use mas_os_store_link("textbox", "settings")
-
-                    text _("Свой цвет поверх текстбокса"):
-                        style "mas_os_subtitle"
-
-                    text _("Ren'Py красит стандартную картинку по контуру (прозрачность PNG). Photoshop больше не нужен. Кнопки в игре могут взять тот же цвет."):
-                        style "mas_os_hint"
-
-                    use mas_os_onoff(
-                        _("Включить свой цвет"),
-                        _("Наложить выбранный цвет на обычный текстбокс."),
-                        "_mas_os_tb_tint_on",
-                    )
-
-                    use mas_os_onoff(
-                        _("Кнопки и UI в цвет текстбокса"),
-                        _("Общение / Экстра / меню выбора / имя в текстбоксе."),
-                        "_mas_os_ui_match",
-                    )
-
-                    $ tb_hex = store.mas_os.tb_hex()
-                    $ tb_str = store.mas_os.tb_strength()
-                    $ tb_rgb = store.mas_os.tb_rgb()
-                    $ tb_prev = store.mas_os.textbox_preview()
-
-                    frame:
-                        style "mas_os_panel"
-                        background Solid(store.mas_os.theme_color("panel2"))
-                        xsize 760
-                        ysize 92
-                        padding (8, 8)
-                        clipping True
-
-                        add Transform(tb_prev, zoom=0.55):
-                            xalign 0.5
-                            yalign 1.0
-
-                    text _("Палитра"):
-                        style "mas_os_hint"
-
-                    grid 6 2:
-                        spacing 8
-                        xsize 760
-
-                        for hexc, title in store.mas_os.TINT_PRESETS:
-                            button:
-                                style "mas_os_nav_btn"
-                                xysize (118, 44)
-                                selected (hexc == tb_hex and store.mas_os.tb_tint_on())
-                                hover_sound store.mas_os.os_hover()
-                                activate_sound store.mas_os.os_activate()
-                                action Function(store.mas_os.set_tb_tint, hexc)
-
-                                hbox:
-                                    spacing 6
-                                    xalign 0.5
-                                    yalign 0.5
-
-                                    frame:
-                                        xysize (16, 16)
-                                        background Solid(hexc)
-                                        yalign 0.5
-
-                                    text title:
-                                        style "mas_os_nav_btn_text"
-                                        size 13
-                                        yalign 0.5
-                                        substitute False
-
-                    use mas_os_rgb_bar(_("R"), 0, tb_rgb[0], 255)
-                    use mas_os_rgb_bar(_("G"), 1, tb_rgb[1], 255)
-                    use mas_os_rgb_bar(_("B"), 2, tb_rgb[2], 255)
-                    use mas_os_rgb_bar(_("Сила"), 3, tb_str, 100)
-
-                    text _("Текущий цвет {0}  ·  сила {1}%").format(tb_hex, tb_str):
-                        style "mas_os_hint"
-                        substitute False
+                    use mas_os_textbox_color(width=760)
 
                     text _("Шрифты"):
                         style "mas_os_subtitle"
@@ -817,6 +809,13 @@ screen mas_os_settings():
                         style "mas_os_hint"
 
                     use mas_os_android_saves_row
+
+                    use mas_os_onoff(
+                        _("Скрыть LGBT-контент"),
+                        _("Скрывает в разговорах с Моникой варианты пола кроме мужского и женского: «ни то, ни другое», трансгендер, гендерфлюид. Местоимения they/them не подставляются (для неопределённого пола берутся мужские, как в этом порте по умолчанию). Уже записанный в сейве пол не стирается — эти пункты просто больше не предлагаются. Выключено — всё как в оригинальном MAS."),
+                        "_mas_os_hide_lgbt",
+                        False,
+                    )
 
                     use mas_os_ibutton(_("Установщик MAS OS"), MASOSGo("setup"), "Up", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="boot")
 

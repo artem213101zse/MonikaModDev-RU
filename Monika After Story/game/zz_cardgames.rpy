@@ -29,6 +29,7 @@ init 5 python in mas_nou:
     import random
     import os
 
+    import store
     from store import (
         m,
         persistent,
@@ -36,7 +37,9 @@ init 5 python in mas_nou:
         Solid,
         Null
     )
-    from store.mas_cardgames import *
+    # Ren'Py 7: `from x import *` inside `python in` does not bind names
+    # on the named store. Pull the card table API explicitly.
+    from store.mas_cardgames import Table, DRAG_TOP, DRAG_CARD
 
 
     ASSETS = "mod_assets/games/nou/"

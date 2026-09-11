@@ -5,13 +5,13 @@
 # Моника: Эпилог
 
 **Русский перевод и порт Monika After Story**  
-*ветка `renpy-7-port` · MAS 0.12.18*
+*ветка `renpy-7-port` · MAS 0.12.19*
 
 <br>
 
 [![Ren'Py 7.4.11](https://img.shields.io/badge/Ren'Py-7.4.11-ff6b9d?style=for-the-badge)](https://www.renpy.org/release/7.4.11)
 [![Android](https://img.shields.io/badge/Платформа-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](#-android)
-[![MAS 0.12.18](https://img.shields.io/badge/MAS-0.12.18-7c4dff?style=for-the-badge)](https://github.com/Monika-After-Story/MonikaModDev/releases)
+[![MAS 0.12.19](https://img.shields.io/badge/MAS-0.12.18-7c4dff?style=for-the-badge)](https://github.com/Monika-After-Story/MonikaModDev/releases)
 [![Русский язык](https://img.shields.io/badge/язык-русский-cc0000?style=for-the-badge)](#о-проекте)
 [![Перевод](https://img.shields.io/badge/перевод-в%20работе-f59e0b?style=for-the-badge)](#статус)
 [![DDLC](https://img.shields.io/badge/требуется-DDLC-f472b6?style=for-the-badge)](https://ddlc.moe)

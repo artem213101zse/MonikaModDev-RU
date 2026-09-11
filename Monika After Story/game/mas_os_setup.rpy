@@ -374,33 +374,7 @@ screen mas_os_setup():
                             else:
                                 null
 
-                    text _("Цвет текстбокса"):
-                        style "mas_os_subtitle"
-
-                    $ tb_cur = store.mas_os.textbox_id()
-                    grid 2 2:
-                        spacing 8
-                        xsize 1080
-
-                        for tid, ttitle, tpath in store.mas_os.TEXTBOX_COLORS:
-                            button:
-                                style "mas_os_side_btn"
-                                xsize 530
-                                ysize 80
-                                selected (tid == tb_cur)
-                                action Function(store.mas_os.set_textbox, tid)
-
-                                hbox:
-                                    spacing 10
-                                    yalign 0.5
-                                    xoffset 8
-
-                                    add store.mas_os.fit_image(tpath, 210, 52):
-                                        yalign 0.5
-
-                                    text ttitle:
-                                        style "mas_os_side_btn_text"
-                                        yalign 0.5
+                    use mas_os_textbox_color(width=1080)
 
                 elif step == 4:
                     text _("Основной шрифт диалога. Остальные слоты (меню, UI, записки) — в настройках оформления."):
@@ -517,6 +491,13 @@ screen mas_os_setup():
                         xsize 1080
 
                     use mas_os_intro_skip_picker(width=1080)
+
+                    use mas_os_onoff(
+                        _("Скрыть LGBT-контент"),
+                        _("Скрывает в разговорах с Моникой варианты пола кроме мужского и женского: «ни то, ни другое», трансгендер, гендерфлюид. Местоимения they/them не подставляются (для неопределённого пола берутся мужские, как в этом порте по умолчанию). Уже записанный в сейве пол не стирается — эти пункты просто больше не предлагаются. Выключено — всё как в оригинальном MAS."),
+                        "_mas_os_hide_lgbt",
+                        False,
+                    )
 
                 else:
                     text _("MAS OS готов"):
