@@ -2,10 +2,11 @@
 # 0config.rpy — паспорт игры для Ren'Py
 #
 # Не диалоги. Здесь игра представляется движку: имя в заголовке окна,
-# версия, куда класть сейвы. Сейчас это «Моника: Эпилог», 0.12.18,
-# папка сейвов Monika After Story.
+# версии, куда класть сейвы. Сейчас это «Моника: Эпилог».
+# config.version — MAS (миграции и официальный апдейтер).
+# config.port_version — этот порт, её смотрит MAS OS.
 #
-# Менять название/версию/save_directory — только сюда.
+# Менять название/версии/save_directory — только сюда.
 # Базовый звук тоже задаётся рано (python early / init -1200).
 #
 # Рядом: options.rpy (сборка дистрибутива), splash.rpy (первый экран).
@@ -154,7 +155,11 @@ python early:
     renpy.config.name = "Моника: Эпилог"
 
     ## The version of the game.
+    # Официальный MAS. На этой строке завязаны updates.rpy и апдейтер MAS.
     renpy.config.version = "0.12.19"
+
+    # Версия этого порта (RU / MAS OS). Позже можно будет подставить в config.version.
+    renpy.config.port_version = "0.1.0"
 
     #Triple space suffix to avoid potential issues with same names in window title
     config.window_title = "Моника: Эпилог   "

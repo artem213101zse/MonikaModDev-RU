@@ -94,6 +94,10 @@ default persistent._mas_pnml_data = []
 
 # persistent for keymaps
 default persistent._mas_piano_keymaps = {}
+# None — само: сенсор на телефоне, клавиши на ПК. True/False — вручную.
+default persistent._mas_piano_touch = None
+# Отступы у сенсорного пианино: снизу и между клавишами.
+default persistent._mas_piano_gaps = True
 
 # TRANSFORMS
 #transform piano_quit_label:
@@ -181,6 +185,9 @@ label mas_piano_setupstart:
     python:
         disable_esc()
         mas_MUMURaiseShield()
+        store._mas_piano_hkb = mas_HKBIsVisible()
+        if store._mas_piano_hkb:
+            HKBHideButtons()
     stop music
 #    show text quit_label zorder 10 at piano_quit_label
 
@@ -193,6 +200,10 @@ label mas_piano_setupstart:
 
     # post call cleanup
 #    hide text quit_label
+    python:
+        if getattr(store, "_mas_piano_hkb", False):
+            HKBShowButtons()
+            store._mas_piano_hkb = False
     $ mas_MUMUDropShield()
     $ enable_esc()
     $ mas_startup_song()
@@ -492,6 +503,53 @@ init -3 python in mas_piano_keys:
     B5 = pygame.K_LEFTBRACKET
     C6 = pygame.K_RIGHTBRACKET
     ESC = pygame.K_ESCAPE
+
+    WHITE_KEYS = (
+        F4, G4, A4, B4, C5, D5, E5, F5, G5, A5, B5, C6
+    )
+    # black key sits on the border after this white index
+    BLACK_KEYS = (
+        (F4SH, 0),
+        (G4SH, 1),
+        (A4SH, 2),
+        (C5SH, 4),
+        (D5SH, 5),
+        (F5SH, 7),
+        (G5SH, 8),
+        (A5SH, 9),
+    )
+
+    def piano_touch_on():
+        val = getattr(store.persistent, "_mas_piano_touch", None)
+        if val is None:
+            try:
+                return store.mas_os.is_touch()
+            except Exception:
+                return False
+        return bool(val)
+
+    def set_piano_touch(on):
+        store.persistent._mas_piano_touch = bool(on)
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        return None
+
+    def toggle_piano_touch():
+        set_piano_touch(not piano_touch_on())
+        return None
+
+    def piano_gaps_on():
+        return bool(getattr(store.persistent, "_mas_piano_gaps", True))
+
+    def set_piano_gaps(on):
+        store.persistent._mas_piano_gaps = bool(on)
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        return None
 
     # keyorder, for reference
     KEYORDER = [
@@ -2377,7 +2435,7 @@ init 810 python:
             )
             pbutton_x_start = (
                 int((self.PIANO_BACK_WIDTH - (
-                    (self.BUTTON_WIDTH * 2) + self.BUTTON_SPACING
+                    (self.BUTTON_WIDTH * 3) + (self.BUTTON_SPACING * 2)
                 )) / 2) + self.ZZPK_IMG_BACK_X
             )
             pbutton_y_start = cbutton_y_start
@@ -2425,10 +2483,20 @@ init 810 python:
             )
 
             # the config button
+            self._button_touch = MASButtonDisplayable.create_stb(
+                _("Сенсор"),
+                True,
+                pbutton_x_start,
+                pbutton_y_start,
+                self.BUTTON_WIDTH,
+                self.BUTTON_HEIGHT,
+                hover_sound=gui.hover_sound,
+                activate_sound=gui.activate_sound
+            )
             self._button_config = MASButtonDisplayable.create_stb(
                 _("Config"),
                 True,
-                pbutton_x_start,
+                pbutton_x_start + self.BUTTON_WIDTH + self.BUTTON_SPACING,
                 pbutton_y_start,
                 self.BUTTON_WIDTH,
                 self.BUTTON_HEIGHT,
@@ -2438,7 +2506,7 @@ init 810 python:
             self._button_quit = MASButtonDisplayable.create_stb(
                 _("Quit"),
                 False,
-                pbutton_x_start + self.BUTTON_WIDTH + self.BUTTON_SPACING,
+                pbutton_x_start + ((self.BUTTON_WIDTH + self.BUTTON_SPACING) * 2),
                 pbutton_y_start,
                 self.BUTTON_WIDTH,
                 self.BUTTON_HEIGHT,
@@ -2452,9 +2520,11 @@ init 810 python:
                 self._button_cancel
             ]
             self._always_visible_play = [
+                self._button_touch,
                 self._button_config,
                 self._button_quit
             ]
+            self._pointers = {}
 
             # config help text
             self._config_wait_help = Text(
@@ -2904,6 +2974,196 @@ init 810 python:
 
             return None
 
+        def _touch_on(self):
+            return mas_piano_keys.piano_touch_on()
+
+        def _vp_geom(self, width, height):
+            h = int(height or 720)
+            w = int(width or 1280)
+            gaps = mas_piano_keys.piano_gaps_on()
+            vp_h = 208
+            if h < 640:
+                vp_h = 176
+            mx = 12 if gaps else 0
+            mb = 20 if gaps else 0
+            gap = 4 if gaps else 0
+            vp_y = h - vp_h - mb
+            inner = max(24, w - (2 * mx))
+            ww = float(inner - (11 * gap)) / 12.0
+            return {
+                "vp_y": vp_y,
+                "vp_h": vp_h,
+                "ww": ww,
+                "w": w,
+                "h": h,
+                "mx": mx,
+                "mb": mb,
+                "gap": gap,
+            }
+
+        def _white_x(self, i, g):
+            return g["mx"] + i * (g["ww"] + g["gap"])
+
+        def _vp_hit(self, x, y, width=1280, height=720):
+            g = self._vp_geom(width, height)
+            vp_y = g["vp_y"]
+            vp_h = g["vp_h"]
+            ww = g["ww"]
+            if y < vp_y or y >= vp_y + vp_h:
+                return None
+            bw = ww * 0.62
+            bh = vp_h * 0.58
+            if y < vp_y + bh:
+                for key, windex in mas_piano_keys.BLACK_KEYS:
+                    cx = self._white_x(windex, g) + ww + (g["gap"] / 2.0)
+                    bx = cx - (bw / 2.0)
+                    if bx <= x < bx + bw:
+                        return key
+            rel = x - g["mx"]
+            slot = ww + g["gap"]
+            if slot <= 0:
+                return None
+            wi = int(rel / slot)
+            if rel < 0:
+                wi = 0
+            if 0 <= wi < len(mas_piano_keys.WHITE_KEYS):
+                return mas_piano_keys.WHITE_KEYS[wi]
+            return None
+
+        def _note_down(self, key, st):
+            if key is None:
+                return
+            if self.pressed.get(key, True):
+                return
+            self.pressed[key] = True
+            if self.state not in self.CONFIG_STATES:
+                if len(self.played) > self.KEY_LIMIT:
+                    self.played = list()
+                elif st - self.prev_time >= self.ev_timeout:
+                    self._timeoutFlow()
+                self.prev_time = st
+                self.note_hit = True
+                self.played.append(key)
+                if self.state == self.STATE_LISTEN:
+                    self.stateListen(None, key)
+                elif self.state in self.POST_STATES:
+                    self.statePost(None, key)
+                elif self.state in self.TRANS_POST_STATES:
+                    self.stateWaitPost(None, key)
+                elif self.state in self.MATCH_STATES:
+                    self.stateMatch(None, key)
+            try:
+                renpy.play(self.pkeys[key], channel="audio")
+            except Exception:
+                pass
+            renpy.redraw(self, 0)
+
+        def _note_up(self, key):
+            if key is None:
+                return
+            if key in self._pointers.values():
+                return
+            if self.pressed.get(key, False):
+                self.pressed[key] = False
+                renpy.redraw(self, 0)
+
+        def _pointer_down(self, pid, x, y, st, width=1280, height=720):
+            if not self._touch_on():
+                return False
+            key = self._vp_hit(x, y, width, height)
+            if key is None:
+                return False
+            old = self._pointers.get(pid)
+            if old == key:
+                return True
+            if old is not None:
+                self._pointers.pop(pid, None)
+                self._note_up(old)
+            self._pointers[pid] = key
+            self._note_down(key, st)
+            return True
+
+        def _pointer_up(self, pid):
+            key = self._pointers.pop(pid, None)
+            if key is not None:
+                self._note_up(key)
+            return key is not None
+
+        def _pointer_move(self, pid, x, y, st, width=1280, height=720):
+            if pid not in self._pointers:
+                return False
+            return self._pointer_down(pid, x, y, st, width, height)
+
+        def _key_caption(self, key):
+            txt = mas_piano_keys.NONCHAR_TEXT.get(key)
+            if txt:
+                return txt
+            try:
+                name = pygame.key.name(key)
+                if name:
+                    return name
+            except Exception:
+                pass
+            if 32 <= key <= 126:
+                return chr(key)
+            return ""
+
+        def _draw_vpiano(self, r, width, height, st, at):
+            g = self._vp_geom(width, height)
+            vp_y = g["vp_y"]
+            vp_h = g["vp_h"]
+            ww = g["ww"]
+            w = g["w"]
+            h = g["h"]
+            canvas = r.canvas()
+            canvas.rect((18, 8, 14, 255), (0, vp_y - 8, w, h - vp_y + 8))
+            whites = mas_piano_keys.WHITE_KEYS
+            i = 0
+            while i < 12:
+                x = int(self._white_x(i, g))
+                nw = max(8, int(ww))
+                key = whites[i]
+                if self.pressed.get(key, False):
+                    canvas.rect((255, 176, 200, 255), (x, vp_y, nw, vp_h))
+                else:
+                    canvas.rect((250, 248, 252, 255), (x, vp_y, nw, vp_h))
+                canvas.rect((40, 24, 32, 255), (x, vp_y, 1, vp_h))
+                cap = self._key_caption(key)
+                if cap:
+                    lab = Text(
+                        cap,
+                        font=gui.default_font,
+                        size=16,
+                        color="#3A1024",
+                        outlines=[],
+                    )
+                    lr = lab.render(40, 24, st, at)
+                    lw, lh = lr.get_size()
+                    r.blit(lr, (x + int((nw - lw) / 2), vp_y + vp_h - lh - 10))
+                i += 1
+            bw = ww * 0.62
+            bh = int(vp_h * 0.58)
+            for key, windex in mas_piano_keys.BLACK_KEYS:
+                cx = self._white_x(windex, g) + ww + (g["gap"] / 2.0)
+                bx = int(cx - (bw / 2.0))
+                bw_i = max(8, int(bw))
+                if self.pressed.get(key, False):
+                    canvas.rect((90, 36, 64, 255), (bx, vp_y, bw_i, bh))
+                else:
+                    canvas.rect((22, 18, 20, 255), (bx, vp_y, bw_i, bh))
+                cap = self._key_caption(key)
+                if cap:
+                    lab = Text(
+                        cap,
+                        font=gui.default_font,
+                        size=12,
+                        color="#FFE6F3",
+                        outlines=[],
+                    )
+                    lr = lab.render(40, 20, st, at)
+                    lw, lh = lr.get_size()
+                    r.blit(lr, (bx + int((bw_i - lw) / 2), vp_y + 8))
+            return vp_y
 
         def _singleFlow(self, ev, key):
             """
@@ -3680,29 +3940,68 @@ init 810 python:
                         renpy.redraw(self, self.vis_timeout)
     #                    self.customRedraw(self.vis_timeout, from_render=True)
 
-            # lyrics can also be help text so
+            # and finally visible buttons
+            for vis_b in visible_buttons:
+                r.blit(vis_b[0], (vis_b[1], vis_b[2]))
+
+            if self._touch_on() and self.state not in self.CONFIG_STATES:
+                self._draw_vpiano(r, width, height, st, at)
+
+            # lyrics / played notes AFTER the touch piano so they stay visible
             if self.lyric:
                 lyric_bar = renpy.render(self.lyrical_bar, 1280, 720, st, at)
                 lyric = renpy.render(self.lyric, 1280, 720, st, at)
                 pw, ph = lyric.get_size()
 
-                # the lyric bar should be slightly below y-center
+                if self._touch_on():
+                    lyr_y = self._vp_geom(width, height)["vp_y"] - 78
+                else:
+                    lyr_y = int((height - 50) / 2) - self.ZZPK_LYR_BAR_YOFF
+
                 r.blit(
                     lyric_bar,
                     (
                         0,
-                        int((height - 50) /2) - self.ZZPK_LYR_BAR_YOFF
+                        lyr_y
                     )
                 )
                 r.blit(
                     lyric,
                     (
                         int((width - pw) / 2),
-                        int((height - ph) / 2) - self.ZZPK_LYR_BAR_YOFF
+                        lyr_y + int((50 - ph) / 2)
                     )
                 )
 
-            # debug mode shows extra information
+            played_y = 645
+            listen_y = 670
+            if self._touch_on():
+                played_y = self._vp_geom(width, height)["vp_y"] - 50
+                listen_y = self._vp_geom(width, height)["vp_y"] - 26
+
+            if self._touch_on() or config.developer:
+                if len(self.played) > 0:
+                    played_text = renpy.render(
+                        renpy.text.text.Text(
+                            "[[" + ", ".join([
+                                store.mas_piano_keys.KEYMAP_TO_STR.get(x,"")
+                                for x in self.played
+                            ]) + "]"
+                        ),
+                        1280,
+                        720,
+                        st,
+                        at
+                    )
+                    rtw, rth = played_text.get_size()
+                    r.blit(
+                        played_text,
+                        (
+                            int((width - rtw) / 2),
+                            played_y
+                        )
+                    )
+
             if config.developer:
                 match_str = ""
                 if self.match is not None:
@@ -3722,51 +4021,9 @@ init 810 python:
                     state_text,
                     (
                         int((width - stw) / 2),
-                        670
+                        listen_y
                     )
                 )
-
-                if len(self.played) > 0:
-                    played_text = renpy.render(
-                        renpy.text.text.Text(
-                            "[[" + ", ".join([
-                                store.mas_piano_keys.KEYMAP_TO_STR.get(x,"")
-                                for x in self.played
-                            ]) + "]"
-                        ),
-                        1280,
-                        720,
-                        st,
-                        at
-                    )
-                    rtw, rth = played_text.get_size()
-                    r.blit(
-                        played_text,
-                        (
-                            int((width - rtw) / 2),
-                            645
-                        )
-                    )
-
-
-
-#                    renpy.show(
-#                        "monika " + match.express,
-#                        at_list=self.AT_LIST,
-#                        zorder=10,
-#                        layer="transient"
-#                    )
-#                    renpy.force_full_redraw()
-#                    r.blit(
-#                        renpy.render(match.img, 1280, 720, st, at),
-#                        (0, 0)
-#                    )
-#                    renpy.say(m, match.say, interact=False)
-#                    renpy.force_full_redraw()
-
-            # and finally visible buttons
-            for vis_b in visible_buttons:
-                r.blit(vis_b[0], (vis_b[1], vis_b[2]))
 
             if restart_int:
                 renpy.restart_interaction()
@@ -3787,6 +4044,22 @@ init 810 python:
 
             # all mouse events
             if ev.type in self.MOUSE_EVENTS:
+
+                if (
+                    self._touch_on()
+                    and self.state not in self.CONFIG_STATES
+                ):
+                    if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
+                        if self._pointer_down(-1, x, y, st, 1280, 720):
+                            raise renpy.IgnoreEvent()
+                    elif ev.type == pygame.MOUSEBUTTONUP and ev.button == 1:
+                        if self._pointer_up(-1):
+                            raise renpy.IgnoreEvent()
+                    elif ev.type == pygame.MOUSEMOTION and (
+                        getattr(ev, "buttons", (0, 0, 0))[0]
+                        or (hasattr(pygame, "mouse") and pygame.mouse.get_pressed()[0])
+                    ):
+                        self._pointer_move(-1, x, y, st, 1280, 720)
 
                 # config waiting
                 if self.state == self.STATE_CONFIG_WAIT:
@@ -3864,10 +4137,16 @@ init 810 python:
                     # check for config / quit button
                     clicked_config = self._button_config.event(ev, x, y, st)
                     clicked_quit = self._button_quit.event(ev, x, y, st)
+                    clicked_touch = self._button_touch.event(ev, x, y, st)
 
                     # check for config/quit
                     if clicked_quit is not None:
                         return self.quitflow()
+
+                    elif clicked_touch is not None:
+                        mas_piano_keys.toggle_piano_touch()
+                        self._pointers = {}
+                        renpy.redraw(self, 0)
 
                     elif clicked_config is not None:
                         self.state = self.STATE_CONFIG_ENTRY
@@ -3996,6 +4275,25 @@ init 810 python:
                     # now rerender
 #                    self.customRedraw(0)
                     renpy.redraw(self, 0)
+
+            elif (
+                self._touch_on()
+                and self.state not in self.CONFIG_STATES
+                and ev.type in (
+                    getattr(pygame, "FINGERDOWN", -1),
+                    getattr(pygame, "FINGERUP", -2),
+                    getattr(pygame, "FINGERMOTION", -3),
+                )
+            ):
+                fx = int(float(getattr(ev, "x", 0)) * 1280)
+                fy = int(float(getattr(ev, "y", 0)) * 720)
+                fid = getattr(ev, "finger_id", 0)
+                if ev.type == getattr(pygame, "FINGERDOWN", -1):
+                    self._pointer_down(fid, fx, fy, st, 1280, 720)
+                elif ev.type == getattr(pygame, "FINGERUP", -2):
+                    self._pointer_up(fid)
+                else:
+                    self._pointer_move(fid, fx, fy, st, 1280, 720)
 
             # time event, rerender
             elif ev.type == renpy.display.core.TIMEEVENT:

@@ -16,6 +16,9 @@ init -5 python in mas_os:
         ("logo", "Логотип студии", "Знак Kurokawa, радуга, powered by, потом рабочий стол."),
         ("wordmark", "Надпись", "Знак + kurokawa gds крупно, потом рабочий стол."),
         ("minimal", "Минимальная", "Короткий fade, только MAS OS."),
+        ("pulse", "Пульс", "Логотип дышит и вспыхивает."),
+        ("scan", "Скан", "Полоска пробегает по тёмному экрану."),
+        ("hearts", "Сердца", "Несколько сердечек, потом рабочий стол."),
         ("off", "Выкл", "Сразу рабочий стол, без заставки."),
     )
 
@@ -82,6 +85,62 @@ init -5 python in mas_os:
         if h >= 48:
             return 16
         return 14
+
+    OSBTN_PLACES = (
+        ("corner", "Угол разговора", "Слева сверху на экране «Эй, Моника…»."),
+        ("talk", "В списке разговора", "Пункт рядом с «Послушать» и «До свидания»."),
+        ("hkb", "Ряд кнопок комнаты", "Там же, где Общение, Экстра, Музыка, Играть."),
+    )
+
+    OSBTN_STYLES = (
+        ("rainbow", "Радуга", "Рамка с переливом — как сейчас."),
+        ("pill", "Капсула", "Розовая таблетка без радуги."),
+        ("outline", "Контур", "Прозрачная с розовой обводкой."),
+        ("glass", "Стекло", "Тёмная полупрозрачная плашка."),
+        ("neon", "Неон", "Яркая маджента, как подсветка."),
+        ("plaque", "Как кнопки комнаты", "Тот же вид, что Общение / Играть."),
+        ("text", "Только текст", "Надпись без фона."),
+        ("square", "Значок", "Компактный квадрат «OS»."),
+    )
+
+    def osbtn_on():
+        return flag("_mas_os_talk_btn", True)
+
+    def osbtn_place():
+        p = getattr(store.persistent, "_mas_os_osbtn_place", "corner") or "corner"
+        ids = [row[0] for row in OSBTN_PLACES]
+        if p not in ids:
+            return "corner"
+        return p
+
+    def osbtn_style():
+        s = getattr(store.persistent, "_mas_os_osbtn_style", "rainbow") or "rainbow"
+        ids = [row[0] for row in OSBTN_STYLES]
+        if s not in ids:
+            return "rainbow"
+        return s
+
+    def set_osbtn_place(place):
+        ids = [row[0] for row in OSBTN_PLACES]
+        if place not in ids:
+            place = "corner"
+        store.persistent._mas_os_osbtn_place = place
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        return None
+
+    def set_osbtn_style(style):
+        ids = [row[0] for row in OSBTN_STYLES]
+        if style not in ids:
+            style = "rainbow"
+        store.persistent._mas_os_osbtn_style = style
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        return None
 
     def boot_splash_saved():
         sid = getattr(store.persistent, "_mas_os_boot_splash", "logo") or "logo"
@@ -454,44 +513,110 @@ screen mas_os_logo_mark(kind="logo", max_w=72, max_h=72, xpos=None, ypos=None):
 
 
 screen mas_os_return_chip(xpos=28, ypos=28):
-    $ _w, _h = store.mas_os.os_btn_size()
-    $ _pad = 7
-    $ _tw = _w + _pad * 2
-    $ _th = _h + _pad * 2
-    $ _idle = store.mas_os.os_btn_disp(False)
-    $ _hover = store.mas_os.os_btn_disp(True)
+    $ _style = store.mas_os.osbtn_style()
     $ _act = store.mas_os.return_to_shell_action()
     $ _label = store.mas_os.TALK_LABEL
-    $ _col = store.mas_os.os_btn_label_color()
     $ _size = store.mas_os.os_btn_label_size()
-    $ _rb = MASOSRainbowBorder(_tw, _th, 3, 0.32, radius=_th // 2)
 
-    fixed:
-        xpos xpos
-        ypos ypos
-        xysize (_tw, _th)
-
-        add _rb:
-            xpos 0
-            ypos 0
-            at mas_os_rainbow_pulse
-
+    if _style == "square":
         button:
-            style "mas_os_talk_btn"
-            xpos _pad
-            ypos _pad
-            xysize (_w, _h)
-            padding (46, 0, 10, 0)
-            idle_background _idle
-            hover_background _hover
-            selected_background _hover
+            xpos xpos
+            ypos ypos
+            xysize (52, 52)
+            background Solid("#C94A7A")
+            hover_background Solid("#FF5BA2")
             action _act
+            hover_sound store.mas_os.os_hover()
+            activate_sound store.mas_os.os_activate()
 
-            if _label:
-                text _label:
-                    style "mas_os_talk_btn_text"
-                    color _col
-                    size _size
+            text _("OS"):
+                style "mas_os_talk_btn_text"
+                size 16
+                xalign 0.5
+                yalign 0.5
+    elif _style == "text":
+        textbutton _label:
+            xpos xpos
+            ypos ypos
+            background None
+            action _act
+            text_style "mas_os_talk_btn_text"
+            text_size 18
+            text_outlines [(2, "#8A1A4A", 0, 0)]
+            hover_sound store.mas_os.os_hover()
+            activate_sound store.mas_os.os_activate()
+    elif _style == "plaque":
+        textbutton _label:
+            xpos xpos
+            ypos ypos
+            style "hkb_button"
+            action _act
+            hover_sound store.mas_os.os_hover()
+            activate_sound store.mas_os.os_activate()
+    else:
+        $ _w, _h = store.mas_os.os_btn_size()
+        $ _pad = 7 if _style == "rainbow" else 4
+        $ _tw = _w + _pad * 2
+        $ _th = _h + _pad * 2
+        $ _idle = store.mas_os.os_btn_disp(False)
+        $ _hover = store.mas_os.os_btn_disp(True)
+        $ _col = store.mas_os.os_btn_label_color()
+        $ _bg_idle = _idle
+        $ _bg_hover = _hover
+        if _style == "pill":
+            $ _bg_idle = Solid("#E85A9A")
+            $ _bg_hover = Solid("#FF7AB8")
+            $ _col = "#FFFFFF"
+        elif _style == "outline":
+            $ _bg_idle = Solid("#00000000")
+            $ _bg_hover = Solid("#C94A7A55")
+            $ _col = "#FFE6F3"
+        elif _style == "glass":
+            $ _bg_idle = Solid("#14070dCC")
+            $ _bg_hover = Solid("#3A1524EE")
+            $ _col = "#FFE6F3"
+        elif _style == "neon":
+            $ _bg_idle = Solid("#FF2D7A")
+            $ _bg_hover = Solid("#FF7AB8")
+            $ _col = "#FFFFFF"
+
+        fixed:
+            xpos xpos
+            ypos ypos
+            xysize (_tw, _th)
+
+            if _style == "rainbow":
+                add MASOSRainbowBorder(_tw, _th, 3, 0.32, radius=_th // 2):
+                    xpos 0
+                    ypos 0
+                    at mas_os_rainbow_pulse
+            elif _style == "outline":
+                frame:
+                    xysize (_tw, _th)
+                    background Solid("#FF5BA2")
+            elif _style == "neon":
+                frame:
+                    xysize (_tw + 6, _th + 6)
+                    xpos -3
+                    ypos -3
+                    background Solid("#FF5BA266")
+
+            button:
+                style "mas_os_talk_btn"
+                xpos _pad
+                ypos _pad
+                xysize (_w, _h)
+                padding (12, 0)
+                idle_background _bg_idle
+                hover_background _bg_hover
+                selected_background _bg_hover
+                action _act
+
+                if _label:
+                    text _label:
+                        style "mas_os_talk_btn_text"
+                        color _col
+                        size _size
 
 
 screen mas_os_boot_splash_picker(width=760):
@@ -751,6 +876,77 @@ screen mas_os_boot_off_seq():
     use mas_os_boot_end(0.42)
 
 
+transform mas_os_boot_pulse_logo:
+    subpixel True
+    alpha 0.0
+    zoom 0.82
+    easein 0.45 alpha 1.0 zoom 1.08
+    ease 0.35 zoom 1.0
+    pause 0.7
+    ease 0.25 alpha 0.0 zoom 1.2
+
+
+screen mas_os_boot_pulse_seq():
+    $ _lp = store.mas_os.logo_path("boot")
+    add Solid("#050308")
+    if _lp:
+        add store.mas_os.fit_image(_lp, 240, 240) at mas_os_boot_pulse_logo:
+            xalign 0.5
+            yalign 0.42
+    else:
+        text "MAS OS":
+            style "mas_os_title"
+            xalign 0.5
+            yalign 0.42
+            at mas_os_boot_pulse_logo
+    add Solid("#000000") at mas_os_cut_at(1.65)
+    use mas_os_boot_end(1.95)
+
+
+screen mas_os_boot_scan_seq():
+    add Solid("#050308")
+    add Solid("#FF5BA2"):
+        xsize 1280
+        ysize 14
+        ypos 80
+        at mas_os_scanline
+    add Solid("#FFD56A"):
+        xsize 1280
+        ysize 8
+        ypos 280
+        at mas_os_scanline
+    text _("MAS OS"):
+        style "mas_os_title"
+        xalign 0.5
+        yalign 0.45
+        at mas_os_boot_in(0.2)
+    add Solid("#000000") at mas_os_cut_at(1.55)
+    use mas_os_boot_end(1.85)
+
+
+screen mas_os_boot_hearts_seq():
+    add Solid("#14070d")
+    add "mod_assets/affhearts/heart_pink.png" at mas_os_boot_in(0.1):
+        xalign 0.28
+        yalign 0.42
+        zoom 0.7
+    add "mod_assets/affhearts/heart_hot.png" at mas_os_boot_in(0.22):
+        xalign 0.5
+        yalign 0.36
+        zoom 0.9
+    add "mod_assets/affhearts/heart_gold.png" at mas_os_boot_in(0.34):
+        xalign 0.72
+        yalign 0.42
+        zoom 0.7
+    text _("Just Monika"):
+        style "mas_os_subtitle"
+        xalign 0.5
+        ypos 480
+        at mas_os_boot_in(0.5)
+    add Solid("#000000") at mas_os_cut_at(1.75)
+    use mas_os_boot_end(2.05)
+
+
 screen mas_os_boot_anim():
     modal True
     zorder 500
@@ -761,6 +957,12 @@ screen mas_os_boot_anim():
         use mas_os_boot_wordmark_seq
     elif mode == "minimal":
         use mas_os_boot_minimal_seq
+    elif mode == "pulse":
+        use mas_os_boot_pulse_seq
+    elif mode == "scan":
+        use mas_os_boot_scan_seq
+    elif mode == "hearts":
+        use mas_os_boot_hearts_seq
     elif mode == "off":
         use mas_os_boot_off_seq
     else:

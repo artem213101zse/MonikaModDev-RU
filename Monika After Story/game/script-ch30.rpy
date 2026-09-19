@@ -2113,6 +2113,8 @@ label ch30_loop:
         $ mas_backgroundUpdateCheck()
         $ mas_checked_update = True
 
+    $ store.mas_os.news_on_game_enter()
+
 label ch30_visual_skip:
 
     $ persistent.autoload = "ch30_autoload"

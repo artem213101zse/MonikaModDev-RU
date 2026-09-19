@@ -6,7 +6,7 @@
 # Срабатывает из mas_affection._grant_aff, если очки реально добавились.
 # Стили: stream / columns / burst / sparkle / soft / fireworks
 # Текущий стиль: persistent._mas_affhearts_style (пока stream).
-# Превью всех стилей — debug-меню.
+# Превью всех стилей — MAS OS → Настройки → Персонализация → Привязанность.
 #
 # Store: mas_affhearts
 # Рисуется Displayable на слое overlay (не screen) — поверх всего
@@ -33,15 +33,61 @@ init -2 python in mas_affhearts:
     STYLE_SPARKLE = "sparkle"
     STYLE_SOFT = "soft"
     STYLE_FIREWORKS = "fireworks"
+    STYLE_RAIN = "rain"
+    STYLE_FOUNTAIN = "fountain"
+    STYLE_ORBIT = "orbit"
+    STYLE_OFF = "off"
 
     STYLES = [
+        STYLE_OFF,
         STYLE_STREAM,
         STYLE_COLUMNS,
         STYLE_BURST,
         STYLE_SPARKLE,
         STYLE_SOFT,
         STYLE_FIREWORKS,
+        STYLE_RAIN,
+        STYLE_FOUNTAIN,
+        STYLE_ORBIT,
     ]
+
+    STYLE_ROWS = (
+        (STYLE_OFF, u"Выключено", u"Сердечки не появляются. Привязанность всё равно растёт."),
+        (STYLE_STREAM, u"Лайки как на стриме", u"Сердечки всплывают с боков и улетают вверх."),
+        (STYLE_COLUMNS, u"Колонны по бокам", u"Две вертикальные колонны сердечек по краям."),
+        (STYLE_BURST, u"Взрыв из углов", u"Вылетают из нижних углов к центру."),
+        (STYLE_SPARKLE, u"Искры и сердечки", u"Мелкие искры вместе с сердцами."),
+        (STYLE_SOFT, u"Мягкие большие", u"Крупные полупрозрачные сердца."),
+        (STYLE_FIREWORKS, u"Фейерверк по бокам", u"Вспышки по бокам экрана."),
+        (STYLE_RAIN, u"Дождь сердец", u"Падают сверху вниз по всему экрану."),
+        (STYLE_FOUNTAIN, u"Фонтан", u"Вылетают снизу из центра вверх."),
+        (STYLE_ORBIT, u"Орбита", u"Кружатся вокруг Моники слева и справа."),
+    )
+
+    def current_style():
+        sid = getattr(store.persistent, "_mas_affhearts_style", None) or STYLE_STREAM
+        if sid not in STYLES:
+            return STYLE_STREAM
+        return sid
+
+    def set_style(sid):
+        if sid not in STYLES:
+            sid = STYLE_STREAM
+        store.persistent._mas_affhearts_style = sid
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        return None
+
+    def preview(sid=None):
+        if sid is None:
+            sid = current_style()
+        set_style(sid)
+        if sid == STYLE_OFF:
+            return None
+        play(style=sid, amount=10.0, force=True)
+        return None
 
     HEARTS = [
         "mod_assets/affhearts/heart_pink.png",
@@ -216,7 +262,60 @@ init -2 python in mas_affhearts:
         return out
 
 
+    def _build_rain(n):
+        out = []
+        for i in range(n + 6):
+            x0 = random.uniform(40, 1240)
+            x1 = x0 + random.uniform(-40, 40)
+            y0 = random.uniform(-80, 40)
+            y1 = random.uniform(640, 820)
+            delay = random.uniform(0.0, 0.9)
+            dur = random.uniform(1.8, 2.8)
+            rot = random.uniform(-50, 50)
+            z0 = random.uniform(0.35, 0.7)
+            z1 = z0 * random.uniform(0.9, 1.2)
+            img = SPARK if random.random() < 0.18 else _pick_heart()
+            out.append(Particle(img, x0, y0, x1, y1, delay, dur, rot, z0, z1, 0.9))
+        return out
+
+    def _build_fountain(n):
+        out = []
+        for i in range(n + 4):
+            x0 = random.uniform(600, 680)
+            y0 = 730
+            x1 = x0 + random.uniform(-280, 280)
+            y1 = random.uniform(80, 320)
+            delay = random.uniform(0.0, 0.7)
+            dur = random.uniform(1.9, 2.9)
+            rot = random.uniform(-70, 70)
+            z0 = random.uniform(0.4, 0.8)
+            z1 = z0 * random.uniform(0.8, 1.15)
+            out.append(Particle(_pick_heart(), x0, y0, x1, y1, delay, dur, rot, z0, z1, 0.94))
+        return out
+
+    def _build_orbit(n):
+        out = []
+        for side in (0, 1):
+            cx = 220 if side == 0 else 1060
+            cy = 360
+            for i in range(max(4, n / 2)):
+                ang = random.uniform(0, 6.28)
+                rad = random.uniform(70, 160)
+                x0 = cx + rad * 0.2
+                y0 = cy
+                x1 = cx + rad
+                y1 = cy + random.uniform(-120, 120)
+                delay = random.uniform(0.0, 0.5)
+                dur = random.uniform(2.0, 3.2)
+                rot = random.uniform(-40, 40)
+                z0 = random.uniform(0.4, 0.72)
+                z1 = z0
+                out.append(Particle(_pick_heart(), x0, y0, x1, y1, delay, dur, rot, z0, z1, 0.9))
+        return out
+
     def _build(style, amount):
+        if style == STYLE_OFF:
+            return []
         if style == STYLE_COLUMNS:
             return _build_columns(_count(amount, 10, 16))
         if style == STYLE_BURST:
@@ -227,6 +326,12 @@ init -2 python in mas_affhearts:
             return _build_soft(_count(amount, 5, 8))
         if style == STYLE_FIREWORKS:
             return _build_fireworks(_count(amount, 6, 10))
+        if style == STYLE_RAIN:
+            return _build_rain(_count(amount, 12, 20))
+        if style == STYLE_FOUNTAIN:
+            return _build_fountain(_count(amount, 10, 16))
+        if style == STYLE_ORBIT:
+            return _build_orbit(_count(amount, 10, 16))
         return _build_stream(_count(amount, 9, 16))
 
 
@@ -246,9 +351,11 @@ init -2 python in mas_affhearts:
             return
 
         if style is None:
-            style = store.persistent._mas_affhearts_style or STYLE_STREAM
+            style = current_style()
         if style not in STYLES:
             style = STYLE_STREAM
+        if style == STYLE_OFF:
+            return
 
         particles = _build(style, amount)
         duration = 4.2

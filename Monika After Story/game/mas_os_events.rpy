@@ -503,19 +503,7 @@ screen mas_os_events():
         xpos 48
         ypos 58
 
-    button:
-        xpos 1160
-        ypos 12
-        xysize (72, 72)
-        background None
-        action Function(store.mas_os.open_wall_calendar)
-        hover_sound store.mas_os.os_hover()
-        activate_sound store.mas_os.os_activate()
 
-        if cal_img:
-            add store.mas_os.fit_image(cal_img, 64, 64):
-                xalign 0.5
-                yalign 0.5
 
     viewport:
         xpos 48
@@ -690,6 +678,7 @@ screen mas_os_events():
     hbox:
         xpos 48
         ypos 640
+        xsize 1184
         spacing 12
 
         if not store.mas_os.wm_embedded():
@@ -697,6 +686,9 @@ screen mas_os_events():
                 style "mas_os_nav_btn"
                 text_style "mas_os_nav_btn_text"
                 action Return("back")
+
+        null:
+            xfill True
 
         use mas_os_ibutton(_("Календарь"), Function(store.mas_os.open_wall_calendar), "Кл", "#C94A7A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, icon="events")
 

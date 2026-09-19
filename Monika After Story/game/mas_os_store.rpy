@@ -57,6 +57,10 @@ init -5 python in mas_os:
     dl_busy = False
     dl_last_name = ""
     dl_from = "home"
+    dl_show_hist = False
+    dl_sel = None
+    dl_fs_path = None
+    dl_fs_name = ""
 
     DL_KINDS = [
         ("wallpaper", "Обои", "wallpaper", (".png", ".jpg", ".jpeg")),
@@ -76,8 +80,96 @@ init -5 python in mas_os:
         return DL_KINDS[0]
 
     def set_dl_kind(kind):
-        global dl_kind
+        global dl_kind, dl_sel
         dl_kind = kind or "wallpaper"
+        dl_sel = None
+
+    def store_ui():
+        mode = getattr(store.persistent, "_mas_os_store_ui", "win10") or "win10"
+        if mode not in ("win10", "classic"):
+            return "win10"
+        return mode
+
+    def store_ui_classic():
+        return store_ui() == "classic"
+
+    def set_store_ui(mode):
+        if mode not in ("win10", "classic"):
+            mode = "win10"
+        store.persistent._mas_os_store_ui = mode
+        try:
+            os_persist()
+        except Exception:
+            try:
+                store.renpy.save_persistent()
+            except Exception:
+                pass
+        return None
+
+    def toggle_dl_hist():
+        global dl_show_hist
+        dl_show_hist = not dl_show_hist
+        return None
+
+    def set_dl_sel(item):
+        global dl_sel
+        dl_sel = item
+        return None
+
+    def dl_is_image_name(name):
+        ext = os.path.splitext(name or "")[1].lower()
+        return ext in (".png", ".jpg", ".jpeg")
+
+    def dl_display_path(item):
+        if not item:
+            return None
+        path = item.get("path") or ""
+        if not path:
+            return None
+        try:
+            root = os.path.normpath(writable_gamedir() or game_dir())
+            npath = os.path.normpath(path)
+            if npath.startswith(root):
+                rel = npath[len(root):].replace("\\", "/").lstrip("/")
+                opened = asset_open_path(rel)
+                if opened:
+                    return opened
+                return rel
+        except Exception:
+            pass
+        return path
+
+    def open_dl_fullscreen(item=None):
+        global dl_fs_path, dl_fs_name, dl_sel
+        item = item or dl_sel
+        if not item:
+            return None
+        if not dl_is_image_name(item.get("name")):
+            return None
+        dl_sel = item
+        dl_fs_path = dl_display_path(item)
+        dl_fs_name = item.get("name") or ""
+        try:
+            store.renpy.show_screen("mas_os_dl_fullscreen")
+        except Exception:
+            pass
+        return None
+
+    def close_dl_fullscreen():
+        try:
+            store.renpy.hide_screen("mas_os_dl_fullscreen")
+        except Exception:
+            pass
+        return None
+
+    def apply_dl_wallpaper(item=None):
+        item = item or dl_sel
+        if not item or item.get("kind") != "wallpaper":
+            return None
+        set_wallpaper(item.get("name"))
+        close_dl_fullscreen()
+        close_wp_preview()
+        return None
 
     def open_store(kind, back="home"):
         global dl_from
@@ -158,6 +250,28 @@ init -5 python in mas_os:
         if path != folder and not path.startswith(prefix):
             return None
         return path
+
+    def dl_grid_cells(cols=3):
+        items = list(dl_list_files())
+        while len(items) % cols:
+            items.append(None)
+        nrows = max(1, len(items) // cols)
+        return cols, nrows, items
+
+    def preview_cover(path, tw=1280, th=720):
+        if not path:
+            return store.Solid("#000000")
+        try:
+            iw, ih = store.renpy.image_size(path)
+            if iw and ih:
+                z = max(float(tw) / float(iw), float(th) / float(ih))
+                return store.Transform(path, zoom=z)
+        except Exception:
+            pass
+        try:
+            return fit_image(path, tw, th)
+        except Exception:
+            return path
 
     def dl_list_files(kind=None):
         """
@@ -1142,6 +1256,13 @@ label mas_os_store:
 
 
 screen mas_os_store():
+    if store.mas_os.store_ui_classic():
+        use mas_os_store_classic
+    else:
+        use mas_os_store_win
+
+
+screen mas_os_store_classic():
     if not store.mas_os.wm_embedded():
         modal True
         zorder 200
@@ -1165,6 +1286,14 @@ screen mas_os_store():
         style "mas_os_title"
         xpos 48
         ypos 16
+
+    textbutton _("Новый вид"):
+        style "mas_os_nav_btn"
+        text_style "mas_os_nav_btn_text"
+        xpos 980
+        ypos 16
+        xsize 200
+        action Function(store.mas_os.set_store_ui, "win10")
 
     use mas_os_app_folder_warn(xpos=280, ypos=10, xsize=960)
 
@@ -1423,3 +1552,419 @@ screen mas_os_store_link(kind, back="home", xsize=760):
             text _("Загрузить свои через Склад"):
                 style "mas_os_button_text"
                 yalign 0.5
+
+
+screen mas_os_store_win():
+    if not store.mas_os.wm_embedded():
+        modal True
+        zorder 200
+
+    $ kind = store.mas_os.dl_kind
+    $ typing = store.mas_os.dl_typing
+    $ typed = store.mas_os.dl_url or ""
+    $ status = store.mas_os.dl_status
+    $ busy = store.mas_os.dl_busy
+    $ hist = store.mas_os.dl_history()
+    $ row = store.mas_os.dl_kind_row()
+    $ owned = store.mas_os.dl_list_files()
+    $ back_to = store.mas_os.dl_from or "home"
+    $ sel = store.mas_os.dl_sel
+    $ sel_path = store.mas_os.dl_display_path(sel) if sel else None
+    $ _g = store.mas_os.dl_grid_cells(3)
+    $ nrows = _g[1]
+    $ cells = _g[2]
+
+    use mas_os_bg
+
+    if busy:
+        timer 0.4 repeat True action Function(renpy.restart_interaction)
+
+    text _("Склад"):
+        style "mas_os_title"
+        xpos 48
+        ypos 14
+
+    text _("Свои файлы. Скачай, глянь превью, удали. Ссылка одна на всех."):
+        style "mas_os_hint"
+        xpos 48
+        ypos 54
+
+    textbutton _("Классический вид"):
+        style "mas_os_nav_btn"
+        text_style "mas_os_nav_btn_text"
+        xpos 980
+        ypos 16
+        xsize 252
+        action Function(store.mas_os.set_store_ui, "classic")
+
+    hbox:
+        xpos 48
+        ypos 84
+        spacing 8
+
+        for kid, title, icname, exts in store.mas_os.DL_KINDS:
+            button:
+                xysize (150, 40)
+                background Solid(store.mas_os.theme_color("btn_sel") if kid == kind else store.mas_os.theme_color("btn"))
+                hover_background Solid(store.mas_os.theme_color("btn_hover"))
+                padding (8, 6)
+                hover_sound store.mas_os.os_hover()
+                activate_sound store.mas_os.os_activate()
+                action Function(store.mas_os.set_dl_kind, kid)
+
+                text title:
+                    style "mas_os_body"
+                    size 15
+                    xalign 0.5
+                    yalign 0.5
+                    substitute False
+
+    frame:
+        xpos 48
+        ypos 134
+        xysize (1184, 56)
+        background Solid(store.mas_os.theme_color("panel"))
+        padding (10, 8)
+
+        hbox:
+            spacing 8
+            yalign 0.5
+
+            if typing:
+                input:
+                    value store.mas_os.dl_iv
+                    copypaste True
+                    length 4000
+                    color store.mas_os.theme_color("input")
+                    size 16
+                    xsize 620
+                    yalign 0.5
+            else:
+                button:
+                    style "mas_os_gift_field"
+                    xsize 620
+                    ysize 40
+                    action [
+                        Function(store.mas_os.start_dl_typing),
+                        store.mas_os.dl_iv.Enable(),
+                    ]
+
+                    if typed:
+                        text typed:
+                            style "mas_os_body"
+                            size 15
+                            yalign 0.5
+                            substitute False
+                    else:
+                        text _("Ссылка: GitHub raw, Drive, Яндекс, Dropbox"):
+                            style "mas_os_hint"
+                            size 15
+                            yalign 0.5
+
+            textbutton _("Вставить"):
+                style "mas_os_nav_btn"
+                text_style "mas_os_nav_btn_text"
+                xsize 130
+                ysize 40
+                action Function(store.mas_os.paste_url_into, "dl")
+
+            if typing:
+                textbutton _("Готово"):
+                    style "mas_os_nav_btn"
+                    text_style "mas_os_nav_btn_text"
+                    xsize 110
+                    ysize 40
+                    action [
+                        store.mas_os.dl_iv.Disable(),
+                        Function(store.mas_os.stop_dl_typing),
+                    ]
+
+            textbutton _("Скачать"):
+                style "mas_os_nav_btn"
+                text_style "mas_os_nav_btn_text"
+                xsize 140
+                ysize 40
+                sensitive (not busy)
+                action Function(store.mas_os.start_download)
+
+            textbutton _("Журнал"):
+                style "mas_os_nav_btn"
+                text_style "mas_os_nav_btn_text"
+                xsize 120
+                ysize 40
+                action Function(store.mas_os.toggle_dl_hist)
+
+    if status:
+        text status:
+            style "mas_os_body"
+            size 15
+            xpos 48
+            ypos 196
+            xsize 1180
+            substitute False
+
+    if store.mas_os.dl_show_hist:
+        frame:
+            xpos 48
+            ypos 222
+            xysize (1184, 72)
+            background Solid(store.mas_os.theme_color("panel2"))
+            padding (10, 8)
+
+            viewport:
+                xysize (1164, 56)
+                draggable True
+                mousewheel True
+                scrollbars "vertical"
+
+                vbox:
+                    spacing 2
+                    if not hist:
+                        text _("Пока пусто."):
+                            style "mas_os_hint"
+                    else:
+                        for item in hist:
+                            $ mark = "OK" if item.get("ok") else "ERR"
+                            text "{0}  {1}  —  {2}".format(mark, item.get("kind"), item.get("name")):
+                                style "mas_os_hint"
+                                size 13
+                                substitute False
+
+    $ _grid_y = 222
+    if status:
+        $ _grid_y = 222
+    if store.mas_os.dl_show_hist:
+        $ _grid_y = 302
+    elif status:
+        $ _grid_y = 226
+
+    viewport:
+        xpos 48
+        ypos _grid_y
+        xysize (780, 630 - _grid_y)
+        draggable True
+        mousewheel True
+        scrollbars "vertical"
+
+        vbox:
+            spacing 8
+            xsize 760
+
+            text _("Загруженное · {0}").format(row[1]):
+                style "mas_os_subtitle"
+
+            if not owned:
+                text _("Пока пусто. Вставь ссылку сверху и скачай."):
+                    style "mas_os_hint"
+            else:
+                grid 3 nrows:
+                    spacing 8
+                    xsize 760
+
+                    for cell in cells:
+                        if cell:
+                            button:
+                                xysize (244, 132)
+                                background Solid(store.mas_os.theme_color("btn_sel") if (sel and sel.get("name") == cell.get("name")) else store.mas_os.theme_color("panel"))
+                                hover_background Solid(store.mas_os.theme_color("btn_hover"))
+                                padding (8, 8)
+                                hover_sound store.mas_os.os_hover()
+                                activate_sound store.mas_os.os_activate()
+                                action Function(store.mas_os.set_dl_sel, cell)
+
+                                vbox:
+                                    spacing 4
+                                    xfill True
+
+                                    $ _thumb = store.mas_os.dl_display_path(cell) if store.mas_os.dl_is_image_name(cell.get("name")) else None
+                                    if _thumb:
+                                        add store.mas_os.fit_image(_thumb, 228, 78):
+                                            xalign 0.5
+                                    else:
+                                        frame:
+                                            xsize 228
+                                            ysize 78
+                                            background Solid(store.mas_os.theme_color("panel2"))
+
+                                            text cell.get("name", "")[-12:]:
+                                                style "mas_os_hint"
+                                                size 13
+                                                xalign 0.5
+                                                yalign 0.5
+                                                substitute False
+
+                                    text cell.get("name", ""):
+                                        style "mas_os_body"
+                                        size 13
+                                        xsize 220
+                                        substitute False
+                        else:
+                            null
+
+    frame:
+        xpos 844
+        ypos _grid_y
+        xysize (388, 630 - _grid_y)
+        background Solid(store.mas_os.theme_color("panel"))
+        padding (14, 12)
+
+        vbox:
+            spacing 8
+            xfill True
+
+            text _("Превью"):
+                style "mas_os_subtitle"
+
+            if not sel:
+                text _("Выбери файл слева."):
+                    style "mas_os_hint"
+            else:
+                if sel_path and store.mas_os.dl_is_image_name(sel.get("name")):
+                    button:
+                        xsize 360
+                        ysize 160
+                        background Solid(store.mas_os.theme_color("panel2"))
+                        action Function(store.mas_os.open_dl_fullscreen, sel)
+
+                        add store.mas_os.fit_image(sel_path, 350, 150):
+                            xalign 0.5
+                            yalign 0.5
+                else:
+                    text sel.get("name", ""):
+                        style "mas_os_body"
+                        size 16
+                        xsize 350
+                        substitute False
+
+                text _("Нажми картинку — на весь экран."):
+                    style "mas_os_hint"
+                    size 13
+
+                if sel.get("kind") == "wallpaper":
+                    textbutton _("Поставить обоями"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 350
+                        action Function(store.mas_os.apply_dl_wallpaper, sel)
+
+                if sel_path and store.mas_os.dl_is_image_name(sel.get("name")):
+                    textbutton _("На весь экран"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 350
+                        action Function(store.mas_os.open_dl_fullscreen, sel)
+
+                textbutton _("Удалить"):
+                    style "mas_os_nav_btn"
+                    text_style "mas_os_nav_btn_text"
+                    xsize 350
+                    action Show(
+                        "mas_os_confirm",
+                        message=store.mas_os.dl_delete_prompt(sel.get("name")),
+                        yes_action=[
+                            Function(store.mas_os.dl_delete, sel.get("kind"), sel.get("name")),
+                            Function(store.mas_os.set_dl_sel, None),
+                            Hide("mas_os_confirm"),
+                        ],
+                        no_action=Hide("mas_os_confirm"),
+                    )
+
+    if not store.mas_os.wm_embedded():
+        textbutton _("Назад"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xpos 48
+            ypos 668
+            at mas_os_btn
+            action [
+                Function(store.mas_os.stop_dl_typing),
+                Return(back_to),
+            ]
+
+        key "K_ESCAPE" action [Function(store.mas_os.stop_dl_typing), Return(back_to)]
+        key "K_AC_BACK" action If(
+            store.mas_os.dl_typing,
+            [store.mas_os.dl_iv.Disable(), Function(store.mas_os.stop_dl_typing)],
+            [Function(store.mas_os.stop_dl_typing), Return(back_to)],
+        )
+
+
+screen mas_os_wp_fullscreen():
+    modal True
+    zorder 400
+
+    $ wid = store.mas_os.wp_preview_id
+    $ path = store.mas_os.wp_preview_path
+    if not path and wid and wid != "solid":
+        $ path = store.mas_os.asset_open_path(store.mas_os.WP_REL + "/" + wid)
+
+    add Solid("#000000E8")
+
+    if wid == "solid":
+        add Solid(store.mas_os.theme_color("bg"))
+    elif path:
+        add store.mas_os.preview_cover(path, 1280, 720):
+            xalign 0.5
+            yalign 0.5
+
+    hbox:
+        xalign 0.5
+        ypos 640
+        spacing 16
+
+        textbutton _("Поставить"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xsize 200
+            action Function(store.mas_os.apply_wp_preview)
+
+        textbutton _("Закрыть"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xsize 200
+            action Function(store.mas_os.close_wp_preview)
+
+    key "K_ESCAPE" action Function(store.mas_os.close_wp_preview)
+    key "K_AC_BACK" action Function(store.mas_os.close_wp_preview)
+
+
+screen mas_os_dl_fullscreen():
+    modal True
+    zorder 400
+
+    $ path = store.mas_os.dl_fs_path
+    $ name = store.mas_os.dl_fs_name or ""
+
+    add Solid("#000000E8")
+
+    if path:
+        add store.mas_os.preview_cover(path, 1280, 720):
+            xalign 0.5
+            yalign 0.5
+
+    text name:
+        style "mas_os_hint"
+        xpos 24
+        ypos 16
+        substitute False
+
+    hbox:
+        xalign 0.5
+        ypos 640
+        spacing 16
+
+        if store.mas_os.dl_sel and store.mas_os.dl_sel.get("kind") == "wallpaper":
+            textbutton _("Поставить обоями"):
+                style "mas_os_nav_btn"
+                text_style "mas_os_nav_btn_text"
+                xsize 240
+                action Function(store.mas_os.apply_dl_wallpaper)
+
+        textbutton _("Закрыть"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xsize 200
+            action Function(store.mas_os.close_dl_fullscreen)
+
+    key "K_ESCAPE" action Function(store.mas_os.close_dl_fullscreen)
+    key "K_AC_BACK" action Function(store.mas_os.close_dl_fullscreen)

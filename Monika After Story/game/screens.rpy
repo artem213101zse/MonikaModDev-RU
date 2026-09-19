@@ -694,8 +694,18 @@ screen talk_choice(items):
         for i in items:
             textbutton i.caption action i.action
 
-    # Kurokawa chip + rainbow frame. Art lives in mod_assets/mas_os/brand/.
-    if not mas_in_finalfarewell_mode and store.mas_os.flag("_mas_os_talk_btn", True):
+        if (
+            not mas_in_finalfarewell_mode
+            and store.mas_os.osbtn_on()
+            and store.mas_os.osbtn_place() == "talk"
+        ):
+            textbutton _("MAS OS") action store.mas_os.return_to_shell_action()
+
+    if (
+        not mas_in_finalfarewell_mode
+        and store.mas_os.osbtn_on()
+        and store.mas_os.osbtn_place() == "corner"
+    ):
         use mas_os_return_chip(xpos=28, ypos=28)
 
 

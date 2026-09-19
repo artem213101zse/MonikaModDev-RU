@@ -466,6 +466,74 @@ screen mas_os_launch_off_seq():
     use mas_os_launch_end(0.55)
 
 
+transform mas_os_wipe_bar:
+    xoffset -1280
+    pause 0.12
+    easein 0.7 xoffset 0
+    pause 0.35
+    ease 0.25 alpha 0.0
+
+
+transform mas_os_shutter_l:
+    xoffset 0
+    pause 0.15
+    easein 0.55 xoffset 640
+    pause 0.2
+    ease 0.2 alpha 1.0
+
+
+transform mas_os_shutter_r:
+    xoffset 0
+    pause 0.15
+    easein 0.55 xoffset -640
+    pause 0.2
+    ease 0.2 alpha 1.0
+
+
+transform mas_os_zoom_wp:
+    subpixel True
+    zoom 1.0
+    ease 1.15 zoom 1.22
+    ease 0.35 alpha 0.0
+
+
+screen mas_os_launch_fade_seq():
+    add Solid("#000000") at mas_os_off_dim
+    text _("Just Monika"):
+        style "mas_os_title"
+        xalign 0.5
+        yalign 0.45
+        at mas_os_bloom_title
+    use mas_os_launch_end(1.65)
+
+
+screen mas_os_launch_wipe_seq():
+    add Solid("#14070d") at mas_os_wipe_bar
+    add Solid("#000000") at mas_os_cut_at(1.15)
+    use mas_os_launch_end(1.45)
+
+
+screen mas_os_launch_shutter_seq():
+    add Solid("#050308"):
+        xsize 640
+        ysize 720
+        xpos 0
+        at mas_os_shutter_l
+    add Solid("#050308"):
+        xsize 640
+        ysize 720
+        xpos 640
+        at mas_os_shutter_r
+    add Solid("#000000") at mas_os_cut_at(1.05)
+    use mas_os_launch_end(1.35)
+
+
+screen mas_os_launch_zoom_seq():
+    add store.mas_os.wallpaper_disp() at mas_os_zoom_wp
+    add Solid("#000000") at mas_os_cut_at(1.25)
+    use mas_os_launch_end(1.55)
+
+
 screen mas_os_launch_anim():
     modal True
     zorder 500
@@ -478,6 +546,14 @@ screen mas_os_launch_anim():
         use mas_os_launch_glitch_seq
     elif mode == "iris":
         use mas_os_launch_iris_seq
+    elif mode == "fade":
+        use mas_os_launch_fade_seq
+    elif mode == "wipe":
+        use mas_os_launch_wipe_seq
+    elif mode == "shutter":
+        use mas_os_launch_shutter_seq
+    elif mode == "zoom":
+        use mas_os_launch_zoom_seq
     elif mode == "off":
         use mas_os_launch_off_seq
     else:

@@ -14,6 +14,8 @@ init -5 python in mas_os:
     toast_title = "Моника"
     toast_body = ""
     current_site = None
+    browser_yadj = None
+    browser_scroll_id = None
 
     BROWSER_SHOT = "mod_assets/mas_os/browser/{0}.png"
 
@@ -301,12 +303,24 @@ init -5 python in mas_os:
             except Exception:
                 pass
 
+    def browser_scroll():
+        global browser_yadj, browser_scroll_id
+        if browser_yadj is None or browser_scroll_id != current_site:
+            try:
+                browser_yadj = store.ui.adjustment()
+            except Exception:
+                browser_yadj = None
+            browser_scroll_id = current_site
+        return browser_yadj
+
     def visit_site(site_id):
-        global current_site
+        global current_site, browser_yadj, browser_scroll_id
         site = site_by_id(site_id)
         if site is None:
             return
         current_site = site_id
+        browser_yadj = None
+        browser_scroll_id = None
         quips = quips_for(site)
         try:
             body = store.renpy.substitute(random.choice(quips))
@@ -426,6 +440,7 @@ screen mas_os_browser():
 
         viewport:
             xysize (822, page_h)
+            yadjustment store.mas_os.browser_scroll()
             draggable True
             mousewheel True
             scrollbars "vertical"

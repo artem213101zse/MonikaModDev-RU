@@ -643,7 +643,10 @@ init -5 python in mas_os:
             names = []
             for name in sorted(os.listdir(folder)):
                 path = os.path.join(folder, name)
-                if os.path.isfile(path):
+                if not os.path.isfile(path):
+                    continue
+                low = name.lower()
+                if low.endswith(".gift") or name == "oki doki":
                     names.append(name)
         except Exception:
             return True, [], False
@@ -922,10 +925,10 @@ screen mas_os_gifts():
             spacing 8
             xfill True
 
-            text _("Уже в characters"):
+            text _("Подарки в characters"):
                 style "mas_os_subtitle"
 
-            text _("Нажми файл, чтобы удалить"):
+            text _("Только .gift. Записки Моники сюда не попадают."):
                 style "mas_os_hint"
                 size 14
 
@@ -974,7 +977,7 @@ screen mas_os_gifts():
                             text _("…и ещё файлы"):
                                 style "mas_os_hint"
                     else:
-                        text _("Папка пустая."):
+                        text _("Подарков пока нет."):
                             style "mas_os_hint"
 
     hbox:

@@ -1000,9 +1000,7 @@ init -8 python in mas_os:
         return cat_id
 
     def doc_list_label(page):
-        short = DOC_KIND_SHORT.get((page or {}).get("kind"), "?")
-        title = (page or {}).get("title") or ""
-        return "[{0}] {1}".format(short, title)
+        return (page or {}).get("title") or ""
 
 
 init python:
@@ -1200,9 +1198,6 @@ screen mas_os_docs():
             text doc_title:
                 style "mas_os_subtitle"
                 substitute False
-
-            text kind_label:
-                style "mas_os_hint"
 
             if doc is None:
                 text _("Выбери статью слева."):

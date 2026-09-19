@@ -160,6 +160,13 @@ screen hkb_overlay():
         else:
             textbutton _("Играть")
 
+        if (
+            not mas_in_finalfarewell_mode
+            and store.mas_os.osbtn_on()
+            and store.mas_os.osbtn_place() == "hkb"
+        ):
+            textbutton _("MAS OS") action store.mas_os.return_to_shell_action()
+
     if MAS_DEBUG_MENU:
         key "shift_K_d" action Function(mas_debug_open)
 

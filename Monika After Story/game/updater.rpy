@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 # --- FILE MAP ---
 # updater.rpy — проверка и скачивание обновлений MAS
 #
 # Экран MASUpdaterDisplayable: сеть, прогресс-бар, «есть новая версия».
-# Это про качание файлов.
+# В этом порте качать официальный MAS нельзя: если на S3 новая версия,
+# показываем текст «дождитесь обновления порта» и кнопку OK.
 #
 # Не путать:
 #   updates.rpy        — что сделать с данными, когда версия уже новая
@@ -64,8 +66,11 @@ init -1 python:
         BUTTON_BOT_SPACE = 50
         BUTTON_SPACING = 10
 
-        FRAME_WIDTH = 500
-        FRAME_HEIGHT = 250
+        FRAME_WIDTH = 560
+        FRAME_HEIGHT = 340
+
+        # last official MAS version string from the S3 json (class-level)
+        _latest_official = None
 
         VIEW_WIDTH = 1280
         VIEW_HEIGHT = 720
@@ -236,6 +241,7 @@ init -1 python:
                 color="#ffe6f4",
                 outlines=[]
             )
+            self._set_behind_text(None)
             self._text_noupdate = Text(
                 _("No update found."),
                 font=gui.default_font,
@@ -270,7 +276,8 @@ init -1 python:
                 self._button_update,
                 self._button_cancel,
             ]
-            self._behind_buttons = self._checking_buttons
+            # RU port: official MAS must not be installed over this build.
+            self._behind_buttons = [self._button_ok]
             self._updated_buttons = [self._button_ok]
             self._timeout_buttons = [
                 self._button_retry,
@@ -311,8 +318,11 @@ init -1 python:
 
                     # special state processing
                     if self._state == self.STATE_BEHIND:
-                        # this state needs to enable the update button
-                        self._button_update.enable()
+                        # RU port: explain and wait. Do not enable Update.
+                        self._button_update.disable()
+                        self._set_behind_text(
+                            getattr(MASUpdaterDisplayable, "_latest_official", None)
+                        )
 
                 elif time.time() - self._prev_time > self.TIMEOUT:
                     # timeout!
@@ -382,6 +392,36 @@ init -1 python:
             if self._retry_clicked:
                 return self.RET_VAL_RETRY_CANCEL
             return self.RET_VAL_CANCEL
+
+        def _set_behind_text(self, ver):
+            """RU port copy: new official MAS is not installable here."""
+            if ver:
+                try:
+                    ver = unicode(ver)
+                except Exception:
+                    ver = str(ver)
+                body = (
+                    u"Вышла новая версия MAS ({0}).\n"
+                    u"Этот порт её ещё не включает.\n"
+                    u"Сейчас идёт работа по интеграции —\n"
+                    u"дождись обновления порта.\n"
+                    u"Официальный MAS сюда ставить нельзя."
+                ).format(ver)
+            else:
+                body = (
+                    u"Вышла новая версия MAS.\n"
+                    u"Этот порт её ещё не включает.\n"
+                    u"Сейчас идёт работа по интеграции —\n"
+                    u"дождись обновления порта.\n"
+                    u"Официальный MAS сюда ставить нельзя."
+                )
+            self._text_update = Text(
+                body,
+                font=gui.default_font,
+                size=18,
+                color="#ffe6f4",
+                outlines=[]
+            )
 
         # some function here
         @staticmethod
@@ -478,6 +518,8 @@ init -1 python:
                 # json is missing pretty version
                 thread_result.append(MASUpdaterDisplayable.STATE_BAD_JSON)
                 return
+
+            MASUpdaterDisplayable._latest_official = latest_version
 
             # old version check
             if persistent._mas_unstable_mode:
@@ -654,13 +696,10 @@ init -1 python:
                         return self.RET_VAL_OK
 
                 elif self._state == self.STATE_BEHIND:
-                    # found an update
+                    # found an official MAS update — this port cannot install it
 
-                    if self._button_update.event(ev, x, y, st):
-                        return self.RET_VAL_UPDATE
-
-                    if self._button_cancel.event(ev, x, y, st):
-                        return self.cancel_value()
+                    if self._button_ok.event(ev, x, y, st):
+                        return self.RET_VAL_OK
 
                 else:
                     # timeout state
@@ -954,25 +993,9 @@ label update_now:
 #        "hold up"
 
         if updater_selection > 0:
-            # user wishes to update
-            $ persistent.closed_self = True # we take updates as self closed
-            $ persistent._mas_just_updated = True #set the just updated flag
-
-            #Stop background sound and music
-            stop background
-            stop music
-
-            # call quit so we can save important stuff
-            call quit
-            $ renpy.save_persistent()
-            window hide # just to be sure
-            $ updater.update(update_link, restart=True)
-
-            #Clear any potential lingering things in tray
-            $ mas_clearNotifs()
-
-            # we have to quit because calling QUIT breaks things
-            jump _quit
+            # RU port: never overlay official MAS onto this build.
+            $ persistent._update_last_checked[update_link] = time.time()
+            return MASUpdaterDisplayable.RET_VAL_OK
 
         else:
             # just update the last checked, regardless of issue

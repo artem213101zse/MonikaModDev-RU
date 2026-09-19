@@ -8,8 +8,9 @@
 # Моника уже «открыла» его (пианино, шахматы, виселица, NOU, острова…).
 #
 # Labels: mas_debug_menu, mas_debug_games, mas_debug_unlocks,
-#         mas_debug_progress, mas_debug_islands, mas_debug_hearts,
-#         mas_debug_room, mas_debug_scenes, mas_debug_weather, mas_debug_bg
+#         mas_debug_progress, mas_debug_islands,
+#         mas_debug_room, mas_debug_scenes, mas_debug_weather, mas_debug_bg,
+#         mas_debug_updates
 # Кнопка: zz_hotkey_buttons.rpy (справа внизу). Хоткей: Shift+D.
 # ---
 
@@ -210,6 +211,15 @@ init python:
         )
 
 
+    def mas_debug_upd_mark(cid):
+        try:
+            if store.mas_os.upd_channel_id() == cid:
+                return u"  ← сейчас"
+        except Exception:
+            pass
+        return u""
+
+
     def mas_debug_items(pairs, first=None):
         """Sorted (prompt, value) rows for mas_gen_scrollable_menu."""
         rows = []
@@ -247,13 +257,13 @@ label mas_debug_menu_root:
     python:
         _dbg_items = mas_debug_items(
             [
-                (u"Анимации", "hearts"),
                 (u"Комната", "room"),
                 (u"Контент", "unlocks"),
                 (u"Мини-игры", "games"),
                 (u"Острова", "islands"),
                 (u"Прокачка", "progress"),
                 (u"Сцены", "scenes"),
+                (u"Обновления", "updates"),
             ],
             first=[(mas_debug_status_line(), "status")],
         )
@@ -274,12 +284,12 @@ label mas_debug_menu_root:
         jump mas_debug_unlocks
     elif _return == "progress":
         jump mas_debug_progress
-    elif _return == "hearts":
-        jump mas_debug_hearts
     elif _return == "room":
         jump mas_debug_room
     elif _return == "scenes":
         jump mas_debug_scenes
+    elif _return == "updates":
+        jump mas_debug_updates
 
     jump mas_debug_menu_root
 
@@ -655,3 +665,88 @@ label mas_debug_scenes:
         $ MASEventList.push("mas_mood_start", skipeval=True)
         jump mas_debug_menu_close
     jump mas_debug_scenes
+
+
+label mas_debug_updates:
+    python:
+        try:
+            _upd_ch = store.mas_os.upd_channel_label()
+            _upd_fn = store.mas_os.upd_channel_file()
+            _upd_local = store.mas_os.upd_local_version()
+            _upd_mas = store.mas_os.upd_mas_version()
+            _upd_skip = store.mas_os.upd_skipped() or u"нет"
+        except Exception:
+            _upd_ch = u"?"
+            _upd_fn = u"?"
+            _upd_local = u"?"
+            _upd_mas = u"?"
+            _upd_skip = u"нет"
+        _dbg_items = mas_debug_items(
+            [
+                (
+                    u"Канал: основной (version.txt){0}".format(mas_debug_upd_mark("stable")),
+                    "ch:stable",
+                ),
+                (
+                    u"Канал: дополнительный для теста (version_test.txt){0}".format(mas_debug_upd_mark("test")),
+                    "ch:test",
+                ),
+                (u"Проверить обновления сейчас", "check"),
+                (u"Локальный тест окна (без GitHub)", "local"),
+                (u"Тест бегущей строки (рупор)", "ticker"),
+                (u"Тест всплывающего баннера", "banner"),
+                (u"Тест строки + баннера", "both"),
+                (u"Сбросить пропущенную версию этого канала", "unskip"),
+            ],
+            first=[(
+                u"Порт {0}  |  MAS {1}  |  канал {2}  |  файл {3}  |  пропуск {4}".format(
+                    _upd_local, _upd_mas, _upd_ch, _upd_fn, _upd_skip
+                ),
+                "status",
+            )],
+        )
+        _dbg_back = ("Назад", False, False, False, 20)
+
+    call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
+
+    if not _return or _return == "status":
+        if not _return:
+            jump mas_debug_menu_root
+        jump mas_debug_updates
+
+    if _return == "ch:stable":
+        $ store.mas_os.upd_set_channel("stable")
+        $ renpy.notify("Канал обновлений: основной (version.txt)")
+        jump mas_debug_updates
+
+    if _return == "ch:test":
+        $ store.mas_os.upd_set_channel("test")
+        $ renpy.notify("Канал обновлений: дополнительный (version_test.txt)")
+        jump mas_debug_updates
+
+    if _return == "check":
+        $ store.mas_os.upd_manual()
+        jump mas_debug_updates
+
+    if _return == "local":
+        $ store.mas_os.upd_local_test()
+        jump mas_debug_updates
+
+    if _return == "ticker":
+        $ store.mas_os.news_test_ticker()
+        jump mas_debug_updates
+
+    if _return == "banner":
+        $ store.mas_os.news_test_banner()
+        jump mas_debug_updates
+
+    if _return == "both":
+        $ store.mas_os.news_test_both()
+        jump mas_debug_updates
+
+    if _return == "unskip":
+        $ store.mas_os.upd_clear_skip()
+        $ renpy.notify("Пропуск версии сброшен")
+        jump mas_debug_updates
+
+    jump mas_debug_updates

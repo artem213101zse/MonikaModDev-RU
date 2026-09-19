@@ -60,6 +60,51 @@ init -5 python in mas_os:
         ("sys", "Система", "system", "#6A6A7A"),
     ]
 
+    SET_WIN_CATS = [
+        ("look", "Персонализация", "Тема, обои, цвета, шрифты и вид оболочки", "appearance", "#C94A7A"),
+        ("boot", "Запуск", "Стартовая оболочка, заставка и вступление", "boot", "#4A8AAA"),
+        ("iface", "Интерфейс", "Кнопки и виджеты на главной и в игре", "interface", "#7A4A9A"),
+        ("sound", "Звук", "Громкость, плеер и щелчки", "sound", "#8A6A4A"),
+        ("update", "Центр обновления", "Проверка порта, новости и канал", "updates", "#4A8A6A"),
+        ("sys", "Система", "Сейвы, сброс и вид этого окна", "system", "#6A6A7A"),
+    ]
+
+    SET_WIN_SUBS = {
+        "look": [
+            ("theme", "Тема"),
+            ("background", "Фон"),
+            ("colors", "Цвета"),
+            ("fonts", "Шрифты"),
+            ("layout", "Вид оболочки"),
+            ("hearts", "Привязанность"),
+        ],
+        "boot": [
+            ("start", "При запуске"),
+            ("splash", "Заставка"),
+            ("intro", "Вступление"),
+            ("launch", "Анимация MAS"),
+        ],
+        "iface": [
+            ("home", "Главная"),
+            ("ingame", "В игре"),
+        ],
+        "sound": [
+            ("volume", "Громкость"),
+            ("player", "Плеер"),
+            ("ui", "Щелчки"),
+        ],
+        "update": [
+            ("status", "Состояние"),
+            ("news", "Что нового"),
+            ("check", "Проверка"),
+        ],
+        "sys": [
+            ("general", "Общие"),
+            ("privacy", "Контент"),
+            ("design", "Вид настроек"),
+        ],
+    }
+
     ABOUT_LINKS = [
         {
             "title": "Репозиторий порта",
@@ -250,9 +295,14 @@ screen mas_os_textbox_color(width=760):
         use mas_os_rgb_bar(_("B"), 2, tb_rgb[2], 255)
         use mas_os_rgb_bar(_("Сила окраски"), 3, tb_str, 100)
 
-        text _("Сейчас {0}  ·  сила {1}%").format(tb_hex, tb_str):
+        text _("Сейчас {0}  ·  сила {1}%  ·  превью сразу, генерация — по кнопке").format(tb_hex, tb_str):
             style "mas_os_hint"
-            substitute False
+
+        textbutton _("Применить цвет"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xsize 240
+            action Function(store.mas_os.commit_tb_color)
 
         use mas_os_onoff(
             _("Применить к MAS OS"),
@@ -292,12 +342,15 @@ screen mas_os_textbox_color(width=760):
             action Function(store.mas_os.reset_textbox_color)
 
 
-screen mas_os_onoff(caption, hint, flag_name, default=True):
+screen mas_os_onoff(caption, hint, flag_name, default=True, width=760):
     $ on = store.mas_os.flag(flag_name, default)
+    $ _cap_w = int(width - 290)
+    if _cap_w < 220:
+        $ _cap_w = 220
 
     frame:
         style "mas_os_panel"
-        xsize 760
+        xsize width
         padding (16, 12)
 
         hbox:
@@ -305,7 +358,7 @@ screen mas_os_onoff(caption, hint, flag_name, default=True):
             xfill True
 
             vbox:
-                xsize 470
+                xsize _cap_w
                 spacing 4
 
                 text caption:
@@ -406,11 +459,20 @@ screen mas_os_about_bullet(caption, hue="#FF8AC4"):
 
 
 screen mas_os_settings():
+    if store.mas_os.settings_ui_classic():
+        use mas_os_settings_classic
+    else:
+        use mas_os_settings_win
+
+
+screen mas_os_settings_classic():
     if not store.mas_os.wm_embedded():
         modal True
         zorder 200
 
     $ cat = store.mas_os.settings_cat or "boot"
+
+    timer 0.5 repeat True action Function(store.mas_os.upd_tick)
 
     use mas_os_bg
 
@@ -631,6 +693,67 @@ screen mas_os_settings():
                         "_mas_os_stagger",
                     )
 
+                    text _("Анимация привязанности"):
+                        style "mas_os_subtitle"
+
+                    text _("Сердечки по бокам, когда растёт привязанность. «Тест» показывает стиль."):
+                        style "mas_os_hint"
+
+                    $ heart_cur = store.mas_affhearts.current_style()
+                    $ _test_ic = store.mas_os.icon_path("view")
+                    vbox:
+                        spacing 8
+
+                        for hid, htitle, hhint in store.mas_affhearts.STYLE_ROWS:
+                            hbox:
+                                spacing 8
+
+                                button:
+                                    style "mas_os_side_btn"
+                                    xsize 604
+                                    ysize 76
+                                    selected (hid == heart_cur)
+                                    hover_sound store.mas_os.os_hover()
+                                    activate_sound store.mas_os.os_activate()
+                                    action Function(store.mas_affhearts.set_style, hid)
+
+                                    vbox:
+                                        spacing 2
+                                        yalign 0.5
+                                        xoffset 12
+                                        xsize 560
+
+                                        text htitle:
+                                            style "mas_os_side_btn_text"
+                                            substitute False
+
+                                        text hhint:
+                                            style "mas_os_hint"
+                                            size 13
+                                            xsize 540
+                                            substitute False
+
+                                button:
+                                    style "mas_os_side_btn"
+                                    xsize 148
+                                    ysize 76
+                                    hover_sound store.mas_os.os_hover()
+                                    activate_sound store.mas_os.os_activate()
+                                    action Function(store.mas_affhearts.preview, hid)
+
+                                    hbox:
+                                        spacing 6
+                                        xalign 0.5
+                                        yalign 0.5
+
+                                        if _test_ic:
+                                            add store.mas_os.fit_image(_test_ic, 22, 22):
+                                                yalign 0.5
+
+                                        text _("Тест"):
+                                            style "mas_os_side_btn_text"
+                                            yalign 0.5
+
                     text _("Обои MAS OS"):
                         style "mas_os_subtitle"
 
@@ -660,7 +783,7 @@ screen mas_os_settings():
                                     selected (cell[0] == wp_cur)
                                     hover_sound store.mas_os.os_hover()
                                     activate_sound store.mas_os.os_activate()
-                                    action Function(store.mas_os.set_wallpaper, cell[0])
+                                    action Function(store.mas_os.open_wp_preview, cell[0], cell[2])
 
                                     hbox:
                                         spacing 10
@@ -707,15 +830,92 @@ screen mas_os_settings():
                         style "mas_os_hint"
 
                     use mas_os_onoff(
-                        _("Кнопка MAS OS в «Эй, Моника…»"),
-                        _("Радужная кнопка слева сверху на экране разговора."),
+                        _("Кнопка MAS OS"),
+                        _("Показывает кнопку возврата в оболочку. Место и стиль — ниже."),
                         "_mas_os_talk_btn",
                     )
+
+                    text _("Где показать"):
+                        style "mas_os_hint"
+
+                    vbox:
+                        spacing 6
+                        for pid, ptitle, phint in store.mas_os.OSBTN_PLACES:
+                            button:
+                                style "mas_os_side_btn"
+                                xsize 760
+                                ysize 64
+                                selected (store.mas_os.osbtn_place() == pid)
+                                hover_sound store.mas_os.os_hover()
+                                activate_sound store.mas_os.os_activate()
+                                action Function(store.mas_os.set_osbtn_place, pid)
+
+                                vbox:
+                                    spacing 2
+                                    yalign 0.5
+                                    xoffset 12
+
+                                    text ptitle:
+                                        style "mas_os_side_btn_text"
+                                        substitute False
+
+                                    text phint:
+                                        style "mas_os_hint"
+                                        size 13
+                                        substitute False
+
+                    text _("Стиль кнопки"):
+                        style "mas_os_hint"
+
+                    grid 2 4:
+                        spacing 8
+                        xsize 760
+
+                        for sid, stitle, shint in store.mas_os.OSBTN_STYLES:
+                            button:
+                                style "mas_os_side_btn"
+                                xsize 370
+                                ysize 64
+                                selected (store.mas_os.osbtn_style() == sid)
+                                hover_sound store.mas_os.os_hover()
+                                activate_sound store.mas_os.os_activate()
+                                action Function(store.mas_os.set_osbtn_style, sid)
+
+                                vbox:
+                                    spacing 2
+                                    yalign 0.5
+                                    xoffset 12
+                                    xsize 340
+
+                                    text stitle:
+                                        style "mas_os_side_btn_text"
+                                        substitute False
+
+                                    text shint:
+                                        style "mas_os_hint"
+                                        size 12
+                                        substitute False
 
                     use mas_os_onoff(
                         _("Пункт MAS OS в игровом меню"),
                         _("В паузе рядом с настройками."),
                         "_mas_os_menu_btn",
+                    )
+
+                    use mas_os_pref_onoff(
+                        _("Сенсорное пианино"),
+                        _("Клавиши внизу экрана. Палец и мышь нажимают ноты, как настоящие клавиши."),
+                        store.mas_piano_keys.piano_touch_on(),
+                        Function(store.mas_piano_keys.set_piano_touch, True),
+                        Function(store.mas_piano_keys.set_piano_touch, False),
+                    )
+
+                    use mas_os_pref_onoff(
+                        _("Отступы у сенсорного пианино"),
+                        _("Зазор снизу и щели между клавишами. Выкл — клавиши впритык к краям."),
+                        store.mas_piano_keys.piano_gaps_on(),
+                        Function(store.mas_piano_keys.set_piano_gaps, True),
+                        Function(store.mas_piano_keys.set_piano_gaps, False),
                     )
 
                     use mas_os_onoff(
@@ -801,7 +1001,7 @@ screen mas_os_settings():
                         False,
                     )
 
-                    use mas_os_ibutton(_("Открыть плеер"), MASOSGo("player"), "Au", "#8A6A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="sound")
+
 
                     use mas_os_store_link("music", "settings")
 
@@ -815,6 +1015,13 @@ screen mas_os_settings():
                         style "mas_os_subtitle"
 
                     text _("Обновления порта и служебное. Версия — в «О системе»."):
+                        style "mas_os_hint"
+
+                    text store.mas_os.upd_status_line():
+                        style "mas_os_hint"
+                        substitute False
+
+                    text _("Тестовый канал — в Debug → Обновления. Пока он выключен, игроки смотрят только version.txt."):
                         style "mas_os_hint"
 
                     text _("Каталог сабмодов — JSON-индекс. Ссылку меняют в разделе «Сабмоды» → Каталог. Пример схемы: game/mod_assets/mas_os/catalog_example.json."):
@@ -833,15 +1040,35 @@ screen mas_os_settings():
 
                     use mas_os_ibutton(_("Сбросить настройки MAS OS"), Show("mas_os_confirm", message=_("Сбросить оформление, звук и поведение оболочки к заводским?\nСкачанные файлы и прочитанные события не трогаем."), yes_action=[Function(store.mas_os.reset_os_settings), Hide("mas_os_confirm")], no_action=Hide("mas_os_confirm")), "R", "#8A3A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="reboot")
 
-                    use mas_os_ibutton(_("Проверить обновления порта"), Show("mas_os_notice", message=_("Проверка обновлений порта появится позже.\nСюда можно будет вставить уже готовую реализацию.")), "Up", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="updates")
+                    use mas_os_ibutton(_("Проверить обновления порта"), Function(store.mas_os.upd_manual), "Up", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="updates", badge=store.mas_os.upd_has_update())
+
+                    use mas_os_ibutton(_("Локальный тест окна"), Function(store.mas_os.upd_local_test), "T", "#7A4A9A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="updates")
+
+                    use mas_os_ibutton(_("Тест бегущей строки"), Function(store.mas_os.news_test_ticker), "T", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="megaphone")
+
+                    use mas_os_ibutton(_("Тест баннера"), Function(store.mas_os.news_test_banner), "T", "#4A8A6A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="notify")
+
+                    use mas_os_ibutton(_("Тест строки + баннера"), Function(store.mas_os.news_test_both), "T", "#8A6A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="megaphone")
+
+                    text _("Локальный тест читает game/mod_assets/mas_os/update_preview/version.txt и не ходит в GitHub. В файле можно писать новости: заголовки, списки, жирный, размер, цвет и шрифт."):
+                        style "mas_os_hint"
 
                     text _("Оболочка не считает посещение комнаты, пока не нажато «Запустить MAS»."):
                         style "mas_os_hint"
+
+                    use mas_os_ibutton(_("Новый вид настроек"), Function(store.mas_os.set_settings_ui, "win10"), "N", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="appearance")
 
     use mas_os_app_nav
 
 
 screen mas_os_about():
+    if store.mas_os.about_ui_classic():
+        use mas_os_about_classic
+    else:
+        use mas_os_about_win
+
+
+screen mas_os_about_classic():
     if not store.mas_os.wm_embedded():
         modal True
         zorder 200
@@ -894,17 +1121,17 @@ screen mas_os_about():
                 yalign 0.5
                 xsize 420
 
-                text _("[config.name]  [config.version]"):
+                text _("[config.name]"):
                     style "mas_os_body"
                     size 16
                     xalign 1.0
 
-                text _("[rver]"):
+                text _("MAS [config.version]  ·  порт [config.port_version]"):
                     style "mas_os_hint"
                     size 13
                     xalign 1.0
 
-                text _("Платформа [plat]  ·  сенсор [touch]"):
+                text _("[rver]  ·  [plat]"):
                     style "mas_os_hint"
                     size 13
                     xalign 1.0
@@ -995,6 +1222,14 @@ screen mas_os_about():
 
                     for line in store.mas_os.ABOUT_NEXT:
                         use mas_os_about_bullet(line, "#3DFFF0")
+
+    textbutton _("Новый вид"):
+        style "mas_os_nav_btn"
+        text_style "mas_os_nav_btn_text"
+        xpos 980
+        ypos 16
+        xsize 220
+        action Function(store.mas_os.set_about_ui, "win10")
 
     use mas_os_app_nav
 

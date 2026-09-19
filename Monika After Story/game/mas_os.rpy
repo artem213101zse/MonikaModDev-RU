@@ -22,6 +22,8 @@ default persistent._mas_os_launch_anim = "logo"
 default persistent._mas_os_sfx = True
 default persistent._mas_os_stagger = True
 default persistent._mas_os_talk_btn = True
+default persistent._mas_os_osbtn_place = "corner"
+default persistent._mas_os_osbtn_style = "rainbow"
 default persistent._mas_os_menu_btn = True
 default persistent._mas_os_aff_widget = True
 default persistent._mas_os_music_widget = True
@@ -58,6 +60,10 @@ default persistent._mas_os_android_saves = "ask"
 default persistent._mas_os_intro_skip = "off"
 # False = как в оригинальном MAS. True = без небинарных/транс пунктов в диалогах пола.
 default persistent._mas_os_hide_lgbt = False
+# win10 — плитки как Параметры Windows 10; classic — старый вид с боковым списком
+default persistent._mas_os_settings_ui = "win10"
+default persistent._mas_os_store_ui = "win10"
+default persistent._mas_os_about_ui = "win10"
 
 init -10 python in mas_os:
     import os
@@ -71,6 +77,8 @@ init -10 python in mas_os:
     _active_doc = None
     _active_event = None
     settings_cat = "boot"
+    settings_page = "home"
+    settings_sub = "theme"
     settings_yadj = None
     _active_log = None
     gift_input = ""
@@ -99,11 +107,11 @@ init -10 python in mas_os:
         "Сейвы Android: Documents или папка приложения, доступ ко всем файлам",
         "Данные: слот persistent после рестарта, вид OS в mas_os_prefs.json",
         "Файлы: проводник, просмотр картинок и карточка persistent",
+        "Обновления порта: version.txt / version_test.txt и каналы в Debug",
     )
 
     ABOUT_NEXT = (
         "Подмена заглушек бренда на сгенерированные логотип и кнопки",
-        "Апдейтер самого порта из оболочки",
         "Установка спрайтпаков до запуска сессии",
         "Файлы: «поделиться»",
         "Piano, док-станция и monika.chr из OS",
@@ -136,6 +144,8 @@ init -10 python in mas_os:
         ("_mas_os_sfx", True),
         ("_mas_os_stagger", True),
         ("_mas_os_talk_btn", True),
+        ("_mas_os_osbtn_place", "corner"),
+        ("_mas_os_osbtn_style", "rainbow"),
         ("_mas_os_menu_btn", True),
         ("_mas_os_aff_widget", True),
         ("_mas_os_music_widget", True),
@@ -164,6 +174,9 @@ init -10 python in mas_os:
         ("_mas_os_layout", "cards"),
         ("_mas_os_intro_skip", "off"),
         ("_mas_os_boot_splash", "logo"),
+        ("_mas_os_settings_ui", "win10"),
+        ("_mas_os_store_ui", "win10"),
+        ("_mas_os_about_ui", "win10"),
     )
 
     def reset_os_settings():
@@ -403,6 +416,26 @@ init -10 python in mas_os:
             "Оболочка втягивается в кнопку запуска и гаснет.",
         ),
         (
+            "fade",
+            "Затемнение",
+            "Плавный уход в чёрный, потом комната.",
+        ),
+        (
+            "wipe",
+            "Шторка",
+            "Чёрная полоса проходит слева направо.",
+        ),
+        (
+            "shutter",
+            "Ставни",
+            "Две половины экрана схлопываются к центру.",
+        ),
+        (
+            "zoom",
+            "Наезд",
+            "Обои наезжают, экран гаснет.",
+        ),
+        (
             "off",
             "Без анимации",
             "Короткое затемнение, сразу игра.",
@@ -531,6 +564,74 @@ init -10 python in mas_os:
         global settings_cat
         settings_cat = cat_id or "boot"
         reset_settings_scroll()
+
+    def settings_ui():
+        mode = getattr(store.persistent, "_mas_os_settings_ui", "win10") or "win10"
+        if mode not in ("win10", "classic"):
+            return "win10"
+        return mode
+
+    def settings_ui_classic():
+        return settings_ui() == "classic"
+
+    def about_ui():
+        mode = getattr(store.persistent, "_mas_os_about_ui", "win10") or "win10"
+        if mode not in ("win10", "classic"):
+            return "win10"
+        return mode
+
+    def about_ui_classic():
+        return about_ui() == "classic"
+
+    def set_about_ui(mode):
+        if mode not in ("win10", "classic"):
+            mode = "win10"
+        store.persistent._mas_os_about_ui = mode
+        try:
+            os_persist()
+        except Exception:
+            try:
+                store.renpy.save_persistent()
+            except Exception:
+                pass
+        return None
+
+    def set_settings_ui(mode):
+        global settings_page, settings_sub
+        if mode not in ("win10", "classic"):
+            mode = "win10"
+        store.persistent._mas_os_settings_ui = mode
+        if mode == "win10":
+            settings_page = "home"
+            settings_sub = "theme"
+        try:
+            os_persist()
+        except Exception:
+            try:
+                store.renpy.save_persistent()
+            except Exception:
+                pass
+        return None
+
+    def set_settings_page(page, sub=None):
+        global settings_page, settings_sub, settings_cat
+        page = page or "home"
+        settings_page = page
+        if page != "home":
+            settings_cat = page
+            rows = SET_WIN_SUBS.get(page) or []
+            if sub:
+                settings_sub = sub
+            elif rows:
+                settings_sub = rows[0][0]
+        reset_settings_scroll()
+        return None
+
+    def set_settings_sub(sub):
+        global settings_sub
+        settings_sub = sub or "theme"
+        reset_settings_scroll()
+        return None
 
     def os_hover():
         if flag("_mas_os_sfx", True):
@@ -1445,11 +1546,6 @@ init -10 python in mas_os:
 
     def set_tb_tint_on(value):
         store.persistent._mas_os_tb_tint_on = bool(value)
-        try:
-            store.renpy.save_persistent()
-        except Exception:
-            pass
-        queue_tint_apply()
         return None
 
     def set_tb_tint(hex_color):
@@ -1458,11 +1554,6 @@ init -10 python in mas_os:
             h = "#" + h
         store.persistent._mas_os_tb_tint = h
         store.persistent._mas_os_tb_tint_on = True
-        try:
-            store.renpy.save_persistent()
-        except Exception:
-            pass
-        queue_tint_apply()
         return None
 
     def set_tb_strength(value):
@@ -1475,11 +1566,6 @@ init -10 python in mas_os:
         if value > 100:
             value = 100
         store.persistent._mas_os_tb_strength = value
-        try:
-            store.renpy.save_persistent()
-        except Exception:
-            pass
-        queue_tint_apply()
         return None
 
     def set_tb_rgb_channel(channel, value):
@@ -1491,7 +1577,16 @@ init -10 python in mas_os:
         rgb = [r, g, b]
         if channel in (0, 1, 2):
             rgb[channel] = value
-        set_tb_tint(_hex_from_rgb(rgb[0], rgb[1], rgb[2]))
+        store.persistent._mas_os_tb_tint = _hex_from_rgb(rgb[0], rgb[1], rgb[2])
+        store.persistent._mas_os_tb_tint_on = True
+        return None
+
+    def commit_tb_color():
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        queue_tint_apply()
         return None
 
     def reset_textbox_color():
@@ -1511,9 +1606,17 @@ init -10 python in mas_os:
             src = asset_open_path("gui/textbox.png") or "gui/textbox.png"
         else:
             src = asset_open_path("gui/textbox_d.png") or "gui/textbox_d.png"
-        if _tb_overlay_on():
-            return _mask_tint(src, tb_hex(), tb_strength() / 100.0)
-        return src
+        if not _tb_overlay_on():
+            return src
+        r, g, b = tb_rgb()
+        stn = tb_strength() / 100.0
+        tr = 1.0 - stn + stn * (r / 255.0)
+        tg = 1.0 - stn + stn * (g / 255.0)
+        tbv = 1.0 - stn + stn * (b / 255.0)
+        try:
+            return store.im.MatrixColor(src, store.im.matrix.tint(tr, tg, tbv))
+        except Exception:
+            return src
 
     FONT_PACKS = (
         ("aller", "Обычный (Aller)", "gui/font/Aller_Rg.ttf"),
@@ -1849,6 +1952,32 @@ init -10 python in mas_os:
             store.renpy.save_persistent()
         except Exception:
             pass
+        return None
+
+    wp_preview_id = "solid"
+    wp_preview_path = None
+
+    def open_wp_preview(wid, path=None):
+        global wp_preview_id, wp_preview_path
+        wp_preview_id = wid or "solid"
+        wp_preview_path = path
+        try:
+            store.renpy.show_screen("mas_os_wp_fullscreen")
+        except Exception:
+            pass
+        return None
+
+    def close_wp_preview():
+        try:
+            store.renpy.hide_screen("mas_os_wp_fullscreen")
+        except Exception:
+            pass
+        return None
+
+    def apply_wp_preview():
+        set_wallpaper(wp_preview_id)
+        close_wp_preview()
+        return None
 
     THEME_DARK = {
         "bg": "#14070d",
@@ -1963,6 +2092,10 @@ init -10 python in mas_os:
             st.mas_os_tile.hover_background = Solid(c("btn_hover"))
             st.mas_os_tile_text.idle_color = c("btn_text")
             st.mas_os_tile_text.hover_color = c("btn_text_hover")
+            st.mas_os_win_tile.idle_background = Solid(c("panel"))
+            st.mas_os_win_tile.hover_background = Solid(c("btn_hover"))
+            st.mas_os_win_tile_title.color = c("title")
+            st.mas_os_win_tile_hint.color = c("hint")
             st.mas_os_side_btn.idle_background = Solid(c("btn"))
             st.mas_os_side_btn.hover_background = Solid(c("btn_hover"))
             st.mas_os_side_btn.selected_background = Solid(c("btn_sel"))
@@ -2184,6 +2317,10 @@ init -10 python in mas_os:
             pass
         try:
             apply_user_data_tree()
+        except Exception:
+            pass
+        try:
+            upd_on_enter()
         except Exception:
             pass
 
@@ -2953,6 +3090,9 @@ label mas_os_quit:
 
 
 label mas_os_settings:
+    if not store.mas_os.settings_ui_classic():
+        if store.mas_os.settings_page not in ("home", "look", "boot", "iface", "sound", "update", "sys"):
+            $ store.mas_os.set_settings_page("home")
     if store.mas_os._settings_no_trans:
         $ store.mas_os._settings_no_trans = False
         call screen mas_os_settings
@@ -3399,10 +3539,17 @@ screen mas_os_home():
             Function(store.mas_os.clear_boot_warning),
         ]
 
+    timer 0.45 repeat True action Function(store.mas_os.upd_tick)
+
     if store.mas_os.layout_desktop():
         use mas_os_home_desktop
     else:
         use mas_os_home_cards
+
+    if store.mas_os.news_ticker_on():
+        add MASOSNewsTicker(width=430, height=30):
+            xpos store.mas_os.news_ticker_x()
+            ypos store.mas_os.news_ticker_y()
 
     if store.mas_os.layout_desktop() and (store.mas_os.start_open or store.mas_os.wm_focus):
         key "K_ESCAPE" action Function(store.mas_os.wm_esc)
@@ -3454,7 +3601,7 @@ screen mas_os_home_cards():
 
             use mas_os_powered_line(size=14)
 
-            text _("[config.name]  ·  v[config.version]"):
+            text _("[config.name]  ·  MAS [config.version]  ·  порт [config.port_version]"):
                 style "mas_os_subtitle"
 
             text _("Оболочка до запуска игры. Сессия не начинается."):
@@ -3569,13 +3716,19 @@ screen mas_os_home_cards():
         ypos 640
         spacing 12
 
-        use mas_os_ibutton(_("О системе"), Return("about"), "i", "#7A4A9A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.32, icon="about")
-        use mas_os_ibutton(_("Логи"), Return("logs"), "Lg", "#8A6A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.35, icon="logs")
-        use mas_os_ibutton(_("Перезагрузка"), Function(store.mas_os.reboot_shell), "R", "#4A8AAA", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.38, icon="reboot")
+        use mas_os_ibutton(_("Перезагрузка"), Function(store.mas_os.reboot_shell), "R", "#4A8AAA", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.32, icon="reboot")
         if store.mas_os.flag("_mas_os_quit_confirm", True):
-            use mas_os_ibutton(_("Выключение"), Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm")), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.41, icon="shutdown")
+            use mas_os_ibutton(_("Выключение"), Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm")), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.35, icon="shutdown")
         else:
-            use mas_os_ibutton(_("Выключение"), Function(store.mas_os.request_quit), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.41, icon="shutdown")
+            use mas_os_ibutton(_("Выключение"), Function(store.mas_os.request_quit), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.35, icon="shutdown")
+
+    hbox:
+        xpos 520
+        ypos 640
+        spacing 12
+
+        use mas_os_ibutton(_("О системе"), Return("about"), "i", "#7A4A9A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.38, icon="about")
+        use mas_os_ibutton(_("Логи"), Return("logs"), "Lg", "#8A6A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.41, icon="logs")
 
 
 style mas_os_title is default:

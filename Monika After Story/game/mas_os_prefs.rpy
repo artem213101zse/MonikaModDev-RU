@@ -25,6 +25,8 @@ init -20 python in mas_os:
         "_mas_os_sfx",
         "_mas_os_stagger",
         "_mas_os_talk_btn",
+        "_mas_os_osbtn_place",
+        "_mas_os_osbtn_style",
         "_mas_os_menu_btn",
         "_mas_os_aff_widget",
         "_mas_os_music_widget",
@@ -58,6 +60,9 @@ init -20 python in mas_os:
         "_mas_os_boot_splash",
         "_mas_os_catalog_url",
         "_mas_os_hide_lgbt",
+        "_mas_os_settings_ui",
+        "_mas_os_store_ui",
+        "_mas_os_about_ui",
     )
 
     notify_open = False
