@@ -17,13 +17,13 @@ init -8 python in mas_os:
     _ = getattr(store, "_", lambda s: s)
 
     # Temporary stand-ins until real screenshots exist.
-    DOC_IMG_SPLASH = "bg/splash.png"
-    DOC_IMG_MENU = "gui/overlay/main_menu_d.png"
-    DOC_IMG_GAME = "gui/overlay/game_menu_d.png"
-    DOC_IMG_BOX = "gui/textbox_monika_d.png"
-    DOC_IMG_BG = "gui/menu_bg_d.png"
-    DOC_IMG_NEW = "mod_assets/menu_new.png"
-    DOC_IMG_DESK = "mod_assets/emptydesk.png"
+    DOC_IMG_SPLASH = "mod_assets/not_found.png"
+    DOC_IMG_MENU = "mod_assets/not_found.png"
+    DOC_IMG_GAME = "mod_assets/not_found.png"
+    DOC_IMG_BOX = "mod_assets/not_found.png"
+    DOC_IMG_BG = "mod_assets/not_found.png"
+    DOC_IMG_NEW = "mod_assets/not_found.png"
+    DOC_IMG_DESK = "mod_assets/not_found.png"
 
     DOC_CATS = [
         ("os", "MAS OS"),

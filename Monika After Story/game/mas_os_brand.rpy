@@ -9,7 +9,7 @@ init -5 python in mas_os:
 
     BRAND_ROOT = "mod_assets/mas_os/brand/"
     POWERED_BY = "powered by kurokawa gds"
-    STUDIO = "Kurokawa GDS"
+    STUDIO = "MAS OS"
     STUDIO_LONG = "Kurokawa Game Dev Studio"
 
     BOOT_SPLASH = (
@@ -696,19 +696,19 @@ screen mas_os_boot_wordmark_seq():
                 spacing 6
                 yalign 0.5
 
-                text "kurokawa":
+                text "MAS OS":
                     style "mas_os_title"
                     size 48
                     color "#FFF6FB"
                     substitute False
                     at mas_os_boot_in(0.38)
 
-                text "GDS":
-                    style "mas_os_powered_text"
-                    size 28
-                    color "#FFD56A"
-                    substitute False
-                    at mas_os_boot_in(0.54)
+                # text "GDS":
+                #     style "mas_os_powered_text"
+                #     size 28
+                #     color "#FFD56A"
+                #     substitute False
+                #     at mas_os_boot_in(0.54)
 
                 text store.mas_os.POWERED_BY:
                     style "mas_os_powered_text"

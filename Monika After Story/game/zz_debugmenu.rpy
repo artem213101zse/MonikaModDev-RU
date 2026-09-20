@@ -8,7 +8,8 @@
 # Моника уже «открыла» его (пианино, шахматы, виселица, NOU, острова…).
 #
 # Labels: mas_debug_menu, mas_debug_games, mas_debug_unlocks,
-#         mas_debug_progress, mas_debug_islands, mas_debug_hearts
+#         mas_debug_progress, mas_debug_islands, mas_debug_hearts,
+#         mas_debug_room, mas_debug_scenes, mas_debug_weather, mas_debug_bg
 # Кнопка: zz_hotkey_buttons.rpy (справа внизу). Хоткей: Shift+D.
 # ---
 
@@ -209,6 +210,18 @@ init python:
         )
 
 
+    def mas_debug_items(pairs, first=None):
+        """Sorted (prompt, value) rows for mas_gen_scrollable_menu."""
+        rows = []
+        if first:
+            for prompt, value in first:
+                rows.append((mas_debug_esc(prompt), value, False, False))
+        pairs = sorted(list(pairs), key=lambda item: item[0].lower())
+        for prompt, value in pairs:
+            rows.append((mas_debug_esc(prompt), value, False, False))
+        return rows
+
+
     def mas_debug_push_and_leave(evl):
         """Queue an event then return to ch30 so it actually runs."""
         MASEventList.push(evl, skipeval=True)
@@ -232,17 +245,18 @@ label mas_debug_menu_close:
 
 label mas_debug_menu_root:
     python:
-        _dbg_items = [
-            (mas_debug_esc(mas_debug_status_line()), "status", False, False),
-            ("Мини-игры (запуск / разблок)", "games", False, False),
-            ("Острова", "islands", False, False),
-            ("Разблокировать контент", "unlocks", False, False),
-            ("Прокачка (affection / XP)", "progress", False, False),
-            ("Анимация сердечек", "hearts", False, False),
-            ("Календарь", "calendar", False, False),
-            ("Музыка комнаты", "music", False, False),
-            ("Меню Extra", "extra", False, False),
-        ]
+        _dbg_items = mas_debug_items(
+            [
+                (u"Анимации", "hearts"),
+                (u"Комната", "room"),
+                (u"Контент", "unlocks"),
+                (u"Мини-игры", "games"),
+                (u"Острова", "islands"),
+                (u"Прокачка", "progress"),
+                (u"Сцены", "scenes"),
+            ],
+            first=[(mas_debug_status_line(), "status")],
+        )
         _dbg_back = ("Закрыть", False, False, False, 20)
 
     call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
@@ -254,29 +268,18 @@ label mas_debug_menu_root:
 
     elif _return == "games":
         jump mas_debug_games
-
     elif _return == "islands":
         jump mas_debug_islands
-
     elif _return == "unlocks":
         jump mas_debug_unlocks
-
     elif _return == "progress":
         jump mas_debug_progress
-
     elif _return == "hearts":
         jump mas_debug_hearts
-
-    elif _return == "calendar":
-        call mas_start_calendar_read_only
-        jump mas_debug_menu_root
-
-    elif _return == "music":
-        $ select_music()
-        jump mas_debug_menu_root
-
-    elif _return == "extra":
-        jump mas_debug_menu_close_to_extra
+    elif _return == "room":
+        jump mas_debug_room
+    elif _return == "scenes":
+        jump mas_debug_scenes
 
     jump mas_debug_menu_root
 
@@ -288,21 +291,21 @@ label mas_debug_menu_close_to_extra:
 
 label mas_debug_games:
     python:
-        _dbg_items = [
-            (mas_debug_esc(u"Запустить: Пинг-понг ({0})".format(mas_debug_game_state("pong"))), "run:mas_pong", False, False),
-            (mas_debug_esc(u"Запустить: Шахматы ({0})".format(mas_debug_game_state("chess"))), "run:mas_chess", False, False),
-            (mas_debug_esc(u"Запустить: Виселица ({0})".format(mas_debug_game_state("hangman"))), "run:mas_hangman", False, False),
-            (mas_debug_esc(u"Запустить: Пианино ({0})".format(mas_debug_game_state("piano"))), "run:mas_piano", False, False),
-            (mas_debug_esc(u"Запустить: NOU ({0})".format(mas_debug_game_state("nou"))), "run:mas_nou", False, False),
-            ("Разблокировать все игры сразу", "unlock_all", False, False),
-            ("Открыть шахматы как Моника", "scene:mas_unlock_chess", False, False),
-            ("Открыть виселицу как Моника", "scene:mas_unlock_hangman", False, False),
-            ("Открыть пианино как Моника", "scene:mas_unlock_piano", False, False),
-            ("Открыть шахматы (без сцены)", "silent:chess", False, False),
-            ("Открыть виселицу (без сцены)", "silent:hangman", False, False),
-            ("Открыть пианино (без сцены)", "silent:piano", False, False),
-            ("Открыть NOU (без сцены)", "silent:nou", False, False),
-        ]
+        _dbg_items = mas_debug_items([
+            (u"Запустить: NOU ({0})".format(mas_debug_game_state("nou")), "run:mas_nou"),
+            (u"Запустить: Виселица ({0})".format(mas_debug_game_state("hangman")), "run:mas_hangman"),
+            (u"Запустить: Пинг-понг ({0})".format(mas_debug_game_state("pong")), "run:mas_pong"),
+            (u"Запустить: Пианино ({0})".format(mas_debug_game_state("piano")), "run:mas_piano"),
+            (u"Запустить: Шахматы ({0})".format(mas_debug_game_state("chess")), "run:mas_chess"),
+            (u"Открыть NOU (без сцены)", "silent:nou"),
+            (u"Открыть виселицу (без сцены)", "silent:hangman"),
+            (u"Открыть пианино (без сцены)", "silent:piano"),
+            (u"Открыть шахматы (без сцены)", "silent:chess"),
+            (u"Разблокировать все игры сразу", "unlock_all"),
+            (u"Сцена Моники: виселица", "scene:mas_unlock_hangman"),
+            (u"Сцена Моники: пианино", "scene:mas_unlock_piano"),
+            (u"Сцена Моники: шахматы", "scene:mas_unlock_chess"),
+        ])
         _dbg_back = ("Назад", False, False, False, 20)
 
     call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
@@ -350,14 +353,19 @@ label mas_debug_games:
 label mas_debug_islands:
     python:
         _isl_on = persistent._mas_islands_start_lvl is not None
-        _dbg_items = [
-            (mas_debug_esc(u"Острова: {0}  progress {1}".format(
-                u"открыты" if _isl_on else u"закрыты",
-                persistent._mas_islands_progress
-            )), "status", False, False),
-            ("Разблокировать острова полностью", "unlock", False, False),
-            ("Показать острова", "show", False, False),
-        ]
+        _dbg_items = mas_debug_items(
+            [
+                (u"Показать острова", "show"),
+                (u"Разблокировать острова полностью", "unlock"),
+            ],
+            first=[(
+                u"Острова: {0}  progress {1}".format(
+                    u"открыты" if _isl_on else u"закрыты",
+                    persistent._mas_islands_progress
+                ),
+                "status",
+            )],
+        )
         _dbg_back = ("Назад", False, False, False, 20)
 
     call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
@@ -386,15 +394,15 @@ label mas_debug_islands:
 
 label mas_debug_unlocks:
     python:
-        _dbg_items = [
-            ("Открыть все песни", "songs", False, False),
-            ("Открыть все истории", "stories", False, False),
-            ("Открыть все pool-темы в Поговорить", "pool", False, False),
-            ("Открыть все фоны", "bgs", False, False),
-            ("Открыть всю погоду", "weather", False, False),
-            ("Открыть одежду / волосы / аксессуары", "sprites", False, False),
-            ("Открыть ВСЁ из этого списка", "all", False, False),
-        ]
+        _dbg_items = mas_debug_items([
+            (u"Открыть все песни", "songs"),
+            (u"Открыть все pool-темы в Поговорить", "pool"),
+            (u"Открыть все фоны", "bgs"),
+            (u"Открыть все истории", "stories"),
+            (u"Открыть всю погоду", "weather"),
+            (u"Открыть одежду / волосы / аксессуары", "sprites"),
+            (u"Открыть ВСЁ из этого списка", "all"),
+        ])
         _dbg_back = ("Назад", False, False, False, 20)
 
     call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
@@ -426,17 +434,32 @@ label mas_debug_unlocks:
 
 label mas_debug_progress:
     python:
-        _dbg_items = [
-            (mas_debug_esc(u"Сейчас: aff {0:.0f}  lvl {1}".format(
-                store.mas_affection._get_aff(),
-                store.mas_xp.level()
-            )), "status", False, False),
-            ("Affection +100", "aff100", False, False),
-            ("Affection = LOVE (1000)", "afflove", False, False),
-            ("Affection = ENAMORED (400)", "affenam", False, False),
-            ("XP +5 уровней", "xp5", False, False),
-            ("XP +12 уровней (порог пианино)", "xp12", False, False),
-        ]
+        _aff = store.mas_affection
+        _dbg_items = mas_debug_items(
+            [
+                (u"Affection +10", "aff10"),
+                (u"Affection +100", "aff100"),
+                (u"Affection -50", "affm50"),
+                (u"Уровень: BROKEN (-100)", "affset:{0}".format(int(_aff.AFF_BROKEN_MIN))),
+                (u"Уровень: DISTRESSED (-75)", "affset:{0}".format(int(_aff.AFF_DISTRESSED_MIN))),
+                (u"Уровень: UPSET (-30)", "affset:{0}".format(int(_aff.AFF_UPSET_MIN))),
+                (u"Уровень: NORMAL (0)", "affset:0"),
+                (u"Уровень: HAPPY (50)", "affset:{0}".format(int(_aff.AFF_HAPPY_MIN))),
+                (u"Уровень: AFFECTIONATE (100)", "affset:{0}".format(int(_aff.AFF_AFFECTIONATE_MIN))),
+                (u"Уровень: ENAMORED (400)", "affset:{0}".format(int(_aff.AFF_ENAMORED_MIN))),
+                (u"Уровень: LOVE (1000)", "affset:{0}".format(int(_aff.AFF_LOVE_MIN))),
+                (u"XP +1 уровень", "xp1"),
+                (u"XP +5 уровней", "xp5"),
+                (u"XP +12 уровней (порог пианино)", "xp12"),
+            ],
+            first=[(
+                u"Сейчас: aff {0:.0f}  lvl {1}".format(
+                    store.mas_affection._get_aff(),
+                    store.mas_xp.level()
+                ),
+                "status",
+            )],
+        )
         _dbg_back = ("Назад", False, False, False, 20)
 
     call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
@@ -446,18 +469,28 @@ label mas_debug_progress:
             jump mas_debug_menu_root
         jump mas_debug_progress
 
+    elif _return == "aff10":
+        $ mas_gainAffection(10, bypass=True)
+        $ mas_updateAffectionExp()
+        $ renpy.notify("aff {0:.0f}".format(store.mas_affection._get_aff()))
+
     elif _return == "aff100":
         $ mas_gainAffection(100, bypass=True)
         $ mas_updateAffectionExp()
         $ renpy.notify("aff {0:.0f}".format(store.mas_affection._get_aff()))
 
-    elif _return == "afflove":
-        $ mas_debug_set_aff(store.mas_affection.AFF_LOVE_MIN)
-        $ renpy.notify("aff LOVE")
+    elif _return == "affm50":
+        $ mas_loseAffection(50)
+        $ mas_updateAffectionExp()
+        $ renpy.notify("aff {0:.0f}".format(store.mas_affection._get_aff()))
 
-    elif _return == "affenam":
-        $ mas_debug_set_aff(store.mas_affection.AFF_ENAMORED_MIN)
-        $ renpy.notify("aff ENAMORED")
+    elif isinstance(_return, (str, unicode)) and _return.startswith("affset:"):
+        $ mas_debug_set_aff(float(_return[7:]))
+        $ renpy.notify("aff {0:.0f}".format(store.mas_affection._get_aff()))
+
+    elif _return == "xp1":
+        $ mas_debug_add_xp_levels(1)
+        $ renpy.notify("lvl {0}".format(store.mas_xp.level()))
 
     elif _return == "xp5":
         $ mas_debug_add_xp_levels(5)
@@ -473,16 +506,18 @@ label mas_debug_progress:
 label mas_debug_hearts:
     python:
         _cur = persistent._mas_affhearts_style or "stream"
-        _dbg_items = [
-            (mas_debug_esc(u"Сейчас выбран: {0}".format(_cur)), "status", False, False),
-            ("Лайки как на стриме", "stream", False, False),
-            ("Колонны по бокам", "columns", False, False),
-            ("Взрыв из углов", "burst", False, False),
-            ("Искры и сердечки", "sparkle", False, False),
-            ("Мягкие большие", "soft", False, False),
-            ("Фейерверк по бокам", "fireworks", False, False),
-            ("Показать со словами Моники", "dlg", False, False),
-        ]
+        _dbg_items = mas_debug_items(
+            [
+                (u"Взрыв из углов", "burst"),
+                (u"Искры и сердечки", "sparkle"),
+                (u"Колонны по бокам", "columns"),
+                (u"Лайки как на стриме", "stream"),
+                (u"Мягкие большие", "soft"),
+                (u"Показать со словами Моники", "dlg"),
+                (u"Фейерверк по бокам", "fireworks"),
+            ],
+            first=[(u"Сейчас выбран: {0}".format(_cur), "status")],
+        )
         _dbg_back = ("Назад", False, False, False, 20)
 
     call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
@@ -511,3 +546,112 @@ label mas_debug_hearts_dlg:
     pause 3.2
     m 3eua "Это анимация за прибавку привязанности. Ну как, видно?"
     jump mas_debug_hearts
+
+
+label mas_debug_room:
+    python:
+        _dbg_items = mas_debug_items([
+            (u"Календарь", "calendar"),
+            (u"Меню Extra", "extra"),
+            (u"Музыка комнаты", "music"),
+            (u"Сменить погоду", "weather"),
+            (u"Сменить фон", "bg"),
+            (u"Тема: день (светлая)", "day"),
+            (u"Тема: ночь (тёмная)", "night"),
+        ])
+        _dbg_back = ("Назад", False, False, False, 20)
+
+    call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
+
+    if not _return:
+        jump mas_debug_menu_root
+    elif _return == "calendar":
+        call mas_start_calendar_read_only
+        jump mas_debug_room
+    elif _return == "music":
+        $ select_music()
+        jump mas_debug_room
+    elif _return == "extra":
+        jump mas_debug_menu_close_to_extra
+    elif _return == "weather":
+        jump mas_debug_weather
+    elif _return == "bg":
+        jump mas_debug_bg
+    elif _return == "day":
+        $ mas_darkMode(True)
+        $ renpy.notify("день")
+        jump mas_debug_menu_close
+    elif _return == "night":
+        $ mas_darkMode(False)
+        $ renpy.notify("ночь")
+        jump mas_debug_menu_close
+    jump mas_debug_room
+
+
+label mas_debug_weather:
+    python:
+        _pairs = []
+        for mw in store.mas_weather.WEATHER_MAP.itervalues():
+            prompt = getattr(mw, "prompt", None) or getattr(mw, "weather_id", "?")
+            _pairs.append((u"Погода: {0}".format(prompt), mw.weather_id))
+        _dbg_items = mas_debug_items(_pairs)
+        _dbg_back = ("Назад", False, False, False, 20)
+
+    call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
+
+    if not _return:
+        jump mas_debug_room
+
+    python:
+        _mw = store.mas_weather.WEATHER_MAP.get(_return)
+        if _mw is not None:
+            store.mas_changeWeather(_mw, by_user=True)
+            renpy.notify(unicode(_return))
+    jump mas_debug_menu_close
+
+
+label mas_debug_bg:
+    python:
+        _pairs = []
+        for bg_id, bg in store.mas_background.BACKGROUND_MAP.iteritems():
+            prompt = getattr(bg, "prompt", None) or bg_id
+            _pairs.append((u"Фон: {0}".format(prompt), bg_id))
+        _dbg_items = mas_debug_items(_pairs)
+        _dbg_back = ("Назад", False, False, False, 20)
+
+    call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
+
+    if not _return:
+        jump mas_debug_room
+
+    $ _dbg_bg = store.mas_background.BACKGROUND_MAP.get(_return)
+    if _dbg_bg is None:
+        jump mas_debug_bg
+    $ mas_DropShield_core()
+    call mas_background_change(_dbg_bg, skip_leadin=True, skip_outro=True, set_persistent=True)
+    jump ch30_loop
+
+
+label mas_debug_scenes:
+    python:
+        _dbg_items = mas_debug_items([
+            (u"Интересный факт", "facts"),
+            (u"Кино", "movie"),
+            (u"Настроение", "mood"),
+        ])
+        _dbg_back = ("Назад", False, False, False, 20)
+
+    call screen mas_gen_scrollable_menu(_dbg_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, _dbg_back)
+
+    if not _return:
+        jump mas_debug_menu_root
+    elif _return == "facts":
+        $ MASEventList.push("monika_fun_facts_open", skipeval=True)
+        jump mas_debug_menu_close
+    elif _return == "movie":
+        $ MASEventList.push("mas_monikamovie", skipeval=True)
+        jump mas_debug_menu_close
+    elif _return == "mood":
+        $ MASEventList.push("mas_mood_start", skipeval=True)
+        jump mas_debug_menu_close
+    jump mas_debug_scenes

@@ -1126,7 +1126,7 @@ screen game_menu(title, scroll=None):
         add gui.main_menu_background
     else:
         key "mouseup_3" action Return()
-        add gui.game_menu_background
+        add store.mas_os.pause_menu_bg() at menu_bg_loop
 
     style_prefix "game_menu"
 

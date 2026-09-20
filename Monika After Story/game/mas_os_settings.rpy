@@ -273,6 +273,18 @@ screen mas_os_textbox_color(width=760):
             False,
         )
 
+        use mas_os_onoff(
+            _("Применить к календарю"),
+            _("Рамка, дни и стрелки календаря красятся тем же цветом. Светлая/тёмная тема тоже."),
+            "_mas_os_color_calendar",
+        )
+
+        use mas_os_onoff(
+            _("Применить к меню паузы"),
+            _("Фон в горошек, боковая панель и обводка «Сохранить / Загрузить / Настройки»."),
+            "_mas_os_color_pause",
+        )
+
         textbutton _("Сбросить на стандартный розовый"):
             style "mas_os_nav_btn"
             text_style "mas_os_nav_btn_text"
@@ -856,7 +868,7 @@ screen mas_os_about():
             yalign 0.5
             xfill True
 
-            fixed at mas_os_logo_breathe:
+            fixed:
                 xysize (72, 72)
                 use mas_os_logo_mark(max_w=72, max_h=72)
 

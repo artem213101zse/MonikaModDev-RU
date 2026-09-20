@@ -41,6 +41,8 @@ init -20 python in mas_os:
         "_mas_os_color_os",
         "_mas_os_color_game",
         "_mas_os_color_text",
+        "_mas_os_color_calendar",
+        "_mas_os_color_pause",
         "_mas_os_font",
         "_mas_os_font_menu",
         "_mas_os_font_ui",

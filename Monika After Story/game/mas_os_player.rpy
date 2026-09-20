@@ -3,9 +3,59 @@
 
 init -5 python in mas_os:
     import random
+    import time
     import store
 
     player_paused = True
+    player_pp_from = "play"
+    player_pp_to = "play"
+    player_pp_until = 0.0
+
+    PLAYER_ICON_FALLBACK = {
+        "play": ("play", "launch"),
+        "pause": ("pause", "toggle-off"),
+        "next": ("next", "updates"),
+        "prev": ("prev", "back"),
+        "stop": ("stop", "shutdown"),
+        "mute": ("mute", "sound"),
+        "volup": ("vol-up", "add"),
+        "voldown": ("vol-down", "remove"),
+        "rescan": ("rescan", "reboot", "updates"),
+    }
+
+    def player_icon(name):
+        """
+        RETURNS: (path, flip)
+            flip True means mirror horizontally (used for next if only back exists)
+        """
+        names = PLAYER_ICON_FALLBACK.get(name, (name,))
+        for n in names:
+            path = icon_path(n)
+            if path:
+                return path, False
+        if name == "next":
+            path = icon_path("back")
+            if path:
+                return path, True
+        return None, False
+
+    def player_icon_disp(kind, size=28):
+        path, flip = player_icon(kind)
+        if not path:
+            return None
+        img = fit_image(path, size, size)
+        if flip:
+            return store.Transform(img, xzoom=-1.0)
+        return img
+
+    def player_pp_swapping():
+        return time.time() < player_pp_until
+
+    def _player_pp_kick(new_kind):
+        global player_pp_from, player_pp_to, player_pp_until
+        player_pp_from = player_pp_to
+        player_pp_to = new_kind
+        player_pp_until = time.time() + 0.24
 
     def player_loop_mode():
         mode = getattr(store.persistent, "_mas_os_music_loop", "one")
@@ -278,6 +328,8 @@ init -5 python in mas_os:
 
     def player_pause():
         global player_paused
+        if player_is_playing():
+            _player_pp_kick("play")
         player_paused = True
         try:
             store.renpy.music.set_pause(True, channel="music")
@@ -291,6 +343,7 @@ init -5 python in mas_os:
     def player_toggle():
         if player_is_playing():
             return player_pause()
+        _player_pp_kick("pause")
         return player_play(None)
 
     def player_stop():
@@ -385,6 +438,76 @@ init -5 python in mas_os:
         return "Плейлист MAS · {0} треков (встроенные + custom_bgm)".format(n)
 
 
+transform mas_os_pp_out:
+    on show:
+        xoffset 0
+        alpha 1.0
+        ease 0.22 xoffset 24 alpha 0.0
+
+transform mas_os_pp_in:
+    on show:
+        xoffset -16
+        alpha 0.0
+        ease 0.22 xoffset 0 alpha 1.0
+
+
+screen mas_os_player_icon_btn(kind, action, selected=False, size=26):
+    $ disp = store.mas_os.player_icon_disp(kind, size)
+
+    button:
+        style "mas_os_player_btn"
+        xysize (48, 44)
+        selected selected
+        action action
+        hover_sound store.mas_os.os_hover()
+        activate_sound store.mas_os.os_activate()
+
+        if disp:
+            add disp:
+                xalign 0.5
+                yalign 0.5
+        else:
+            text kind[:2]:
+                style "mas_os_player_btn_text"
+
+
+screen mas_os_player_playpause(size=26):
+    $ playing = store.mas_os.player_is_playing()
+    $ swapping = store.mas_os.player_pp_swapping()
+    $ cur = "pause" if playing else "play"
+    $ from_k = store.mas_os.player_pp_from
+    $ to_k = store.mas_os.player_pp_to
+    $ cur_d = store.mas_os.player_icon_disp(cur, size)
+    $ from_d = store.mas_os.player_icon_disp(from_k, size)
+    $ to_d = store.mas_os.player_icon_disp(to_k, size)
+
+    button:
+        style "mas_os_player_btn"
+        xysize (48, 44)
+        selected playing
+        action Function(store.mas_os.player_toggle)
+        hover_sound store.mas_os.os_hover()
+        activate_sound store.mas_os.os_activate()
+
+        fixed:
+            xysize (48, 44)
+
+            if swapping and from_d and to_d:
+                add from_d at mas_os_pp_out:
+                    xalign 0.5
+                    yalign 0.5
+                add to_d at mas_os_pp_in:
+                    xalign 0.5
+                    yalign 0.5
+            elif cur_d:
+                add cur_d:
+                    xalign 0.5
+                    yalign 0.5
+            else:
+                text _(">" if not playing else "||"):
+                    style "mas_os_player_btn_text"
+
+
 screen mas_os_player_widget(width=420, height=132, ypos=386, xpos=56):
     $ _mus_ic = store.mas_os.icon_path("sound")
     $ _title = store.mas_os.player_title()
@@ -442,32 +565,10 @@ screen mas_os_player_widget(width=420, height=132, ypos=386, xpos=56):
             hbox:
                 spacing 6
 
-                textbutton _("<<"):
-                    style "mas_os_player_btn"
-                    text_style "mas_os_player_btn_text"
-                    action Function(store.mas_os.player_prev)
-
-                if _playing:
-                    textbutton _("||"):
-                        style "mas_os_player_btn"
-                        text_style "mas_os_player_btn_text"
-                        selected True
-                        action Function(store.mas_os.player_pause)
-                else:
-                    textbutton _(">"):
-                        style "mas_os_player_btn"
-                        text_style "mas_os_player_btn_text"
-                        action Function(store.mas_os.player_toggle)
-
-                textbutton _(">>"):
-                    style "mas_os_player_btn"
-                    text_style "mas_os_player_btn_text"
-                    action Function(store.mas_os.player_next)
-
-                textbutton _("−"):
-                    style "mas_os_player_btn"
-                    text_style "mas_os_player_btn_text"
-                    action Function(store.mas_os.player_vol_bump, False)
+                use mas_os_player_icon_btn("prev", Function(store.mas_os.player_prev))
+                use mas_os_player_playpause()
+                use mas_os_player_icon_btn("next", Function(store.mas_os.player_next))
+                use mas_os_player_icon_btn("voldown", Function(store.mas_os.player_vol_bump, False))
 
                 text "{0}%".format(_vol):
                     style "mas_os_hint"
@@ -476,10 +577,7 @@ screen mas_os_player_widget(width=420, height=132, ypos=386, xpos=56):
                     text_align 0.5
                     substitute False
 
-                textbutton _("+"):
-                    style "mas_os_player_btn"
-                    text_style "mas_os_player_btn_text"
-                    action Function(store.mas_os.player_vol_bump, True)
+                use mas_os_player_icon_btn("volup", Function(store.mas_os.player_vol_bump, True))
 
 
 screen mas_os_loop_toggle(width=720):
@@ -678,61 +776,17 @@ screen mas_os_player():
                 spacing 8
                 xalign 0.5
 
-                textbutton _("<< пред"):
-                    style "mas_os_player_btn"
-                    text_style "mas_os_player_btn_text"
-                    xsize 110
-                    action Function(store.mas_os.player_prev)
-
-                if playing:
-                    textbutton _("Пауза"):
-                        style "mas_os_player_btn"
-                        text_style "mas_os_player_btn_text"
-                        xsize 110
-                        selected True
-                        action Function(store.mas_os.player_pause)
-                else:
-                    textbutton _("Играть"):
-                        style "mas_os_player_btn"
-                        text_style "mas_os_player_btn_text"
-                        xsize 110
-                        action Function(store.mas_os.player_toggle)
-
-                textbutton _("след >>"):
-                    style "mas_os_player_btn"
-                    text_style "mas_os_player_btn_text"
-                    xsize 110
-                    action Function(store.mas_os.player_next)
+                use mas_os_player_icon_btn("prev", Function(store.mas_os.player_prev), size=30)
+                use mas_os_player_playpause(size=30)
+                use mas_os_player_icon_btn("next", Function(store.mas_os.player_next), size=30)
 
             hbox:
                 spacing 8
                 xalign 0.5
 
-                textbutton _("Стоп"):
-                    style "mas_os_player_btn"
-                    text_style "mas_os_player_btn_text"
-                    xsize 110
-                    action Function(store.mas_os.player_stop)
-
-                if muted:
-                    textbutton _("Звук"):
-                        style "mas_os_player_btn"
-                        text_style "mas_os_player_btn_text"
-                        xsize 110
-                        action Function(store.mas_os.player_set_music_mute, False)
-                else:
-                    textbutton _("Без звука"):
-                        style "mas_os_player_btn"
-                        text_style "mas_os_player_btn_text"
-                        xsize 110
-                        selected True
-                        action Function(store.mas_os.player_set_music_mute, True)
-
-                textbutton _("Обновить"):
-                    style "mas_os_player_btn"
-                    text_style "mas_os_player_btn_text"
-                    xsize 110
-                    action Function(store.mas_os.player_rescan)
+                use mas_os_player_icon_btn("stop", Function(store.mas_os.player_stop), size=28)
+                use mas_os_player_icon_btn("mute", Function(store.mas_os.player_set_music_mute, not muted), selected=muted, size=28)
+                use mas_os_player_icon_btn("rescan", Function(store.mas_os.player_rescan), size=28)
 
             text _("Громкость музыки"):
                 style "mas_os_hint"

@@ -38,6 +38,8 @@ default persistent._mas_os_ui_match = True
 default persistent._mas_os_color_os = True
 default persistent._mas_os_color_game = True
 default persistent._mas_os_color_text = False
+default persistent._mas_os_color_calendar = True
+default persistent._mas_os_color_pause = True
 default persistent._mas_os_font = "aller"
 default persistent._mas_os_font_menu = "riffic"
 default persistent._mas_os_font_ui = "halogen"
@@ -150,6 +152,8 @@ init -10 python in mas_os:
         ("_mas_os_color_os", True),
         ("_mas_os_color_game", True),
         ("_mas_os_color_text", False),
+        ("_mas_os_color_calendar", True),
+        ("_mas_os_color_pause", True),
         ("_mas_os_font", "aller"),
         ("_mas_os_font_menu", "riffic"),
         ("_mas_os_font_ui", "halogen"),
@@ -482,9 +486,11 @@ init -10 python in mas_os:
             "_mas_os_color_os",
             "_mas_os_color_game",
             "_mas_os_color_text",
+            "_mas_os_color_calendar",
+            "_mas_os_color_pause",
         ):
             try:
-                apply_textbox()
+                queue_tint_apply()
             except Exception:
                 pass
         if name == "_mas_os_hide_lgbt":
@@ -565,6 +571,14 @@ init -10 python in mas_os:
         ("#2A1520", "Тёмный"),
     )
     _tint_cache = {}
+    generating_visible = False
+    generating_count = 0
+    generating_last = 0.0
+    generating_text = (
+        "Выполняется генерация, пожалуйста подождите.\n"
+        "Не закрывайте игру и не прерывайте процесс."
+    )
+    _gen_job = None
     _BTN_BORDERS = None
     _ui_tint_applied = False
 
@@ -700,7 +714,125 @@ init -10 python in mas_os:
         overlay = store.im.Alpha(tinted, strength)
         return store.im.Composite((int(w), int(h)), (0, 0), src, (0, 0), overlay)
 
+    def _tint_disk_path(rel, hex_color, strength):
+        folder = _tint_cache_dir()
+        if not folder:
+            return None
+        src_tag = os.path.basename(unicode(rel).replace("\\", "/")).replace(".", "_")
+        name = "tb_{0}_{1}_{2}.png".format(
+            unicode(hex_color).replace("#", ""),
+            int(float(strength) * 100),
+            src_tag,
+        )
+        return os.path.join(folder, name)
+
+    def _tint_needs_disk_bake():
+        """True only if a mas_os_tint PNG for the current color is missing."""
+        if not _tb_overlay_on():
+            return False
+        hexc = tb_hex()
+        stn = tb_strength() / 100.0
+        samples = []
+        if color_game():
+            samples.append("gui/textbox_d.png")
+        if color_pause():
+            samples.append("gui/overlay/game_menu_d.png")
+            samples.append("gui/menu_bg_d.png")
+        if color_calendar():
+            samples.append("mod_assets/calendar/calendar_bg-n.png")
+        if not samples:
+            return False
+        for rel in samples:
+            path = _tint_disk_path(rel, hexc, stn)
+            if path and not os.path.isfile(path):
+                return True
+        return False
+
+    def queue_tint_apply():
+        """Show the wait window first, then bake. Skip the window if files exist."""
+        global _gen_job, generating_visible, generating_count, generating_last
+        import time as _time
+        if not _tint_needs_disk_bake():
+            apply_textbox()
+            return None
+        _gen_job = apply_textbox
+        generating_visible = True
+        generating_count = 0
+        generating_last = _time.time()
+        try:
+            store.renpy.show_screen("mas_os_generating")
+        except Exception:
+            apply_textbox()
+            generating_visible = False
+            _gen_job = None
+        return None
+
+    def generating_do_work():
+        global _gen_job, generating_visible
+        if _gen_job is None:
+            return None
+        job = _gen_job
+        _gen_job = None
+        try:
+            job()
+        finally:
+            generating_visible = False
+            try:
+                store.renpy.hide_screen("mas_os_generating")
+            except Exception:
+                pass
+        return None
+
+    def gen_ensure():
+        """Show overlay only when a new tint PNG is about to be written."""
+        global generating_visible, generating_count, generating_last
+        import time as _time
+        generating_last = _time.time()
+        if generating_visible:
+            return
+        generating_visible = True
+        generating_count = 0
+        try:
+            store.renpy.show_screen("mas_os_generating")
+        except Exception:
+            pass
+        try:
+            store.renpy.pause(0.12, hard=True)
+        except Exception:
+            pass
+
+    def gen_tick():
+        global generating_count, generating_last
+        import time as _time
+        generating_count += 1
+        generating_last = _time.time()
+        try:
+            store.renpy.pause(0, hard=True)
+        except Exception:
+            pass
+
+    def gen_idle_hide():
+        global generating_visible
+        import time as _time
+        if _gen_job is not None:
+            return
+        if generating_visible and (_time.time() - generating_last) > 0.5:
+            generating_visible = False
+            try:
+                store.renpy.hide_screen("mas_os_generating")
+            except Exception:
+                pass
+
     def _tint_via_pygame(rel, hex_color, strength):
+        s = float(strength)
+        disk = _tint_disk_path(rel, hex_color, s)
+        if disk and os.path.isfile(disk):
+            gamed = (getattr(store.renpy.config, "gamedir", "") or "").replace("\\", "/")
+            norm = disk.replace("\\", "/")
+            if gamed and norm.startswith(gamed.rstrip("/") + "/"):
+                return norm[len(gamed.rstrip("/")) + 1:]
+            return disk
+        gen_ensure()
         data = _read_game_bytes(rel)
         if not data:
             return None
@@ -718,6 +850,11 @@ init -10 python in mas_os:
         w, h = surf.get_size()
         y = 0
         while y < h:
+            if generating_visible and (y % 24) == 0:
+                try:
+                    store.renpy.pause(0, hard=True)
+                except Exception:
+                    pass
             x = 0
             while x < w:
                 c = surf.get_at((x, y))
@@ -754,6 +891,7 @@ init -10 python in mas_os:
             pygame.image.save(surf, path)
         except Exception:
             return None
+        gen_tick()
         gamed = (getattr(store.renpy.config, "gamedir", "") or "").replace("\\", "/")
         norm = path.replace("\\", "/")
         if gamed and norm.startswith(gamed.rstrip("/") + "/"):
@@ -887,6 +1025,174 @@ init -10 python in mas_os:
 
     def color_text():
         return flag("_mas_os_color_text", False)
+
+    def color_calendar():
+        return flag("_mas_os_color_calendar", True)
+
+    def color_pause():
+        return flag("_mas_os_color_pause", True)
+
+    def pause_menu_bg():
+        """Polka-dot pause background, tinted when the option is on."""
+        try:
+            dark = bool(store.mas_globals.dark_mode)
+        except Exception:
+            dark = not calendar_light()
+        path = "gui/menu_bg_d.png" if dark else "gui/menu_bg.png"
+        if color_pause() and _tb_overlay_on():
+            try:
+                return _mask_tint(path, tb_hex(), tb_strength() / 100.0)
+            except Exception:
+                return path
+        return path
+
+    def _pause_set_outlines(style_name, outlines, hover=None, ins=None):
+        try:
+            st = getattr(store.style, style_name, None)
+        except Exception:
+            st = None
+        if st is None:
+            return
+        try:
+            st.outlines = outlines
+            if hover is not None:
+                st.hover_outlines = hover
+            if ins is not None:
+                st.insensitive_outlines = ins
+        except Exception:
+            pass
+
+    def apply_pause_menu():
+        """Tint pause/game-menu overlay, music menu, and Riffic outlines."""
+        overlay = color_pause() and _tb_overlay_on()
+        hexc = tb_hex()
+        strength = tb_strength() / 100.0
+        st = store.style
+
+        def _bg(path):
+            if overlay:
+                try:
+                    return _mask_tint(path, hexc, strength)
+                except Exception:
+                    return path
+            return path
+
+        try:
+            st.game_menu_outer_frame.background = _bg("gui/overlay/game_menu.png")
+            st.game_menu_outer_frame_dark.background = _bg("gui/overlay/game_menu_d.png")
+        except Exception:
+            pass
+        try:
+            st.music_menu_outer_frame.background = _bg("mod_assets/music_menu.png")
+            st.music_menu_outer_frame_dark.background = _bg("mod_assets/music_menu_d.png")
+        except Exception:
+            pass
+        try:
+            st.main_menu_frame.background = _bg("gui/overlay/main_menu.png")
+            st.main_menu_frame_dark.background = _bg("gui/overlay/main_menu_d.png")
+        except Exception:
+            pass
+
+        if overlay:
+            hov = _lighten_hex(hexc, 0.28)
+            ins = _lighten_hex(hexc, 0.50)
+            out4 = [(4, hexc, 0, 0), (2, hexc, 2, 2)]
+            hov4 = [(4, hov, 0, 0), (2, hov, 2, 2)]
+            ins4 = [(4, ins, 0, 0), (2, ins, 2, 2)]
+            out6 = [(6, hexc, 0, 0), (3, hexc, 2, 2)]
+            out3 = [(3, hexc, 0, 0), (1, hexc, 1, 1)]
+            for n in (
+                "navigation_button_text",
+                "navigation_button_text_dark",
+                "return_button_text",
+                "return_button_text_dark",
+                "music_menu_button_text",
+                "music_menu_button_text_dark",
+                "music_menu_return_button_text",
+                "music_menu_return_button_text_dark",
+                "music_menu_prev_button_text",
+                "music_menu_prev_button_text_dark",
+                "confirm_button_text",
+                "updater_button_text",
+            ):
+                _pause_set_outlines(n, out4, hov4, ins4)
+            _pause_set_outlines("game_menu_label_text", out6)
+            _pause_set_outlines("game_menu_label_text_dark", out6)
+            _pause_set_outlines("music_menu_label_text", out6)
+            _pause_set_outlines("music_menu_label_text_dark", out6)
+            _pause_set_outlines("pref_label_text", out3)
+            _pause_set_outlines("pref_label_text_dark", out3)
+        else:
+            _pause_set_outlines(
+                "navigation_button_text",
+                [(4, "#b59", 0, 0), (2, "#b59", 2, 2)],
+                [(4, "#fac", 0, 0), (2, "#fac", 2, 2)],
+                [(4, "#fce", 0, 0), (2, "#fce", 2, 2)],
+            )
+            _pause_set_outlines(
+                "navigation_button_text_dark",
+                [(4, "#DE367E", 0, 0), (2, "#DE367E", 2, 2)],
+                [(4, "#FF80B7", 0, 0), (2, "#FF80B7", 2, 2)],
+                [(4, "#FFB2D4", 0, 0), (2, "#FFB2D4", 2, 2)],
+            )
+            for n in (
+                "return_button_text",
+                "music_menu_button_text",
+                "music_menu_return_button_text",
+                "music_menu_prev_button_text",
+                "confirm_button_text",
+                "updater_button_text",
+            ):
+                _pause_set_outlines(
+                    n,
+                    [(4, "#b59", 0, 0), (2, "#b59", 2, 2)],
+                    [(4, "#fac", 0, 0), (2, "#fac", 2, 2)],
+                    [(4, "#fce", 0, 0), (2, "#fce", 2, 2)],
+                )
+            for n in (
+                "return_button_text_dark",
+                "music_menu_button_text_dark",
+                "music_menu_return_button_text_dark",
+                "music_menu_prev_button_text_dark",
+            ):
+                _pause_set_outlines(
+                    n,
+                    [(4, "#DE367E", 0, 0), (2, "#DE367E", 2, 2)],
+                    [(4, "#FF80B7", 0, 0), (2, "#FF80B7", 2, 2)],
+                    [(4, "#FFB2D4", 0, 0), (2, "#FFB2D4", 2, 2)],
+                )
+            _pause_set_outlines("game_menu_label_text", [(6, "#b59", 0, 0), (3, "#b59", 2, 2)])
+            _pause_set_outlines("game_menu_label_text_dark", [(6, "#DE367E", 0, 0), (3, "#DE367E", 2, 2)])
+            _pause_set_outlines("music_menu_label_text", [(6, "#b59", 0, 0), (3, "#b59", 2, 2)])
+            _pause_set_outlines("music_menu_label_text_dark", [(6, "#DE367E", 0, 0), (3, "#DE367E", 2, 2)])
+            _pause_set_outlines("pref_label_text", [(3, "#b59", 0, 0), (1, "#b59", 1, 1)])
+            _pause_set_outlines("pref_label_text_dark", [(3, "#DE367E", 0, 0), (1, "#DE367E", 1, 1)])
+
+    def calendar_light():
+        """Light calendar art: OS light theme, or daytime in the room."""
+        try:
+            return in_game_light_ui()
+        except Exception:
+            pass
+        try:
+            return store.mas_current_background.isFltDay()
+        except Exception:
+            return True
+
+    def calendar_asset(day_path, night_path=None):
+        """
+        Calendar PNG for the current light/dark mode, tinted like the textbox
+        when that option is on.
+        """
+        if not night_path:
+            night_path = day_path
+        path = day_path if calendar_light() else night_path
+        if color_calendar() and _tb_overlay_on():
+            try:
+                return _mask_tint(path, tb_hex(), tb_strength() / 100.0)
+            except Exception:
+                return path
+        return path
 
     def in_game_light_ui():
         """Light in-game chrome: OS light theme, or daytime in the room."""
@@ -1116,6 +1422,10 @@ init -10 python in mas_os:
         except Exception:
             pass
         try:
+            apply_pause_menu()
+        except Exception:
+            pass
+        try:
             store.style.rebuild()
         except Exception:
             pass
@@ -1131,7 +1441,7 @@ init -10 python in mas_os:
             store.renpy.save_persistent()
         except Exception:
             pass
-        apply_textbox()
+        queue_tint_apply()
 
     def set_tb_tint_on(value):
         store.persistent._mas_os_tb_tint_on = bool(value)
@@ -1139,7 +1449,7 @@ init -10 python in mas_os:
             store.renpy.save_persistent()
         except Exception:
             pass
-        apply_textbox()
+        queue_tint_apply()
         return None
 
     def set_tb_tint(hex_color):
@@ -1152,7 +1462,7 @@ init -10 python in mas_os:
             store.renpy.save_persistent()
         except Exception:
             pass
-        apply_textbox()
+        queue_tint_apply()
         return None
 
     def set_tb_strength(value):
@@ -1169,7 +1479,7 @@ init -10 python in mas_os:
             store.renpy.save_persistent()
         except Exception:
             pass
-        apply_textbox()
+        queue_tint_apply()
         return None
 
     def set_tb_rgb_channel(channel, value):
@@ -1193,7 +1503,7 @@ init -10 python in mas_os:
             store.renpy.save_persistent()
         except Exception:
             pass
-        apply_textbox()
+        queue_tint_apply()
         return None
 
     def textbox_preview():
@@ -3020,6 +3330,63 @@ screen mas_os_ibutton(caption, act, glyph, hue, bstyle="mas_os_tile", tstyle="ma
                 yoffset 6
 
 
+transform mas_os_gen_bar_slide:
+    xoffset -90
+    block:
+        linear 0.85 xoffset 470
+        pause 0.08
+        xoffset -90
+        repeat
+
+
+screen mas_os_generating():
+    modal True
+    zorder 500
+
+    add Solid("#000000C0")
+
+    frame:
+        xalign 0.5
+        yalign 0.5
+        xsize 640
+        ysize 228
+        background Solid(store.mas_os.theme_color("panel"))
+        padding (28, 24)
+
+        vbox:
+            spacing 12
+            xfill True
+
+            text _("Генерация"):
+                style "mas_os_title"
+                size 28
+                xalign 0.5
+
+            text store.mas_os.generating_text:
+                style "mas_os_body"
+                xalign 0.5
+                text_align 0.5
+                xsize 560
+
+            text _("Обработано изображений: {0}").format(store.mas_os.generating_count):
+                style "mas_os_hint"
+                xalign 0.5
+                substitute False
+
+            frame:
+                xsize 560
+                ysize 22
+                background Solid("#1A0A12")
+                clipping True
+                xalign 0.5
+
+                add Solid(store.mas_os.theme_color("accent")) at mas_os_gen_bar_slide:
+                    xysize (110, 22)
+
+    timer 0.08 action Function(store.mas_os.generating_do_work)
+    timer 0.50 repeat True action Function(store.mas_os.gen_idle_hide)
+
+
 screen mas_os_home():
     modal True
     zorder 200
@@ -3073,7 +3440,7 @@ screen mas_os_home_cards():
         ypos 18
         spacing 12
 
-        fixed at mas_os_logo_breathe:
+        fixed:
             xysize (64, 64)
             use mas_os_logo_mark(max_w=64, max_h=64)
 

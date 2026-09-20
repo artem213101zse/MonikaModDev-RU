@@ -15984,7 +15984,7 @@ init 5 python:
             persistent.event_database,
             eventlabel='monika_why_spaceroom',
             prompt="Почему мы всегда встречаемся в классе?",
-            category=['местопложение'],
+            category=['местоположение'],
             pool=True,
             unlocked=False,
             rules={"no_unlock":None},
