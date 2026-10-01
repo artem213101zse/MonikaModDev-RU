@@ -50,9 +50,31 @@ python early:
         except Exception:
             pass
 
+    def _mas_os_early_docs_roots():
+        roots = []
+        env = _mas_os_early_os.environ
+        bases = []
+        ext = env.get("EXTERNAL_STORAGE")
+        if ext:
+            bases.append(ext)
+        bases.extend(("/storage/emulated/0", "/sdcard"))
+        seen = set()
+        for base in bases:
+            if not base:
+                continue
+            root = _mas_os_early_os.path.normpath(
+                _mas_os_early_os.path.join(base, "Documents", "Monika_after_story")
+            )
+            if root in seen:
+                continue
+            seen.add(root)
+            roots.append(root)
+        return roots
+
     def _mas_os_early_paths():
         based = _mas_os_early_os.path.normpath(renpy.config.basedir)
         srcs = [_mas_os_early_os.path.join(based, "game", "Submods")]
+        docs_skip = []
         try:
             gamed = _mas_os_early_os.path.normpath(renpy.config.gamedir)
             extra = _mas_os_early_os.path.join(gamed, "Submods")
@@ -60,6 +82,12 @@ python early:
                 srcs.append(extra)
         except Exception:
             pass
+        for root in _mas_os_early_docs_roots():
+            overlay = _mas_os_early_os.path.join(root, "game", "Submods")
+            if overlay not in srcs:
+                srcs.append(overlay)
+            docs_skip.append(_mas_os_early_os.path.join(root, "flags", "skip_submods"))
+            docs_skip.append(_mas_os_early_os.path.join(root, "mas_os_safe_mode"))
         return {
             "srcs": srcs,
             "dst": _mas_os_early_os.path.join(based, "Submods_disabled"),
@@ -67,6 +95,7 @@ python early:
             "auto": _mas_os_early_os.path.join(based, "mas_os_auto_safe"),
             "oneshot": _mas_os_early_os.path.join(based, "mas_os_safe_mode"),
             "sticky": _mas_os_early_os.path.join(based, "mas_os_safe_mode_on"),
+            "docs_skip": docs_skip,
         }
 
     def _mas_os_early_park_one(src, dst):
@@ -121,15 +150,32 @@ python early:
             except Exception:
                 pass
 
+    def _mas_os_early_bios_skip(p):
+        for path in p.get("docs_skip") or []:
+            if _mas_os_early_os.path.isfile(path):
+                return True
+        return False
+
+    def _mas_os_early_clear_bios_skip(p):
+        for path in p.get("docs_skip") or []:
+            if _mas_os_early_os.path.isfile(path):
+                try:
+                    _mas_os_early_os.remove(path)
+                except Exception:
+                    pass
+
     def _mas_os_early_boot_guard():
         p = _mas_os_early_paths()
+        bios_skip = _mas_os_early_bios_skip(p)
         forced = (
             _mas_os_early_os.path.isfile(p["oneshot"])
             or _mas_os_early_os.path.isfile(p["sticky"])
+            or bios_skip
         )
         crashed = _mas_os_early_os.path.isfile(p["lock"])
         if forced:
             _mas_os_early_park_submods("safe")
+            _mas_os_early_clear_bios_skip(p)
         elif crashed:
             _mas_os_early_park_submods("crash")
         try:

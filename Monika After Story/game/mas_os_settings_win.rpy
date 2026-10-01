@@ -951,6 +951,9 @@ screen mas_os_win_sys(sub):
 
         use mas_os_ibutton(_("Установщик MAS OS"), MASOSGo("setup"), "Up", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="boot")
 
+        if renpy.android:
+            use mas_os_ibutton(_("BIOS"), Function(store.mas_os.open_bios, "system"), "B", "#7A4A9A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="boot")
+
         use mas_os_ibutton(_("Сбросить настройки MAS OS"), Show("mas_os_confirm", message=_("Сбросить оформление, звук и поведение оболочки к заводским?\nСкачанные файлы и прочитанные события не трогаем."), yes_action=[Function(store.mas_os.reset_os_settings), Hide("mas_os_confirm")], no_action=Hide("mas_os_confirm")), "R", "#8A3A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="reboot")
 
         text _("Оболочка не считает посещение комнаты, пока не нажато «Запустить MAS»."):

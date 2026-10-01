@@ -2438,6 +2438,7 @@ init -10 python in mas_os:
         """
         Restart the process in-engine back into MAS OS.
         quit(relaunch=True) often just closes a Windows/Android build.
+        On Android the BIOS activity stays; we kill :game and start it again.
         """
         store.persistent._mas_os_reopen = True
         try:
@@ -2447,6 +2448,10 @@ init -10 python in mas_os:
                 store.renpy.save_persistent()
             except Exception:
                 pass
+        relaunch = getattr(store.mas_os, "android_relaunch", None)
+        if relaunch and getattr(renpy, "android", False):
+            if relaunch("boot"):
+                return
         store.renpy.utter_restart()
 
     def return_to_shell():
@@ -3717,6 +3722,8 @@ screen mas_os_home_cards():
         spacing 12
 
         use mas_os_ibutton(_("Перезагрузка"), Function(store.mas_os.reboot_shell), "R", "#4A8AAA", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.32, icon="reboot")
+        if renpy.android:
+            use mas_os_ibutton(_("BIOS"), Function(store.mas_os.open_bios, "play"), "B", "#7A4A9A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.33, icon="boot")
         if store.mas_os.flag("_mas_os_quit_confirm", True):
             use mas_os_ibutton(_("Выключение"), Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm")), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.35, icon="shutdown")
         else:

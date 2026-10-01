@@ -943,6 +943,8 @@ screen mas_os_start_flyout():
             use mas_os_start_row(_("О системе"), MASOSGo("about"), "about")
             use mas_os_start_row(_("Логи"), MASOSGo("logs"), "logs")
             use mas_os_start_row(_("Перезагрузка"), Function(store.mas_os.reboot_shell), "reboot")
+            if renpy.android:
+                use mas_os_start_row(_("BIOS"), Function(store.mas_os.open_bios, "play"), "boot")
 
             if store.mas_os.flag("_mas_os_quit_confirm", True):
                 use mas_os_start_row(_("Выключение"), Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm")), "shutdown")

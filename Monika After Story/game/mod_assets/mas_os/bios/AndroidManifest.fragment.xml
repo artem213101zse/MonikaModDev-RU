@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Справка: живой манифест правится в MAS SDK:
+    Documents/renpy-7.4.11-sdk/rapt/templates/app-AndroidManifest.xml
+    Documents/renpy-7.4.11-sdk/rapt/project/app/src/main/AndroidManifest.xml
+  Пакет приложения: ru.kurokawa.mas
+  MAIN/LAUNCHER = ru.kurokawa.mas.bios.LauncherActivity
+  PythonSDLActivity android:process=":game" exported=false
+  FileProvider ${applicationId}.fileprovider → @xml/file_paths
+  REQUEST_INSTALL_PACKAGES для APK из BIOS
+-->
+<merge>
+  <!-- MAIN на BIOS. Игра в процессе :game без LAUNCHER. -->
+</merge>

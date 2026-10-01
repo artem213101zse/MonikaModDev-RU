@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <external-path
+        name="save_backups"
+        path="Documents/Monika_after_story/backups" />
+    <files-path
+        name="apk_update"
+        path="." />
+</paths>

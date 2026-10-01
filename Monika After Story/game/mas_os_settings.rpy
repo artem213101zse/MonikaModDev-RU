@@ -1029,6 +1029,9 @@ screen mas_os_settings_classic():
 
                     use mas_os_android_saves_row
 
+                    if renpy.android:
+                        use mas_os_ibutton(_("BIOS"), Function(store.mas_os.open_bios, "system"), "B", "#7A4A9A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="boot")
+
                     use mas_os_onoff(
                         _("Скрыть LGBT-контент"),
                         _("Скрывает в разговорах с Моникой варианты пола кроме мужского и женского: «ни то, ни другое», трансгендер, гендерфлюид. Местоимения they/them не подставляются (для неопределённого пола берутся мужские, как в этом порте по умолчанию). Уже записанный в сейве пол не стирается — эти пункты просто больше не предлагаются. Выключено — всё как в оригинальном MAS."),

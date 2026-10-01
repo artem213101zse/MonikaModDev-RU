@@ -1287,6 +1287,15 @@ screen mas_os_store_classic():
         xpos 48
         ypos 16
 
+    if renpy.android:
+        textbutton _("Установить сабмод"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xpos 700
+            ypos 16
+            xsize 260
+            action Function(store.mas_os.open_bios, "submods")
+
     textbutton _("Новый вид"):
         style "mas_os_nav_btn"
         text_style "mas_os_nav_btn_text"
@@ -1588,6 +1597,15 @@ screen mas_os_store_win():
         style "mas_os_hint"
         xpos 48
         ypos 54
+
+    if renpy.android:
+        textbutton _("Установить сабмод"):
+            style "mas_os_nav_btn"
+            text_style "mas_os_nav_btn_text"
+            xpos 700
+            ypos 16
+            xsize 260
+            action Function(store.mas_os.open_bios, "submods")
 
     textbutton _("Классический вид"):
         style "mas_os_nav_btn"

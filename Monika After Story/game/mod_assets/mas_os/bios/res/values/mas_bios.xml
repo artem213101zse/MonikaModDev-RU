@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sideload_bg">#14070d</color>
+    <color name="sideload_accent">#c94a7a</color>
+    <color name="sideload_teal">#7ee0d6</color>
+    <color name="sideload_text">#ffe6f3</color>
+
+    <style name="SideloadBiosTheme" parent="@android:style/Theme.NoTitleBar.Fullscreen">
+        <item name="android:windowBackground">@color/sideload_bg</item>
+        <item name="android:colorBackground">@color/sideload_bg</item>
+        <item name="android:textColor">@color/sideload_text</item>
+    </style>
+</resources>

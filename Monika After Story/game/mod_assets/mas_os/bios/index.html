@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="color-scheme" content="dark">
+  <title>MAS BIOS</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+
+  <header class="top">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <div class="title">MAS BIOS</div>
+        <div class="sub">Kurokawa GDS · оболочка до Python</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div id="path" class="path">Documents/Monika_after_story</div>
+      <div class="chips">
+        <span id="chipFiles" class="chip">файлы</span>
+        <span id="chipEngine" class="chip">движок</span>
+        <span id="chipSkip" class="chip">сразу MAS</span>
+      </div>
+    </div>
+    <div class="clock-wrap">
+      <div id="clock" class="clock">--:--</div>
+      <div id="version" class="ver">порт</div>
+    </div>
+  </header>
+
+  <div class="progress-block">
+    <div id="barTrack" class="bar-track"><div id="bar" class="bar"></div></div>
+    <div id="progressLine" class="progress"></div>
+  </div>
+
+  <nav class="nav" id="nav">
+    <button type="button" class="nav-btn on" data-open="play">Игра</button>
+    <button type="button" class="nav-btn" data-open="files">Файлы</button>
+    <button type="button" class="nav-btn" data-open="submods">Сабмоды</button>
+    <button type="button" class="nav-btn" data-open="saves">Сейвы</button>
+    <button type="button" class="nav-btn" data-open="update">Обновление</button>
+    <button type="button" class="nav-btn" data-open="engine">Движок</button>
+    <button type="button" class="nav-btn" data-open="system">Система</button>
+  </nav>
+
+  <div class="workspace">
+    <main class="board">
+
+      <section id="sec-play" class="sec on" data-sec="play">
+        <h2>Игра</h2>
+        <p class="lead">Python и MAS OS стартуют отсюда. Сессия Моники ещё не началась.</p>
+        <div class="grid">
+          <button type="button" class="tile start" onclick="callBridge('startGame')">
+            <b>Запустить MAS</b>
+            <span>Ren'Py → MAS OS → комната</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('startSafe')">
+            <b>Безопасный вход</b>
+            <span>без сабмодов, только оболочка</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="sec-files" class="sec" data-sec="files">
+        <h2>Файлы</h2>
+        <p class="lead">Системный пикер и Documents. То, что MAS OS не достаёт из других приложений.</p>
+        <div class="grid">
+          <button type="button" class="tile" onclick="callBridge('grantAllFiles')">
+            <b>Все файлы</b>
+            <span>разрешение Android 11+</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('pickZip')">
+            <b>Выбрать zip</b>
+            <span>мод, пак, бэкап</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('pickImage')">
+            <b>Выбрать картинку</b>
+            <span>обои, превью, подарок</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('pickFile')">
+            <b>Любой файл</b>
+            <span>в Transfer</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('installZips')">
+            <b>Поставить zip из incoming</b>
+            <span>до скана скриптов</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="sec-submods" class="sec" data-sec="submods">
+        <h2>Сабмоды</h2>
+        <p class="lead">Zip попадает на диск до первого скана. Включить пак потом можно в MAS OS.</p>
+        <div class="grid">
+          <button type="button" class="tile start" onclick="callBridge('pickSubmodZip')">
+            <b>Установить сабмод</b>
+            <span>zip из Загрузок, Telegram, Drive</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('installZips')">
+            <b>Поставить из incoming</b>
+            <span>уже скачанный zip</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('deleteMod')">
+            <b>Убрать последний zip</b>
+            <span>файлы с диска, метки снимутся после входа</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="sec-saves" class="sec" data-sec="saves">
+        <h2>Сейвы</h2>
+        <p class="lead">Zip через FileProvider. Шаринг только папки backups, не всей Documents.</p>
+        <div class="grid">
+          <button type="button" class="tile" onclick="callBridge('exportSaves')">
+            <b>Экспорт</b>
+            <span>saves → backups/*.zip</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('importSaves')">
+            <b>Импорт</b>
+            <span>zip обратно в saves</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('shareSaves')">
+            <b>Поделиться</b>
+            <span>отправить бэкап</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="sec-update" class="sec" data-sec="update">
+        <h2>Обновление APK</h2>
+        <p class="lead">GitHub Release порта. Установщик Android, не загрузка внутри Ren'Py.</p>
+        <div class="grid">
+          <button type="button" class="tile" onclick="callBridge('checkUpdate')">
+            <b>Проверить</b>
+            <span>последний release</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('downloadUpdate')">
+            <b>Скачать и поставить</b>
+            <span>если есть новая версия</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('installLocalApk')">
+            <b>Поставить скачанный</b>
+            <span>files/update.apk</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('downloadUpdateAgain')">
+            <b>Скачать заново</b>
+            <span>даже если тег тот же</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="sec-engine" class="sec" data-sec="engine">
+        <h2>Движок шахмат</h2>
+        <p class="lead">Нативный ELF в private files. Сюда потом встанет Stockfish. Documents для бинаря не используем.</p>
+        <div class="grid">
+          <button type="button" class="tile" onclick="callBridge('installEngine')">
+            <b>Положить бинарь</b>
+            <span>из APK в files/</span>
+          </button>
+          <button type="button" class="tile start" onclick="callBridge('testEngine')">
+            <b>Проверить движок</b>
+            <span>HELLO ENGINE OK со своего ELF</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('testStockfish')">
+            <b>Stockfish uci</b>
+            <span>когда бинарь собран</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="sec-system" class="sec" data-sec="system">
+        <h2>Система</h2>
+        <p class="lead">Флаги старта и запасной xml, если WebView не открылся.</p>
+        <div class="grid">
+          <button type="button" class="tile" onclick="callBridge('toggleBoot')">
+            <b>Сразу MAS OS</b>
+            <span>пропускать BIOS при холодном старте</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('shareLogs')">
+            <b>Поделиться логами</b>
+            <span>log.txt и traceback</span>
+          </button>
+          <button type="button" class="tile" onclick="callBridge('useNativeUi')">
+            <b>Старый xml</b>
+            <span>если страница не грузится</span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <aside class="side">
+      <div class="side-head">Журнал</div>
+      <pre id="log" class="log"></pre>
+    </aside>
+  </div>
+
+  <footer class="dock">
+    <button type="button" class="go" onclick="callBridge('startGame')">Запустить MAS</button>
+    <div id="hint" class="hint">предпросмотр HTML · Java-мост подключим при интеграции</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
