@@ -2598,10 +2598,27 @@ style notify_text is gui_text:
 # Overrides for the UI elements which are placed on top of the classroom BG
 # FIXME: there might be a better way, but for now it does its job
 style classroom_vscrollbar is vscrollbar:
+    xsize 12
     base_bar Frame("gui/scrollbar/vertical_poem_bar.png", tile=False)
 
 style classroom_vscrollbar_dark is vscrollbar_dark:
+    xsize 12
     base_bar Frame("gui/scrollbar/vertical_poem_bar.png", tile=False)
+
+style mas_search_hint:
+    font gui.default_font
+    size 18
+    color "#EEEEEEB2"
+    outlines []
+    layout "nobreak"
+    yalign 0.5
+
+init python:
+    def mas_talk_drag():
+        try:
+            return store.mas_os.talk_drag_on()
+        except Exception:
+            return False
 
 #Define the styles used for scrollable_menu_vbox, scrollable_menu_button and scrollable_menu_button_text
 
@@ -2734,9 +2751,12 @@ define main_adj = ui.adjustment()
 #scrollable_menu selection screen
 #This screen is based on work from the tutorial menu selection by haloff1
 screen twopane_scrollable_menu(prev_items, main_items, left_area, left_align, right_area, right_align, cat_length):
-    on "hide" action Function(store.main_adj.change, 0)
+    on "hide" action [Function(store.main_adj.change, 0), Function(store.mas_ui.twopane_search_reset)]
 
     default flt_evs = None
+
+    python:
+        _talk_drag = mas_talk_drag()
 
     style_prefix "twopane_scrollable_menu"
 
@@ -2756,6 +2776,7 @@ screen twopane_scrollable_menu(prev_items, main_items, left_area, left_align, ri
                     yfill False
                     mousewheel True
                     arrowkeys True
+                    draggable _talk_drag
 
                     vbox:
                         for ev in flt_evs:
@@ -2807,6 +2828,7 @@ screen twopane_scrollable_menu(prev_items, main_items, left_area, left_align, ri
                     yfill False
                     mousewheel True
                     arrowkeys True
+                    draggable _talk_drag
 
                     vbox:
                         for i_caption, i_label in prev_items:
@@ -2847,6 +2869,7 @@ screen twopane_scrollable_menu(prev_items, main_items, left_area, left_align, ri
                         yfill False
                         mousewheel True
                         arrowkeys True
+                        draggable _talk_drag
 
                         vbox:
                             for i_caption, i_label in main_items:
@@ -2877,31 +2900,49 @@ screen twopane_scrollable_menu(prev_items, main_items, left_area, left_align, ri
             arrowkeys False
             mousewheel "horizontal"
             xsize right_area[0] - left_area[0] + right_area[2] - 10
-            ysize 38
+            ysize 40
+            yalign 0.5
             xadjustment ui.adjustment(ranged=store.mas_ui.twopane_menu_adj_ranged_callback)
 
-            input:
-                id "search_input"
-                style_prefix "input"
-                length 50
-                xalign 0.0
-                layout "nobreak"
-                first_indent (0 if flt_evs is None else 10)
-                # allow "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 _#"
-                changed store.mas_ui.twopane_menu_search_callback
+            if getattr(renpy, "android", False) and not store.mas_ui.twopane_search_active:
+                button:
+                    xfill True
+                    yfill True
+                    background None
+                    action Function(store.mas_ui.twopane_search_focus)
+            elif getattr(renpy, "android", False):
+                input:
+                    id "search_input"
+                    value store.mas_ui.twopane_search_iv
+                    style_prefix "input"
+                    length 50
+                    xalign 0.0
+                    yalign 0.5
+                    layout "nobreak"
+                    first_indent 10
+            else:
+                input:
+                    id "search_input"
+                    style_prefix "input"
+                    length 50
+                    xalign 0.0
+                    yalign 0.5
+                    layout "nobreak"
+                    first_indent 10
+                    changed store.mas_ui.twopane_menu_search_callback
 
         if flt_evs is None:
             text "Поиск темы для разговора...":
-                text_align 0.0
-                layout "nobreak"
-                color "#EEEEEEB2"
-                first_indent 10
-                line_leading 1
-                outlines []
+                style "mas_search_hint"
+                xpos 10
+                yalign 0.5
 
 # the regular scrollabe menu
 screen scrollable_menu(items, display_area, scroll_align, nvm_text, remove=None):
     style_prefix "scrollable_menu"
+
+    python:
+        _talk_drag = mas_talk_drag()
 
     fixed:
         area display_area
@@ -2914,6 +2955,7 @@ screen scrollable_menu(items, display_area, scroll_align, nvm_text, remove=None)
                 id "viewport"
                 yfill False
                 mousewheel True
+                draggable _talk_drag
 
                 vbox:
                     for i_caption, i_label in items:
@@ -2966,6 +3008,9 @@ screen scrollable_menu(items, display_area, scroll_align, nvm_text, remove=None)
 screen mas_gen_scrollable_menu(items, display_area, scroll_align, *args):
     style_prefix "scrollable_menu"
 
+    python:
+        _talk_drag = mas_talk_drag()
+
     fixed:
         area display_area
 
@@ -2977,6 +3022,7 @@ screen mas_gen_scrollable_menu(items, display_area, scroll_align, *args):
                 id "viewport"
                 yfill False
                 mousewheel True
+                draggable _talk_drag
 
                 vbox:
                     for item_prompt, item_value, is_italic, is_bold in items:
@@ -3053,6 +3099,9 @@ screen mas_check_scrollable_menu(
 
     style_prefix "check_scrollable_menu"
 
+    python:
+        _talk_drag = mas_talk_drag()
+
     fixed:
         area display_area
 
@@ -3064,6 +3113,7 @@ screen mas_check_scrollable_menu(
                 id "viewport"
                 yfill False
                 mousewheel True
+                draggable _talk_drag
 
                 vbox:
                     for button_prompt, button_key, start_selected, true_value, false_value in items:

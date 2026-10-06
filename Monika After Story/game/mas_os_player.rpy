@@ -396,9 +396,12 @@ init -5 python in mas_os:
         except Exception:
             pass
         try:
-            songs.initMusicChoices(sayori)
+            store.mas_os.apply_user_data_tree()
         except Exception:
-            pass
+            try:
+                songs.initMusicChoices(sayori)
+            except Exception:
+                pass
         return None
 
     def player_on_enter():

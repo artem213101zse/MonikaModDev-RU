@@ -1212,6 +1212,10 @@ init -5 python in mas_os:
         if urllib2 is None:
             dl_status = "Сеть недоступна в этой сборке."
             return
+        if dl_kind == "submod" and getattr(store.renpy, "android", False):
+            dl_status = "На телефоне паки ставит BIOS → Контент."
+            open_bios("content")
+            return
         stop_dl_typing()
         dl_busy = True
         dl_status = "Скачиваю…"
@@ -1294,7 +1298,7 @@ screen mas_os_store_classic():
             xpos 700
             ypos 16
             xsize 260
-            action Function(store.mas_os.open_bios, "submods")
+            action Function(store.mas_os.open_bios, "content")
 
     textbutton _("Новый вид"):
         style "mas_os_nav_btn"
@@ -1605,7 +1609,7 @@ screen mas_os_store_win():
             xpos 700
             ypos 16
             xsize 260
-            action Function(store.mas_os.open_bios, "submods")
+            action Function(store.mas_os.open_bios, "content")
 
     textbutton _("Классический вид"):
         style "mas_os_nav_btn"

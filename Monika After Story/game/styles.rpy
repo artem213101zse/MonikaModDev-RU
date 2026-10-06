@@ -710,3 +710,64 @@ init 25 python in mas_ui:
             scr.scope["flt_evs"] = _twopane_menu_search_events(search_query)
         # Update the screen
         renpy.restart_interaction()
+
+
+init python:
+    class MASTwopaneSearchValue(InputValue):
+        """
+        Android: IME stays closed until the search bar is tapped.
+        default flips to True while focused so restart_interaction from
+        the search callback does not drop the keyboard.
+        """
+        default = False
+        editable = True
+        returnable = False
+
+        def get_text(self):
+            return store.mas_ui.twopane_search_text or ""
+
+        def set_text(self, value):
+            store.mas_ui.twopane_search_text = value or ""
+            store.mas_ui.twopane_menu_search_callback(value)
+
+        def Enable(self):
+            self.default = True
+            store.mas_ui.twopane_search_active = True
+            return InputValue.Enable(self)
+
+        def Disable(self):
+            self.default = False
+            store.mas_ui.twopane_search_active = False
+            return InputValue.Disable(self)
+
+    def twopane_search_focus():
+        iv = getattr(store.mas_ui, "twopane_search_iv", None)
+        if iv is None:
+            return
+        iv.default = True
+        store.mas_ui.twopane_search_active = True
+        try:
+            iv.Enable()
+        except Exception:
+            pass
+        try:
+            store.renpy.restart_interaction()
+        except Exception:
+            pass
+
+    def twopane_search_reset():
+        store.mas_ui.twopane_search_text = ""
+        store.mas_ui.twopane_search_active = False
+        iv = getattr(store.mas_ui, "twopane_search_iv", None)
+        if iv is not None:
+            iv.default = False
+            try:
+                iv.Disable()
+            except Exception:
+                pass
+
+    store.mas_ui.twopane_search_text = ""
+    store.mas_ui.twopane_search_active = False
+    store.mas_ui.twopane_search_iv = MASTwopaneSearchValue()
+    store.mas_ui.twopane_search_focus = twopane_search_focus
+    store.mas_ui.twopane_search_reset = twopane_search_reset

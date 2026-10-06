@@ -95,6 +95,13 @@ init -5 python in mas_os:
     def ddlc_packs():
         gamed = os.path.join(game_dir(), "game")
         try:
+            if user_data_is_documents():
+                overlay = os.path.join(user_data_root(), "game")
+                if overlay:
+                    gamed = overlay
+        except Exception:
+            pass
+        try:
             archives = list(getattr(store.config, "archives", None) or [])
         except Exception:
             archives = []
@@ -247,7 +254,7 @@ screen mas_os_setup():
                     text _("Архивы оригинальной DDLC"):
                         style "mas_os_subtitle"
 
-                    text _("Нужны audio.rpa, images.rpa, scripts.rpa и fonts.rpa в папке game. На Android они часто уже внутри приложения — тогда строка будет зелёной."):
+                    text _("ПК: audio.rpa, images.rpa, scripts.rpa и fonts.rpa в папке game. Телефон: BIOS качает и распаковывает DDLC в Documents/.../game — если картинки на месте, строки зелёные."):
                         style "mas_os_hint"
                         xsize 1080
 
@@ -282,7 +289,7 @@ screen mas_os_setup():
                         text _("Все ресурсы на месте. Можно идти дальше."):
                             style "mas_os_body"
                     else:
-                        text _("Чего-то не хватает. Скачай DDLC с официального сайта и скопируй четыре .rpa в папку game этого мода, затем нажми «Проверить снова»."):
+                        text _("Чего-то не хватает. На ПК скопируй четыре .rpa в game. На телефоне открой BIOS → Архивы и скачай ddlc.moe, затем проверь снова."):
                             style "mas_os_body"
                             xsize 1080
 

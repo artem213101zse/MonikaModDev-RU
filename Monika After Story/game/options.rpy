@@ -136,8 +136,36 @@ init python:
     ## "all" is required for Android APK; build.name keeps PC mod zip working.
     mas_files = "all " + build.name
 
+    ## Build junk and engine sources must stay out of the APK.
+    build.classify("tools/**", None)
+    build.classify("log/**", None)
+    build.classify("traceback.txt", None)
+    build.classify("errors.txt", None)
+    build.classify("mas_os_auto_safe", None)
+    build.classify("mas_os_boot_lock", None)
+
     #Add the pictures necessary for the scrollable menu
     build.classify("game/gui/**", mas_files)
+
+    ## DDLC pictures/audio stay in PC zip. Android BIOS downloads .rpa
+    ## and unpacks them into Documents/Monika_after_story/game.
+    build.classify("game/images/**", "windows linux mac")
+    build.classify("game/bgm/**", "windows linux mac")
+    build.classify("game/sfx/**", "windows linux mac")
+
+    ## DDLC leftovers accidentally copied into game/. Out of every package.
+    ## PC uses dropped .rpa; Android BIOS unpacks images.rpa / audio.rpa.
+    build.classify("game/*.chr", None)
+    build.classify("game/CAN YOU HEAR ME.txt", None)
+    build.classify("game/hxppy thxughts.png", None)
+    build.classify("game/iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii.txt", None)
+    build.classify("game/movies-info.mms", None)
+    build.classify("game/masrun", None)
+    build.classify("game/saves/**", None)
+
+    ## Android chess ELFs go into rapt assets via tools/sync_mas_bios.py.
+    ## Keep them out of the game archive so the APK is not doubled.
+    build.classify("game/mod_assets/mas_os/bios/bin/**", None)
 
     ## These files get put into your data file
     build.classify("game/mod_assets/**", mas_files)
@@ -168,6 +196,7 @@ init python:
     build.classify('/game/cache/*.*', None)
     build.classify('**.rpa',None)
     build.classify("game/mod_assets/api_keys.json", None)
+    build.classify("game/mod_assets/mas_os/bios/bin/**", None)
     build.classify("**.pem", None)
 
     ## Files matching documentation patterns are duplicated in a mac app build,

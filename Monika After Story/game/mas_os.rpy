@@ -54,8 +54,8 @@ default persistent._mas_os_layout = "cards"
 default persistent._mas_os_setup_done = False
 default persistent._mas_os_setup_step = 0
 default persistent._mas_os_tos_agreed = False
-# ask — показать выбор на Android; documents / app — решение игрока
-default persistent._mas_os_android_saves = "ask"
+# documents — BIOS и движок пишут в Documents; app — скрытая папка приложения
+default persistent._mas_os_android_saves = "documents"
 # off — полное вступление; tips — без болтовни, подсказки t/m/p остаются; all — только служебный код
 default persistent._mas_os_intro_skip = "off"
 # False = как в оригинальном MAS. True = без небинарных/транс пунктов в диалогах пола.
@@ -64,6 +64,8 @@ default persistent._mas_os_hide_lgbt = False
 default persistent._mas_os_settings_ui = "win10"
 default persistent._mas_os_store_ui = "win10"
 default persistent._mas_os_about_ui = "win10"
+# None = auto (finger-scroll on touch). True/False = user pick.
+default persistent._mas_os_talk_drag = None
 
 init -10 python in mas_os:
     import os
@@ -177,6 +179,7 @@ init -10 python in mas_os:
         ("_mas_os_settings_ui", "win10"),
         ("_mas_os_store_ui", "win10"),
         ("_mas_os_about_ui", "win10"),
+        ("_mas_os_talk_drag", None),
     )
 
     def reset_os_settings():
@@ -330,8 +333,8 @@ init -10 python in mas_os:
         sm_tab = "safe"
         boot_warning = (
             "Прошлый запуск не дошёл до оболочки — скорее всего сабмод. "
-            "Папка Submods отключена (Submods_disabled рядом с game). "
-            "Включи рабочие по одному или удали сломанный, потом перезапуск."
+            "Скрипты Submods не загрузились (безопасный режим после сбоя). "
+            "Выключи сломанный пак в списке или сними его в BIOS, потом перезапуск."
         )
         sm_status = boot_warning
         return None
@@ -2498,6 +2501,24 @@ init -10 python in mas_os:
             or "touch" in variants
         )
 
+    def talk_drag_on():
+        val = getattr(store.persistent, "_mas_os_talk_drag", None)
+        if val is None:
+            return is_touch()
+        return bool(val)
+
+    def set_talk_drag(on):
+        store.persistent._mas_os_talk_drag = bool(on)
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        try:
+            os_persist()
+        except Exception:
+            pass
+        return None
+
     def _norm(path):
         if not path:
             return ""
@@ -2510,8 +2531,16 @@ init -10 python in mas_os:
         """
         Folders that may contain game assets on disk.
         Android APK files are NOT listed here; those stay in loadable().
+        Documents/game overlay is first so submods land next to DDLC unpack.
         """
         dirs = []
+        try:
+            if user_data_is_documents():
+                overlay = _norm(os.path.join(user_data_root(), "game"))
+                if overlay:
+                    dirs.append(overlay)
+        except Exception:
+            pass
         for raw in (
             getattr(renpy.config, "gamedir", None),
             os.path.join(getattr(renpy.config, "basedir", "") or "", "game"),
@@ -2544,10 +2573,17 @@ init -10 python in mas_os:
     def writable_gamedir():
         """
         Disk folder we can actually create files in.
-        On Android config.gamedir is often the APK (read-only); basedir/game
-        is the private overlay shown in the file manager.
+        On Android config.gamedir is often the APK (read-only). Documents/game
+        overlay is preferred so BIOS and MAS OS install into the same tree.
         """
         global _writable_gamedir
+        try:
+            if user_data_is_documents():
+                overlay = _norm(os.path.join(user_data_root(), "game"))
+                if overlay and _can_write_dir(overlay):
+                    return overlay
+        except Exception:
+            pass
         if _writable_gamedir:
             return _writable_gamedir
         for path in asset_dirs():
@@ -2987,6 +3023,25 @@ init -10 python in mas_os:
         except Exception:
             pass
         return _norm(os.path.join(renpy.config.basedir, "log"))
+
+    def transfer_dir():
+        """Legacy path. Transfer ingest is gone; do not create this folder."""
+        try:
+            root = user_data_root()
+            if root:
+                return _norm(os.path.join(root, "Transfer"))
+        except Exception:
+            pass
+        return _norm(os.path.join(renpy.config.basedir, "Transfer"))
+
+    def system_dir():
+        try:
+            path = system_root()
+            if path:
+                return path
+        except Exception:
+            pass
+        return _norm(os.path.join(renpy.config.basedir, "_mas"))
 
     def list_dir_names(path, limit=24):
         """
@@ -3935,3 +3990,83 @@ style mas_os_button_text is generic_button_text_dark:
     idle_color "#FFE6F3"
     hover_color "#FFFFFF"
     insensitive_color "#8C6B7A"
+
+
+init 8 python:
+    def _mas_os_patch_viewport_drag():
+        """
+        Finger-scroll for draggable viewports. Stock Viewport skips drag
+        when a child button is focused, so a topic list never moves.
+        """
+        try:
+            import pygame_sdl2 as _pygame
+        except Exception:
+            try:
+                import pygame as _pygame
+            except Exception:
+                _pygame = None
+        try:
+            import renpy.display.viewport as _vp
+            import renpy.display.behavior as _beh
+            import renpy.display.focus as _focus
+            import renpy.display.core as _core
+        except Exception:
+            return
+        if getattr(_vp.Viewport.event, "_mas_talk_drag", False):
+            return
+        _orig = _vp.Viewport.event
+        _finger_down = getattr(_pygame, "FINGERDOWN", -1) if _pygame else -1
+        _finger_up = getattr(_pygame, "FINGERUP", -2) if _pygame else -2
+
+        def _event(self, ev, x, y, st):
+            if not getattr(self, "draggable", False):
+                return _orig(self, ev, x, y, st)
+            try:
+                inside = (0 <= x < self.width) and (0 <= y <= self.height)
+            except Exception:
+                inside = True
+            start = False
+            end = False
+            try:
+                start = _beh.map_event(ev, "viewport_drag_start")
+                end = _beh.map_event(ev, "viewport_drag_end")
+            except Exception:
+                pass
+            if ev.type == _finger_down:
+                start = True
+            if ev.type == _finger_up:
+                end = True
+            grab = _focus.get_grab()
+            if start and inside and grab is not self:
+                self._mas_drag_origin = (x, y)
+                self._mas_did_drag = False
+                self.drag_position = (x, y)
+                try:
+                    _orig(self, ev, x, y, st)
+                except _core.IgnoreEvent:
+                    pass
+                _focus.set_grab(self)
+                raise _core.IgnoreEvent()
+            if grab is self:
+                origin = getattr(self, "_mas_drag_origin", None)
+                if origin is not None and not getattr(self, "_mas_did_drag", False):
+                    try:
+                        if abs(x - origin[0]) > 14 or abs(y - origin[1]) > 14:
+                            self._mas_did_drag = True
+                    except Exception:
+                        pass
+                if end:
+                    did = getattr(self, "_mas_did_drag", False)
+                    self._mas_drag_origin = None
+                    self._mas_did_drag = False
+                    _focus.set_grab(None)
+                    if did:
+                        raise _core.IgnoreEvent()
+                    return _orig(self, ev, x, y, st)
+                return _orig(self, ev, x, y, st)
+            return _orig(self, ev, x, y, st)
+
+        _event._mas_talk_drag = True
+        _vp.Viewport.event = _event
+
+    _mas_os_patch_viewport_drag()

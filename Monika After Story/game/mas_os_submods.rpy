@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # MAS OS — submod manager: disk list, catalog JSON, overlay/submod install, safe mode.
 
 default persistent._mas_os_catalog_url = "https://raw.githubusercontent.com/artem213101zse/mas-os-submods/main/index.json"
@@ -9,6 +10,10 @@ init -5 python in mas_os:
     import json
     import threading
     import store
+    try:
+        import time
+    except Exception:
+        time = None
 
     try:
         import zipfile
@@ -101,6 +106,66 @@ init -5 python in mas_os:
     def disabled_dir():
         return os.path.join(game_dir(), "Submods_disabled")
 
+    def _sm_off_paths():
+        paths = [
+            os.path.join(game_dir(), "mas_os_submods_off.txt"),
+            os.path.join(game_dir(), "game", "mas_os_submods_off.txt"),
+        ]
+        try:
+            if user_data_is_documents():
+                root = user_data_root()
+                if root:
+                    paths.append(os.path.join(root, "_mas", "flags", "submods_off.txt"))
+        except Exception:
+            pass
+        return paths
+
+    def sm_off_names():
+        names = set()
+        for path in _sm_off_paths():
+            if not path or not os.path.isfile(path):
+                continue
+            try:
+                handle = open(path, "r")
+                try:
+                    for line in handle:
+                        name = (line or "").strip()
+                        if not name or name.startswith("#"):
+                            continue
+                        names.add(name.replace("\\", "/").split("/")[-1].lower())
+                finally:
+                    handle.close()
+            except Exception:
+                pass
+        return names
+
+    def _write_sm_off(names):
+        body = "\n".join(sorted(names))
+        if body:
+            body += "\n"
+        data = body.encode("utf-8")
+        for path in _sm_off_paths():
+            parent = os.path.dirname(path)
+            if parent and not os.path.isdir(parent):
+                try:
+                    os.makedirs(parent)
+                except Exception:
+                    continue
+            try:
+                handle = open(path, "wb")
+                handle.write(data)
+                handle.close()
+            except Exception:
+                pass
+        return None
+
+    def _restore_parked_submods():
+        src = disabled_dir()
+        dst = submods_dir()
+        if not os.path.isdir(src):
+            return
+        _move_merge(src, dst)
+
     def safe_flag_path(sticky=False):
         name = "mas_os_safe_mode_on" if sticky else "mas_os_safe_mode"
         return os.path.join(game_dir(), name)
@@ -126,7 +191,7 @@ init -5 python in mas_os:
                     handle.write("1\n")
             except Exception:
                 pass
-        sm_status = "В следующий запуск папка Submods будет отключена. Нажми Перезагрузка."
+        sm_status = "В следующий запуск скрипты Submods не загрузятся. Папки на месте. Нажми Перезагрузка."
         sm_need_reboot = True
         return None
 
@@ -139,11 +204,7 @@ init -5 python in mas_os:
                     os.remove(path)
                 except Exception:
                     pass
-        src = disabled_dir()
-        dst = submods_dir()
-        if os.path.isdir(src):
-            _move_merge(src, dst)
-        sm_status = "Безопасный режим снят. Включенные папки возвращены в game/Submods. Нужен перезапуск."
+        sm_status = "Безопасный режим снят. Папки на месте, скрипты снова грузятся. Нужен перезапуск."
         sm_need_reboot = True
         return None
 
@@ -200,7 +261,7 @@ init -5 python in mas_os:
     def sm_installed_rows():
         loaded = sm_loaded_map()
         active = _list_folders(submods_dir())
-        parked = _list_folders(disabled_dir())
+        off = sm_off_names()
         rows = []
         seen = set()
         for sm in loaded.itervalues():
@@ -220,6 +281,19 @@ init -5 python in mas_os:
         for name in active:
             if name.lower() in seen:
                 continue
+            if name.lower() in off:
+                rows.append({
+                    "key": "off:" + name,
+                    "title": name,
+                    "version": "",
+                    "author": "",
+                    "desc": "Выключен: папка на месте, скрипты не грузятся.",
+                    "state": "disabled",
+                    "folder": name,
+                    "place": "active",
+                })
+                seen.add(name.lower())
+                continue
             rows.append({
                 "key": "disk:" + name,
                 "title": name,
@@ -229,17 +303,6 @@ init -5 python in mas_os:
                 "state": "orphan",
                 "folder": name,
                 "place": "active",
-            })
-        for name in parked:
-            rows.append({
-                "key": "off:" + name,
-                "title": name,
-                "version": "",
-                "author": "",
-                "desc": "Выключен: лежит в Submods_disabled рядом с папкой game.",
-                "state": "disabled",
-                "folder": name,
-                "place": "disabled",
             })
         rows.sort(key=lambda r: (r["state"] != "loaded", r["title"].lower()))
         return rows
@@ -258,22 +321,11 @@ init -5 python in mas_os:
         global sm_status, sm_need_reboot
         if not folder:
             return None
-        src = os.path.join(submods_dir(), os.path.basename(folder))
-        dst = os.path.join(disabled_dir(), os.path.basename(folder))
-        if not os.path.exists(src):
-            sm_status = "Папки уже нет в Submods."
-            return None
-        try:
-            if not os.path.isdir(disabled_dir()):
-                os.makedirs(disabled_dir())
-            if os.path.exists(dst):
-                sm_status = "В выключенных уже есть «{0}».".format(folder)
-                return None
-            os.rename(src, dst)
-        except Exception as err:
-            sm_status = "Не удалось выключить: {0}".format(err)
-            return None
-        sm_status = "«{0}» выключен. Нужен перезапуск.".format(folder)
+        name = os.path.basename(folder)
+        names = sm_off_names()
+        names.add(name.lower())
+        _write_sm_off(names)
+        sm_status = "«{0}» выключен, папка на месте. Нужен перезапуск.".format(folder)
         sm_need_reboot = True
         return None
 
@@ -281,46 +333,54 @@ init -5 python in mas_os:
         global sm_status, sm_need_reboot
         if not folder:
             return None
-        src = os.path.join(disabled_dir(), os.path.basename(folder))
-        dst = os.path.join(submods_dir(), os.path.basename(folder))
-        if not os.path.exists(src):
-            sm_status = "Папки нет среди выключенных."
-            return None
-        try:
-            if not os.path.isdir(submods_dir()):
-                os.makedirs(submods_dir())
-            if os.path.exists(dst):
-                sm_status = "В Submods уже есть «{0}».".format(folder)
-                return None
-            os.rename(src, dst)
-        except Exception as err:
-            sm_status = "Не удалось включить: {0}".format(err)
-            return None
+        name = os.path.basename(folder).lower()
+        names = sm_off_names()
+        if name in names:
+            names.remove(name)
+        _write_sm_off(names)
         sm_status = "«{0}» включён. Нужен перезапуск.".format(folder)
         sm_need_reboot = True
         return None
 
+    def sm_open_bios_uninstall():
+        global sm_status
+        if getattr(store.renpy, "android", False):
+            open_bios("library")
+            return None
+        sm_status = "Снятие пака — в BIOS, на ПК удали папку из game/Submods."
+        return None
+
     def sm_delete(folder, place="active"):
         global sm_status, sm_need_reboot
+        if getattr(store.renpy, "android", False):
+            return sm_open_bios_uninstall()
         if not folder:
             return None
+        name = os.path.basename(folder)
+        msg = _uninstall_manifest(_manifest_id_for_folder(name))
         root = submods_dir() if place != "disabled" else disabled_dir()
-        path = os.path.join(root, os.path.basename(folder))
-        if not os.path.exists(path):
+        path = os.path.join(root, name)
+        leftover = False
+        if os.path.exists(path):
+            try:
+                if os.path.isdir(path):
+                    if shutil is None:
+                        raise Exception("shutil нет")
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+                leftover = True
+            except Exception as err:
+                if not msg:
+                    sm_status = "Не удалось удалить: {0}".format(err)
+                    return None
+        _forget_install(name)
+        if msg:
+            sm_status = msg
+        elif leftover:
+            sm_status = "Удалено: {0}. Если были файлы в mod_assets — проверь Склад / файлы.".format(folder)
+        else:
             sm_status = "Уже удалено."
-            return None
-        try:
-            if os.path.isdir(path):
-                if shutil is None:
-                    raise Exception("shutil нет")
-                shutil.rmtree(path)
-            else:
-                os.remove(path)
-        except Exception as err:
-            sm_status = "Не удалось удалить: {0}".format(err)
-            return None
-        _forget_install(os.path.basename(folder))
-        sm_status = "Удалено: {0}. Если были файлы в mod_assets — проверь Склад / файлы.".format(folder)
         sm_need_reboot = True
         return None
 
@@ -337,18 +397,510 @@ init -5 python in mas_os:
         except Exception:
             pass
 
-    def _record_install(name, layout, paths):
+    def _record_install(name, layout, paths, sid="", added=None, replaced=None):
         recs = list(getattr(store.persistent, "_mas_os_sm_installs", None) or [])
         recs.insert(0, {
             "name": name,
             "layout": layout,
+            "id": sid,
             "paths": list(paths)[:400],
+            "added": list(added or [])[:400],
+            "replaced": list(replaced or [])[:400],
         })
         store.persistent._mas_os_sm_installs = recs[:40]
         try:
             store.renpy.save_persistent()
         except Exception:
             pass
+
+    def _sm_sideload_root():
+        try:
+            if user_data_is_documents():
+                root = user_data_root()
+                if root:
+                    return _norm(root)
+        except Exception:
+            pass
+        return game_dir()
+
+    def _sm_system_root():
+        try:
+            if user_data_is_documents():
+                root = user_data_root()
+                if root:
+                    return os.path.join(root, "_mas", "submods")
+        except Exception:
+            pass
+        return _sm_sideload_root()
+
+    def _sm_manifest_dir():
+        if user_data_is_documents():
+            return os.path.join(_sm_system_root(), "installed")
+        return os.path.join(_sm_sideload_root(), "submods_installed")
+
+    def _sm_backup_root():
+        if user_data_is_documents():
+            return os.path.join(_sm_system_root(), "backups")
+        return os.path.join(_sm_sideload_root(), "submod_backups")
+
+    def _sm_vanilla_root():
+        if user_data_is_documents():
+            return os.path.join(_sm_system_root(), "vanilla")
+        return os.path.join(_sm_sideload_root(), "submod_vanilla")
+
+    def _sm_payload_root():
+        if user_data_is_documents():
+            return os.path.join(_sm_system_root(), "payloads")
+        return os.path.join(_sm_sideload_root(), "submod_payloads")
+
+    def _sm_vanilla_file(kind, rel):
+        return os.path.join(_sm_vanilla_root(), kind, rel.replace("/", os.sep))
+
+    def _sm_payload_file(sid, kind, rel):
+        return os.path.join(_sm_payload_root(), sid, kind, rel.replace("/", os.sep))
+
+    def _sm_iter_manifests(except_id=None):
+        dirn = _sm_manifest_dir()
+        if not os.path.isdir(dirn):
+            return
+        try:
+            names = os.listdir(dirn)
+        except Exception:
+            return
+        for name in names:
+            if not name.endswith(".json"):
+                continue
+            oid = name[:-5]
+            if except_id and oid == except_id:
+                continue
+            path = os.path.join(dirn, name)
+            try:
+                man = _sm_read_json(path)
+            except Exception:
+                continue
+            man["_id"] = man.get("id") or oid
+            man["_mtime"] = os.path.getmtime(path)
+            yield man
+
+    def _sm_safe_id(name):
+        text = re.sub(r"[^A-Za-z0-9._-]+", "_", (name or "submod").lower())
+        return (text[:40] or "submod")
+
+    def _sm_write_json(path, obj):
+        folder = os.path.dirname(path)
+        if folder and not os.path.isdir(folder):
+            os.makedirs(folder)
+        raw = json.dumps(obj, ensure_ascii=True)
+        if isinstance(raw, unicode):
+            raw = raw.encode("utf-8")
+        handle = open(path, "wb")
+        try:
+            handle.write(raw)
+        finally:
+            handle.close()
+
+    def _sm_read_json(path):
+        handle = open(path, "rb")
+        try:
+            raw = handle.read()
+        finally:
+            handle.close()
+        return json.loads(raw)
+
+    def _sm_copy_file(src, dst):
+        folder = os.path.dirname(dst)
+        if folder and not os.path.isdir(folder):
+            os.makedirs(folder)
+        if shutil is not None:
+            shutil.copy2(src, dst)
+            return
+        data = open(src, "rb").read()
+        out = open(dst, "wb")
+        try:
+            out.write(data)
+        finally:
+            out.close()
+
+    def _sm_prune_empty(path, stop):
+        cursor = path
+        stop_n = _norm(stop) if stop else ""
+        while cursor:
+            if not os.path.isdir(cursor):
+                break
+            if stop_n and _norm(cursor) == stop_n:
+                break
+            try:
+                kids = os.listdir(cursor)
+            except Exception:
+                break
+            if kids:
+                break
+            parent = os.path.dirname(cursor)
+            try:
+                os.rmdir(cursor)
+            except Exception:
+                break
+            cursor = parent
+
+    def _sm_classify(rels):
+        sub = 0
+        sprite = 0
+        asset = 0
+        rpy_n = 0
+        gift_n = 0
+        for rel in rels or []:
+            low = (rel or "").replace("\\", "/").lower()
+            leaf = low.split("/")[-1]
+            if (
+                leaf.endswith((".rpy", ".rpym"))
+                or "/submods/" in low
+                or low.startswith("submods/")
+            ):
+                sub += 4
+                if leaf.endswith((".rpy", ".rpym")):
+                    rpy_n += 1
+            if (
+                "mod_assets/monika/" in low
+                or "/monika/j/" in low
+                or "/monika/c/" in low
+                or "/monika/a/" in low
+                or "/monika/h/" in low
+                or "/monika/f/" in low
+                or "/hair/" in low
+                or "/clothes/" in low
+                or "/acs/" in low
+                or leaf.startswith(("hair-", "acs-", "clothes-"))
+            ):
+                sprite += 3
+            if leaf.endswith(".json"):
+                sprite += 2
+            if leaf.endswith(".gift"):
+                gift_n += 1
+                sprite += 2
+            mapped = _KNOWN_ASSETS.get(leaf)
+            if mapped:
+                asset += 5
+            elif leaf.endswith((".png", ".jpg", ".jpeg", ".webp", ".ogg", ".mp3", ".wav")):
+                asset += 1
+        if sub > 0:
+            if rpy_n <= 2 and sprite >= 8:
+                return "spritepack"
+            return "submod"
+        if gift_n and sprite >= 2:
+            return "spritepack"
+        if sprite >= 3 and sprite >= asset:
+            return "spritepack"
+        if asset > 0:
+            return "assetpack"
+        return "submod"
+
+    def _sm_looks_sprite(rels):
+        json = False
+        art = False
+        gift = False
+        for rel in rels or []:
+            low = (rel or "").replace("\\", "/").lower()
+            if (
+                "mod_assets/monika/j/" in low
+                or "/monika/j/" in low
+                or "mod_assets/monika/c/" in low
+                or "mod_assets/monika/a/" in low
+                or "mod_assets/monika/h/" in low
+            ):
+                return True
+            if low.endswith(".json"):
+                json = True
+            if low.endswith((".png", ".jpg", ".jpeg", ".webp")):
+                art = True
+            leaf = low.split("/")[-1]
+            if leaf.endswith(".gift") or ("." not in leaf and leaf):
+                gift = True
+        return json and (art or gift)
+
+    def _sm_looks_submod(rels):
+        for rel in rels or []:
+            low = (rel or "").replace("\\", "/").lower()
+            if "/submods/" in low or low.startswith("submods/") or low.endswith(".rpy") or low.endswith(".rpym"):
+                return True
+        return False
+
+    _KNOWN_ASSETS = {
+        "pong.png": "mod_assets/games/pong/pong.png",
+        "pong_field.png": "mod_assets/games/pong/pong_field.png",
+        "pong_ball.png": "mod_assets/games/pong/pong_ball.png",
+        "chess_board.png": "mod_assets/games/chess/chess_board.png",
+        "piano.png": "mod_assets/games/piano/piano.png",
+        "board.png": "mod_assets/games/piano/board.png",
+    }
+
+    def _sm_looks_asset(rels):
+        art = 0
+        for rel in rels or []:
+            leaf = (rel or "").replace("\\", "/").split("/")[-1].lower()
+            if leaf.endswith((".rpy", ".rpym", ".json")):
+                return False
+            if leaf.endswith((".png", ".jpg", ".jpeg", ".webp", ".ogg", ".mp3", ".wav")):
+                art += 1
+        return art > 0
+
+    def _sm_map_asset(rel):
+        r = (rel or "").replace("\\", "/").lstrip("/")
+        leaf = r.split("/")[-1]
+        mapped = _KNOWN_ASSETS.get(leaf.lower())
+        if mapped:
+            return mapped
+        low = r.lower()
+        if low.startswith(("mod_assets/", "gui/", "images/")):
+            return r
+        if leaf.lower().startswith("hm_") and leaf.lower().endswith(".png"):
+            return "mod_assets/games/hangman/" + leaf
+        root = writable_gamedir() or os.path.join(game_dir(), "game")
+        hits = []
+        try:
+            for dirpath, _dirnames, filenames in os.walk(root):
+                for name in filenames:
+                    if name.lower() == leaf.lower():
+                        full = os.path.join(dirpath, name)
+                        rel_out = os.path.relpath(full, root).replace("\\", "/")
+                        hits.append(rel_out)
+                        if len(hits) > 1:
+                            break
+                if len(hits) > 1:
+                    break
+        except Exception:
+            hits = []
+        if len(hits) == 1:
+            return hits[0]
+        return None
+
+    def _sm_peel_markers(rel):
+        r = (rel or "").replace("\\", "/").lstrip("/")
+        low = r.lower()
+        markers = (
+            "/game/submods/", "/game/mod_assets/", "/game/python-packages/",
+            "/game/gui/",
+            "game/submods/", "game/mod_assets/", "game/python-packages/",
+            "game/gui/",
+            "/submods/", "/mod_assets/", "/python-packages/",
+            "/characters/", "characters/",
+            "/custom_bgm/", "/chess_games/", "/piano_songs/",
+        )
+        for m in markers:
+            if m.startswith("/"):
+                idx = low.find(m)
+                if idx >= 0:
+                    return r[idx + 1:]
+            elif low.startswith(m):
+                return r
+        return r
+
+    def _sm_dest_for(rel, pack, as_sprite=False, as_asset=False):
+        r = _sm_peel_markers(rel)
+        low = r.lower()
+        if low.startswith("game/"):
+            r = r[5:]
+            low = r.lower()
+        if not r:
+            return None, None
+        for top in ("characters/", "custom_bgm/", "chess_games/", "piano_songs/", "saves/"):
+            if low.startswith(top):
+                return "docs", r
+        if low.startswith("submods/"):
+            rest = r.split("/", 1)
+            if len(rest) < 2 or not rest[1]:
+                return None, None
+            return "game", "Submods/" + rest[1]
+        if (
+            low.startswith("mod_assets/")
+            or low.startswith("python-packages/")
+            or low.startswith("gui/")
+        ):
+            return "game", r
+        if as_sprite:
+            if low.startswith(("j/", "a/", "c/", "h/", "f/", "t/")):
+                return "game", "mod_assets/monika/" + r
+            if low.endswith(".json"):
+                return "game", "mod_assets/monika/j/" + r.split("/")[-1]
+            leaf = r.split("/")[-1]
+            if leaf.lower().endswith(".gift") or ("." not in leaf):
+                return "docs", "characters/" + leaf
+            if leaf.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                return "game", "mod_assets/monika/" + r
+            return "game", "mod_assets/monika/" + pack + "/" + r
+        if as_asset:
+            mapped = _sm_map_asset(r)
+            if mapped:
+                return "game", mapped
+            return None, None
+        return "game", "Submods/" + pack + "/" + r
+
+    def _sm_dest_file(kind, rel):
+        if kind == "docs":
+            base = _sm_sideload_root()
+        else:
+            base = writable_gamedir() or os.path.join(game_dir(), "game")
+        return os.path.normpath(os.path.join(base, rel.replace("/", os.sep)))
+
+    def _sm_inside(root, target):
+        root_l = os.path.normpath(root).replace("\\", "/").lower()
+        target_l = os.path.normpath(target).replace("\\", "/").lower()
+        return target_l == root_l or target_l.startswith(root_l + "/")
+
+    def _parse_dest_key(key):
+        text = key or ""
+        if ":" in text:
+            kind, rel = text.split(":", 1)
+            return kind, rel
+        return "game", text
+
+    def _manifest_id_for_folder(folder):
+        sid = _sm_safe_id(folder)
+        path = os.path.join(_sm_manifest_dir(), sid + ".json")
+        if os.path.isfile(path):
+            return sid
+        dirn = _sm_manifest_dir()
+        if not os.path.isdir(dirn):
+            return sid
+        want = (folder or "").lower()
+        try:
+            names = os.listdir(dirn)
+        except Exception:
+            return sid
+        for name in names:
+            if not name.endswith(".json"):
+                continue
+            try:
+                man = _sm_read_json(os.path.join(dirn, name))
+            except Exception:
+                continue
+            pack = unicode(man.get("pack") or "").lower()
+            if pack == want:
+                return name[:-5]
+        return sid
+
+    def _uninstall_manifest(sid):
+        if not sid:
+            return ""
+        man_file = os.path.join(_sm_manifest_dir(), sid + ".json")
+        if not os.path.isfile(man_file):
+            return ""
+        try:
+            man = _sm_read_json(man_file)
+        except Exception as err:
+            return "Манифест не прочитан: {0}".format(err)
+        backup_dir = os.path.join(_sm_backup_root(), sid)
+        payload_dir = os.path.join(_sm_payload_root(), sid)
+        deleted = 0
+        restored = 0
+        keys = list(man.get("added") or []) + list(man.get("replaced") or [])
+        seen = {}
+        for key in keys:
+            if key in seen:
+                continue
+            seen[key] = True
+            kind, rel = _parse_dest_key(key)
+            target = _sm_dest_file(kind, rel)
+            other_pay = None
+            best_at = -1
+            for other in _sm_iter_manifests(sid):
+                owned = list(other.get("added") or []) + list(other.get("replaced") or [])
+                if key not in owned:
+                    continue
+                cand = _sm_payload_file(other.get("_id") or "", kind, rel)
+                if not os.path.isfile(cand):
+                    continue
+                at = other.get("installedAt") or other.get("_mtime") or 0
+                try:
+                    at = float(at)
+                except Exception:
+                    at = 0
+                if other_pay is None or at >= best_at:
+                    other_pay = cand
+                    best_at = at
+            if other_pay and os.path.isfile(other_pay):
+                try:
+                    _sm_copy_file(other_pay, target)
+                    restored += 1
+                except Exception:
+                    pass
+                continue
+            vanilla = _sm_vanilla_file(kind, rel)
+            if os.path.isfile(vanilla):
+                try:
+                    _sm_copy_file(vanilla, target)
+                    restored += 1
+                except Exception:
+                    pass
+                continue
+            if os.path.isfile(target):
+                try:
+                    os.remove(target)
+                    deleted += 1
+                except Exception:
+                    pass
+            try:
+                parent = os.path.dirname(target)
+                name = os.path.basename(target)
+                if name.endswith(".rpy") or name.endswith(".rpym"):
+                    twin = os.path.join(parent, name + "c")
+                    if os.path.isfile(twin):
+                        os.remove(twin)
+                        deleted += 1
+            except Exception:
+                pass
+            stop = _sm_sideload_root() if kind == "docs" else (
+                writable_gamedir() or os.path.join(game_dir(), "game")
+            )
+            _sm_prune_empty(os.path.dirname(target), stop)
+        packs = {}
+        man_pack = man.get("pack") or sid
+        if man_pack:
+            packs[man_pack] = True
+        for key in keys:
+            kind, rel = _parse_dest_key(key)
+            if kind != "game":
+                continue
+            low = (rel or "").replace("\\", "/").lower()
+            if not low.startswith("submods/"):
+                continue
+            rest = rel.replace("\\", "/")[len("Submods/"):] if rel.replace("\\", "/").lower().startswith("submods/") else ""
+            pack = rest.split("/")[0] if rest else ""
+            if pack:
+                packs[pack] = True
+        root = writable_gamedir() or os.path.join(game_dir(), "game")
+        for pack in packs:
+            owned = False
+            prefix = "game:Submods/" + pack
+            for other in _sm_iter_manifests(sid):
+                owned_keys = list(other.get("added") or []) + list(other.get("replaced") or [])
+                for ok in owned_keys:
+                    if ok == prefix or ok.startswith(prefix + "/") or ok.lower().startswith(prefix.lower() + "/"):
+                        owned = True
+                        break
+                if owned:
+                    break
+            if owned:
+                continue
+            folder = os.path.join(root, "Submods", pack)
+            if shutil is not None and os.path.isdir(folder):
+                try:
+                    shutil.rmtree(folder)
+                except Exception:
+                    pass
+        if shutil is not None:
+            for folder in (backup_dir, payload_dir):
+                if os.path.isdir(folder):
+                    try:
+                        shutil.rmtree(folder)
+                    except Exception:
+                        pass
+        try:
+            os.remove(man_file)
+        except Exception:
+            pass
+        return "Сабмод «{0}» снят: удалено {1}, возвращено {2}.".format(
+            man.get("pack") or sid, deleted, restored
+        )
 
     def sm_log_clear():
         global sm_log, sm_status
@@ -438,7 +990,10 @@ init -5 python in mas_os:
         if len(tops) != 1:
             return ""
         top = tops[0]
-        if top.lower() in ("game", "submods", "mod_assets", "python-packages"):
+        if top.lower() in (
+            "game", "submods", "mod_assets", "python-packages", "gui",
+            "characters", "custom_bgm", "chess_games", "piano_songs", "saves",
+        ):
             return ""
         return top + "/"
 
@@ -485,6 +1040,7 @@ init -5 python in mas_os:
             "/game/submods/",
             "/game/mod_assets/",
             "/game/python-packages/",
+            "/game/gui/",
         ):
             idx = low.find(marker)
             if idx >= 0:
@@ -493,6 +1049,7 @@ init -5 python in mas_os:
             "game/submods/",
             "game/mod_assets/",
             "game/python-packages/",
+            "game/gui/",
         ):
             if low.startswith(marker):
                 return pl
@@ -592,45 +1149,89 @@ init -5 python in mas_os:
         if len(rels) > 8:
             _log("  … ещё {0} путей".format(len(rels) - 8))
         root = os.path.normpath((writable_gamedir() or os.path.join(game_dir(), "game")).replace("/", os.sep))
+        pack = os.path.splitext(os.path.basename(display_name or "submod"))[0]
+        pack = re.sub(r"(?i)-(main|master)$", "", pack)
+        pack = re.sub(r"[^A-Za-z0-9._\-]+", "_", pack)[:40] or "submod"
+        if prefix:
+            pref = re.sub(r"(?i)-(main|master)$", "", prefix.rstrip("/"))
+            pref = re.sub(r"[^A-Za-z0-9._\-]+", "_", pref)[:40]
+            if pref:
+                pack = pref
+        sid = _sm_safe_id(pack)
+        guessed = _sm_classify(rels)
+        as_sprite = guessed == "spritepack"
+        as_asset = guessed == "assetpack"
+        _log("тип пака: {0}".format(guessed))
+        if kind_hint == "spritepack":
+            as_sprite = True
+            as_asset = False
+        elif kind_hint == "assetpack":
+            as_sprite = False
+            as_asset = True
+        old = _uninstall_manifest(sid)
+        if old:
+            _log(old)
         _log("пишем в game={0}".format(root))
         written = []
+        added = []
+        replaced = []
         skipped = 0
         count = 0
         dest_folders = []
         for rel, raw, _orig in peeled:
             if not rel:
                 continue
-            if layout == "overlay":
-                if not _overlay_ok(rel):
-                    skipped += 1
-                    continue
-                rest = rel[5:] if rel.lower().startswith("game/") else rel
-                target = os.path.normpath(os.path.join(root, rest.replace("/", os.sep)))
-            elif layout == "submods_root":
-                if not rel.lower().startswith("submods/"):
-                    skipped += 1
-                    continue
-                target = os.path.normpath(os.path.join(root, rel.replace("/", os.sep)))
-            else:
-                folder = os.path.splitext(os.path.basename(display_name or "submod"))[0]
-                folder = re.sub(r"[^A-Za-z0-9._\-]+", "_", folder)[:40] or "submod"
-                target = os.path.normpath(os.path.join(root, "Submods", folder, rel.replace("/", os.sep)))
-            root_l = root.lower()
-            target_l = target.lower()
-            if not (target_l == root_l or target_l.startswith(root_l + os.sep.lower())):
+            low = rel.replace("\\", "/").lower()
+            if (
+                low.startswith("__macosx/")
+                or "/__macosx/" in low
+                or low.endswith(".ds_store")
+                or "/.git/" in low
+                or low.startswith(".git/")
+            ):
+                skipped += 1
+                continue
+            kind, dest_rel = _sm_dest_for(rel, pack, as_sprite, as_asset)
+            if not kind or not dest_rel:
+                skipped += 1
+                continue
+            target = _sm_dest_file(kind, dest_rel)
+            base = _sm_sideload_root() if kind == "docs" else root
+            if not _sm_inside(base, target):
                 skipped += 1
                 continue
             folder = os.path.dirname(target)
             if folder and not os.path.isdir(folder):
                 os.makedirs(folder)
-            with open(target, "wb") as handle:
+            key = kind + ":" + dest_rel
+            if os.path.isfile(target):
+                vanilla = _sm_vanilla_file(kind, dest_rel)
+                owned = False
+                for other in _sm_iter_manifests(sid):
+                    owned_keys = list(other.get("added") or []) + list(other.get("replaced") or [])
+                    if key in owned_keys:
+                        owned = True
+                        break
+                if not os.path.isfile(vanilla) and not owned:
+                    _sm_copy_file(target, vanilla)
+                bak = os.path.join(_sm_backup_root(), sid, kind, dest_rel.replace("/", os.sep))
+                if not os.path.isfile(bak):
+                    _sm_copy_file(target, bak)
+                replaced.append(key)
+            else:
+                added.append(key)
+            handle = open(target, "wb")
+            try:
                 handle.write(raw)
+            finally:
+                handle.close()
+            try:
+                _sm_copy_file(target, _sm_payload_file(sid, kind, dest_rel))
+            except Exception:
+                pass
             count += 1
             written.append(target)
-            top = rel.replace("\\", "/")
-            if top.lower().startswith("game/"):
-                top = top[5:]
-            top = top.split("/")[0]
+            top = dest_rel.split("/")[0]
             if top and top not in dest_folders:
                 dest_folders.append(top)
             if count <= 20:
@@ -638,17 +1239,31 @@ init -5 python in mas_os:
             elif count == 21:
                 _log("  … остальные файлы пишу без построчного вывода")
         if count <= 0:
-            _log("ни одного разрешённого файла (нужны Submods / mod_assets / python-packages)")
-            return False, "ни одного разрешённого файла (нужны Submods / mod_assets / python-packages)", []
+            _log("ни одного разрешённого файла (нужны Submods / mod_assets / python-packages / рескин)")
+            return False, "ни одного разрешённого файла (нужны Submods / mod_assets / python-packages / рескин картинок)", []
         extra = ""
         if skipped:
             extra = " Пропущено {0} файлов вне разрешённых папок.".format(skipped)
-            _log("пропущено {0} файлов вне Submods/mod_assets/python-packages".format(skipped))
-        _record_install(display_name, layout, written)
+            _log("пропущено {0} файлов".format(skipped))
+        man = {
+            "id": sid,
+            "name": display_name,
+            "pack": pack,
+            "added": added,
+            "replaced": replaced,
+            "files": count,
+            "installedAt": int(time.time() * 1000) if time else 0,
+            "kind": "spritepack" if as_sprite else ("assetpack" if as_asset else "submod"),
+        }
+        try:
+            _sm_write_json(os.path.join(_sm_manifest_dir(), sid + ".json"), man)
+        except Exception as err:
+            _log("манифест не записался: {0}".format(err))
+        _record_install(display_name, layout, written, sid, added, replaced)
         _inventory_add("submod", [os.path.basename(p) for p in written[:8]])
         where = (", ".join(dest_folders[:6]) if dest_folders else "game")
-        msg = "Установлено {0} файлов ({1}) → {2}.{3} Перезапусти оболочку.".format(
-            count, layout, where, extra
+        msg = "Установлено {0} файлов ({1}) → {2}. Новых {3}, заменено (бекап) {4}.{5} Перезапусти оболочку.".format(
+            count, layout, where, len(added), len(replaced), extra
         )
         _log(msg)
         return True, msg, written
@@ -733,6 +1348,10 @@ init -5 python in mas_os:
 
     def start_sm_install(url, kind_hint="auto"):
         global sm_busy, sm_status
+        if getattr(store.renpy, "android", False):
+            sm_status = "На телефоне паки ставит BIOS → Контент."
+            open_bios("content")
+            return None
         if sm_busy:
             return None
         url = (url or "").strip()
@@ -893,6 +1512,10 @@ init python:
 init 1 python:
     store.mas_os.sm_url_iv = MASOSCatUrlInputValue()
     store.mas_os.sm_direct_iv = MASOSDirectInputValue()
+    try:
+        store.mas_os._restore_parked_submods()
+    except Exception:
+        pass
 
 
 screen mas_os_submods():
@@ -924,7 +1547,7 @@ screen mas_os_submods():
         xpos 48
         ypos 16
 
-    text _("Каталог по JSON, прямая ссылка, выключение папки. После установки — перезапуск."):
+    text _("Список и вкл/выкл без переезда папки. На телефоне ставить и снимать паки — BIOS."):
         style "mas_os_hint"
         xpos 48
         ypos 56
@@ -1054,24 +1677,38 @@ screen mas_os_submods():
                                             action Function(store.mas_os.sm_disable, row["folder"])
 
                                     if row["folder"]:
-                                        textbutton _("Удалить"):
-                                            style "mas_os_nav_btn"
-                                            text_style "mas_os_nav_btn_text"
-                                            xsize 120
-                                            action Show(
-                                                "mas_os_confirm",
-                                                message="Удалить «{0}» с диска?".format(row["folder"]),
-                                                yes_action=[
-                                                    Function(store.mas_os.sm_delete, row["folder"], row["place"]),
-                                                    Hide("mas_os_confirm"),
-                                                ],
-                                                no_action=Hide("mas_os_confirm"),
-                                            )
+                                        if renpy.android:
+                                            textbutton _("BIOS"):
+                                                style "mas_os_nav_btn"
+                                                text_style "mas_os_nav_btn_text"
+                                                xsize 120
+                                                action Function(store.mas_os.sm_open_bios_uninstall)
+                                        else:
+                                            textbutton _("Удалить"):
+                                                style "mas_os_nav_btn"
+                                                text_style "mas_os_nav_btn_text"
+                                                xsize 120
+                                                action Show(
+                                                    "mas_os_confirm",
+                                                    message="Удалить «{0}» с диска?".format(row["folder"]),
+                                                    yes_action=[
+                                                        Function(store.mas_os.sm_delete, row["folder"], row["place"]),
+                                                        Hide("mas_os_confirm"),
+                                                    ],
+                                                    no_action=Hide("mas_os_confirm"),
+                                                )
                 else:
                     text _("Папка Submods пустая, ничего не загружено."):
                         style "mas_os_hint"
 
-                use mas_os_store_link("submod", "submods", 720)
+                if renpy.android:
+                    textbutton _("Поставить / снять в BIOS"):
+                        style "mas_os_button"
+                        text_style "mas_os_button_text"
+                        xsize 720
+                        action Function(store.mas_os.open_bios, "content")
+                else:
+                    use mas_os_store_link("submod", "submods", 720)
 
     elif tab == "catalog":
         viewport:
@@ -1085,6 +1722,17 @@ screen mas_os_submods():
             vbox:
                 spacing 10
                 xsize 1140
+
+                if renpy.android:
+                    text _("На телефоне zip ставит BIOS (Контент). Каталог здесь — справочник, кнопка «Ставить» откроет BIOS."):
+                        style "mas_os_body"
+                        xsize 1140
+
+                    textbutton _("Открыть BIOS → Контент"):
+                        style "mas_os_button"
+                        text_style "mas_os_button_text"
+                        xsize 480
+                        action Function(store.mas_os.open_bios, "content")
 
                 text _("Ссылка на index.json (raw GitHub). По умолчанию — репозиторий порта, можно заменить на свой."):
                     style "mas_os_hint"
@@ -1275,12 +1923,12 @@ screen mas_os_submods():
                 spacing 12
                 xsize 1140
 
-                text _("Если сабмод валит загрузку, Ren'Py падает до оболочки. Безопасный режим (и автозащита после краша) уносит game/Submods в папку Submods_disabled рядом с game — не внутри, иначе .rpy всё равно скомпилируются. После установки, если игра не встанет — запусти её ещё раз: оболочка отключит сабмоды сама."):
+                text _("Если сабмод валит загрузку, Ren'Py падает до оболочки. Безопасный режим не трогает папки: скрипты Submods просто не грузятся. Выкл на карточке пишет имя в список, папка остаётся. Снимать пак с диска на телефоне — BIOS → Библиотека."):
                     style "mas_os_body"
                     xsize 1140
 
                 if sticky:
-                    text _("Сейчас включён постоянный безопасный режим: каждый запуск паркует Submods."):
+                    text _("Сейчас включён постоянный безопасный режим: скрипты Submods не грузятся."):
                         style "mas_os_subtitle"
                 elif pending:
                     text _("Флаг на один запуск уже записан. Перезапусти оболочку."):
@@ -1295,7 +1943,7 @@ screen mas_os_submods():
                     xsize 720
                     action Show(
                         "mas_os_confirm",
-                        message=_("Записать флаг и перезапустить?\nПапка Submods будет отключена на этот запуск."),
+                        message=_("Записать флаг и перезапустить?\nСкрипты Submods не загрузятся на этот запуск, папки останутся."),
                         yes_action=[
                             Function(store.mas_os.request_safe_mode, False),
                             Hide("mas_os_confirm"),
@@ -1327,7 +1975,7 @@ screen mas_os_submods():
                         Function(store.mas_os.clear_safe_mode),
                     ]
 
-                text _("Выкл на карточке сабмода переносит только его папку. Extra Plus при этом оставляет картинки в mod_assets — это нормально, скрипты уже не грузятся. Полное удаление — кнопка Удалить."):
+                text _("Выкл не переносит папку. Картинки Extra Plus в mod_assets остаются — скрипты уже не грузятся. Полное снятие на телефоне — BIOS."):
                     style "mas_os_hint"
                     xsize 1140
 

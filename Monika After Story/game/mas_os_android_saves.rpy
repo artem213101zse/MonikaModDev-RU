@@ -1,7 +1,7 @@
 # Android save-folder choice. Engine helpers live on __main__ (patched SDK).
-# Default = app folder. Documents only after All files access is granted.
+# Default = Documents. BIOS requests all-files and writes the engine flag.
 
-default persistent._mas_os_android_saves = "ask"
+default persistent._mas_os_android_saves = "documents"
 
 init -5 python in mas_os:
     import os
@@ -41,19 +41,21 @@ init -5 python in mas_os:
         st = android_saves_status()
         if not st.get("android"):
             return False
-        if st.get("allowed") and st.get("using") == "documents":
+        if st.get("using") == "documents":
+            try:
+                store.persistent._mas_os_android_saves = "documents"
+            except Exception:
+                pass
             return False
-        choice = getattr(store.persistent, "_mas_os_android_saves", "ask") or "ask"
+        choice = getattr(store.persistent, "_mas_os_android_saves", "documents") or "documents"
         if choice == "app":
             return False
         return True
 
     def android_saves_wait_permission():
         # Stay on the wait panel until Documents is actually active.
-        # All-files granted is not enough: the engine flag is set only
-        # after finish(), and the chooser must not come back in between.
-        choice = getattr(store.persistent, "_mas_os_android_saves", "ask") or "ask"
-        if choice != "documents":
+        choice = getattr(store.persistent, "_mas_os_android_saves", "documents") or "documents"
+        if choice == "app":
             return False
         st = android_saves_status()
         return not (st.get("using") == "documents" and st.get("active"))
@@ -161,16 +163,16 @@ init -5 python in mas_os:
         st = android_saves_status()
         if not st.get("android"):
             return True
-        choice = getattr(store.persistent, "_mas_os_android_saves", "ask") or "ask"
+        choice = getattr(store.persistent, "_mas_os_android_saves", "documents") or "documents"
         if choice == "app":
             return True
-        if choice == "documents" and st.get("using") == "documents" and st.get("active"):
+        if st.get("using") == "documents" and st.get("active"):
             return True
         return False
 
     def saves_docs_selected():
-        choice = getattr(store.persistent, "_mas_os_android_saves", "ask") or "ask"
-        if choice == "documents":
+        choice = getattr(store.persistent, "_mas_os_android_saves", "documents") or "documents"
+        if choice != "app":
             return True
         st = android_saves_status()
         return bool(st.get("using") == "documents" and st.get("active"))
@@ -352,7 +354,7 @@ screen mas_os_saves_picker(in_setup=False):
                     xsize wide
                     substitute False
 
-                text _("characters, custom_bgm, chess_games и log тоже здесь. Папка переживает переустановку, пока выдан доступ ко всем файлам."):
+                text _("characters, custom_bgm, chess_games и сейвы тоже здесь. Логи и архивы — в _mas/. Папка переживает переустановку, пока выдан доступ ко всем файлам."):
                     style "mas_os_body"
                     xsize wide
 
@@ -510,7 +512,7 @@ screen mas_os_android_saves_row():
                         color warn_b
                         xsize 720
         else:
-            text _("Documents переживает переустановку. characters, custom_bgm и log лежат рядом с сейвами."):
+            text _("Documents переживает переустановку. characters и custom_bgm лежат рядом с сейвами, служебное — в _mas/."):
                 style "mas_os_hint"
     else:
         text _("На ПК сейвы уже в видимой папке. Подмена файлов — через «Данные» и «Файлы»."):

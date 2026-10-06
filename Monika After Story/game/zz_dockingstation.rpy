@@ -795,7 +795,8 @@ init -45 python:
             RETURNS:
                 package_name in a valid package_path ready for checking
             """
-            return os.path.normcase(self.station + package_name)
+            station = (self.station or "").rstrip("/\\")
+            return os.path.normcase(os.path.join(station, package_name))
 
 
         def _pack(self, contents, box, pack=True, pkg_slip=True, bs=None):
@@ -963,9 +964,25 @@ init -45 python:
                 return False
 
             try:
-                file_ok = os.access(package_path, os.F_OK)
-                read_ok = os.access(package_path, os.R_OK)
-                not_dir = not os.path.isdir(package_path)
+                android = False
+                try:
+                    android = bool(renpy.android)
+                except Exception:
+                    android = False
+                if android:
+                    # os.access on FAT/Documents often returns False even when
+                    # open() works. That made "take Monika" fail after a good write.
+                    file_ok = os.path.isfile(package_path)
+                    not_dir = not os.path.isdir(package_path)
+                    read_ok = False
+                    if file_ok:
+                        handle = open(package_path, "rb")
+                        handle.close()
+                        read_ok = True
+                else:
+                    file_ok = os.access(package_path, os.F_OK)
+                    read_ok = os.access(package_path, os.R_OK)
+                    not_dir = not os.path.isdir(package_path)
 
             except Exception as e:
                 store.mas_utils.mas_log.error(
@@ -1230,6 +1247,123 @@ init 200 python in mas_dockstat:
     cr_log_path = "mfgen"
     rd_log_path = "mfread"
 
+    def _take_monika_note(msg, log=None):
+        """
+        Write a line to Documents/_mas/log/take_monika.log (and the mfgen log if given).
+        Documents is what the player can open on Android; basedir/log is easy to miss.
+        """
+        line = msg
+        try:
+            if not isinstance(line, (str, unicode)):
+                line = repr(line)
+        except NameError:
+            if not isinstance(line, str):
+                line = repr(line)
+        if log is not None:
+            try:
+                log.info(line)
+            except Exception:
+                try:
+                    log.write(line)
+                except Exception:
+                    pass
+        try:
+            root = None
+            try:
+                root = store.mas_os.user_data_root()
+            except Exception:
+                root = None
+            if not root:
+                root = renpy.config.basedir
+            folder = None
+            try:
+                folder = store.mas_os.log_dir()
+            except Exception:
+                folder = None
+            if not folder:
+                folder = os.path.join(root, "log")
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
+            path = os.path.join(folder, "take_monika.log")
+            handle = open(path, "ab")
+            try:
+                stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                text = "[{0}] {1}\n".format(stamp, line)
+                try:
+                    if isinstance(text, unicode):
+                        text = text.encode("utf-8")
+                except NameError:
+                    pass
+                handle.write(text)
+            finally:
+                handle.close()
+        except Exception:
+            pass
+
+    def _station_is_temp(station):
+        if not station:
+            return False
+        parts = str(station).replace("\\", "/").split("/")
+        for part in parts:
+            if part.lower() in ("temp", "tmp", "temporary"):
+                return True
+        return False
+
+    def _open_mbase():
+        """
+        mbase is a real file on PC. On Android it lives in APK assets.
+        Filesystem first so PC stays the same; loader is the Android fallback.
+        """
+        paths = [
+            os.path.normcase(renpy.config.basedir + "/game/mod_assets/monika/mbase"),
+            os.path.normcase(os.path.join(renpy.config.gamedir, "mod_assets/monika/mbase")),
+        ]
+        try:
+            root = store.mas_os.user_data_root()
+            if root:
+                paths.append(os.path.normcase(os.path.join(
+                    root, "game", "mod_assets", "monika", "mbase"
+                )))
+        except Exception:
+            pass
+        for path in paths:
+            if os.path.isfile(path):
+                try:
+                    _take_monika_note("mbase disk {0} size={1}".format(
+                        path, os.path.getsize(path)
+                    ))
+                except Exception:
+                    pass
+                return open(path, "rb")
+        # import renpy.loader binds the name `renpy` locally and then
+        # `renpy.file` raises UnboundLocalError if the import fails.
+        try:
+            import renpy.loader as _mbase_loader
+            handle = _mbase_loader.load("mod_assets/monika/mbase")
+            try:
+                _take_monika_note("mbase from renpy.loader")
+            except Exception:
+                pass
+            return handle
+        except Exception as err:
+            try:
+                _take_monika_note("loader failed | {0}".format(repr(err)))
+            except Exception:
+                pass
+        try:
+            handle = renpy.file("mod_assets/monika/mbase")
+            try:
+                _take_monika_note("mbase from renpy.file")
+            except Exception:
+                pass
+            return handle
+        except Exception as err:
+            try:
+                _take_monika_note("renpy.file failed | {0}".format(repr(err)))
+            except Exception:
+                pass
+            raise
+
     # we set these during init phase if we found a monika
     retmoni_status = None
     retmoni_data = None
@@ -1469,41 +1603,100 @@ init 200 python in mas_dockstat:
         """
         cr_log = store.mas_logging.init_log(logpath, append=False)
 
-        cr_log.info("Creating Monika in: {0}".format(dockstat.station))
+        android = False
+        try:
+            android = bool(renpy.android)
+        except Exception:
+            android = False
+        _take_monika_note("=== generateMonika start ===", cr_log)
+        _take_monika_note("android={0} basedir={1}".format(
+            android, getattr(renpy.config, "basedir", None)
+        ), cr_log)
+        _take_monika_note("station={0} enabled={1}".format(
+            dockstat.station, getattr(dockstat, "enabled", None)
+        ), cr_log)
+        try:
+            _take_monika_note("user_data_root={0}".format(store.mas_os.user_data_root()), cr_log)
+        except Exception as e:
+            _take_monika_note("user_data_root failed | {0}".format(repr(e)), cr_log)
 
-        # sanity check regarding the filepath
-        if "temp" in dockstat.station.lower():
+        # Only abort on a real temp/tmp folder name, not a substring (Documents).
+        if _station_is_temp(dockstat.station):
             cr_log.error("temp directory found, aborting.")
+            _take_monika_note("ABORT: station looks like temp: {0}".format(dockstat.station), cr_log)
+            return False
+
+        try:
+            folder = (dockstat.station or "").rstrip("/\\")
+            if folder and not os.path.isdir(folder):
+                os.makedirs(folder)
+                _take_monika_note("mkdir station {0}".format(folder), cr_log)
+            dockstat.enabled = True
+            _take_monika_note("station ready enabled={0} isdir={1}".format(
+                dockstat.enabled, os.path.isdir(folder) if folder else False
+            ), cr_log)
+        except Exception as e:
+            cr_log.error("station mkdir failed | {0}".format(repr(e)))
+            _take_monika_note("station mkdir failed | {0}".format(repr(e)), cr_log)
             return False
 
         ### other stuff we need
-        # inital buffer
+        # binary buffer: metadata as utf-8, mbase as raw bytes.
+        # A utf8 StreamWriter around the whole blob breaks on Android —
+        # mbase is binary and codecs.getwriter("utf8") tries to decode it.
         moni_buffer = fastIO()
-        moni_buffer = codecs.getwriter("utf8")(moni_buffer)
+        meta_writer = codecs.getwriter("utf8")(moni_buffer)
 
         # number deliemter
         NUM_DELIM = "|num|"
 
         ### write metadata
-        if not _buildMetaDataPer(moni_buffer, cr_log):
-            # if we failed to do this via persistent, then we'll use the old
-            # style instead
-            _buildMetaDataList(moni_buffer)
+        try:
+            if not _buildMetaDataPer(meta_writer, cr_log):
+                # if we failed to do this via persistent, then we'll use the old
+                # style instead
+                _buildMetaDataList(meta_writer)
+            meta_writer.flush()
+        except Exception as e:
+            cr_log.error("metadata write failed | {0}".format(repr(e)))
+            _take_monika_note("metadata write failed | {0}".format(repr(e)), cr_log)
+            try:
+                _buildMetaDataList(meta_writer)
+                meta_writer.flush()
+            except Exception as e2:
+                cr_log.error("metadata fallback failed | {0}".format(repr(e2)))
+                _take_monika_note("metadata fallback failed | {0}".format(repr(e2)), cr_log)
+                moni_buffer.close()
+                return False
 
         ### monikachr
         moni_chr = None
         try:
-            moni_chr = open(os.path.normcase(
-                renpy.config.basedir + "/game/mod_assets/monika/mbase"
-            ), "rb")
+            moni_chr = _open_mbase()
 
             # NOTE: moin_chr is going to be less than 200KB, this be fine
-            moni_buffer.write(moni_chr.read())
+            raw = moni_chr.read()
+            if not raw:
+                raise IOError("mbase empty")
+            try:
+                if isinstance(raw, unicode):
+                    raw = raw.encode("latin-1")
+            except NameError:
+                pass
+            cr_log.info("mbase bytes: {0}".format(len(raw)))
+            _take_monika_note("mbase bytes={0} type={1}".format(len(raw), type(raw)), cr_log)
+            moni_buffer.write(raw)
 
         except Exception as e:
             cr_log.error("mbase copy failed | {0}".format(
                 repr(e)
             ))
+            _take_monika_note("mbase copy failed | {0}".format(repr(e)), cr_log)
+            try:
+                import traceback
+                cr_log.error(traceback.format_exc())
+            except Exception:
+                pass
             moni_buffer.close()
             return False
 
@@ -1514,6 +1707,8 @@ init 200 python in mas_dockstat:
 
         ### now we must do the streamlined write system to file
         moni_path = dockstat._trackPackage("monika")
+        cr_log.info("write path: {0}".format(moni_path))
+        _take_monika_note("write path={0}".format(moni_path), cr_log)
         moni_fbuffer = None
         moni_tbuffer = None
         moni_sum = None
@@ -1543,20 +1738,36 @@ init 200 python in mas_dockstat:
                 blocksize
             )
             moni_tbuffer = fastIO()
-            moni_tbuffer = codecs.getwriter("utf8")(moni_tbuffer)
             moni_tbuffer.write(str(lines) + NUM_DELIM)
             for _line in moni_buffer_iter:
+                if _line is None:
+                    continue
+                try:
+                    if isinstance(_line, unicode):
+                        _line = _line.encode("utf-8")
+                except NameError:
+                    pass
                 moni_tbuffer.write(_line)
             moni_buffer.close()
 
             # now we can prepare to write
-            moni_fbuffer = codecs.open(moni_path, "wb", "utf-8")
+            moni_fbuffer = open(moni_path, "wb")
 
             # now open up the checklist and encoders
             checklist = dockstat.hashlib.sha256()
             def safe_encoder(data):
                 return dockstat.base64.b64encode(dockstat.safeRandom(data))
             encoder = dockstat.base64.b64encode
+            def _put(data):
+                if data is None:
+                    return
+                try:
+                    if isinstance(data, unicode):
+                        data = data.encode("utf-8")
+                except NameError:
+                    pass
+                checklist.update(data)
+                moni_fbuffer.write(data)
 
             # now write this buffer out, keeping track of the last buffer
             # size
@@ -1565,9 +1776,7 @@ init 200 python in mas_dockstat:
             total_buffer_size = 0
             while len(_line) == blocksize:
                 total_buffer_size += blocksize
-                data = encoder(_line)
-                checklist.update(data)
-                moni_fbuffer.write(data)
+                _put(encoder(_line))
                 _line = moni_tbuffer.read(blocksize)
             moni_tbuffer.close()
 
@@ -1593,9 +1802,7 @@ init 200 python in mas_dockstat:
                     moni_size_left -= extra_padding
 
                 # and write out the metadata / monika
-                data = encoder(_line + dockstat.safeRandom(extra_padding))
-                checklist.update(data)
-                moni_fbuffer.write(data)
+                _put(encoder(_line + dockstat.safeRandom(extra_padding)))
 
                 # and now for the random data generation
                 # NOTE: this should represent number of bytes
@@ -1603,24 +1810,18 @@ init 200 python in mas_dockstat:
                 curr_size = 0
 
                 while curr_size < moni_size_limit:
-                    data = safe_encoder(blocksize)
-                    checklist.update(data)
-                    moni_fbuffer.write(data)
+                    _put(safe_encoder(blocksize))
                     curr_size += blocksize
 
                 # we should have some leftovers
                 leftovers = moni_size_left - curr_size
                 if leftovers > 0:
-                    data = safe_encoder(leftovers)
-                    checklist.update(data)
-                    moni_fbuffer.write(data)
+                    _put(safe_encoder(leftovers))
 
             else:
                 # otherwise, we shoudl just write out the last line and
                 # be done with it
-                data = encoder(_line)
-                checklist.update(data)
-                moni_fbuffer.write(data)
+                _put(encoder(_line))
 
             # great! lets go ahead and save the digest
             moni_sum = checklist.hexdigest()
@@ -1629,6 +1830,12 @@ init 200 python in mas_dockstat:
             cr_log.error("monibuffer write failed | {0}".format(
                 repr(e)
             ))
+            _take_monika_note("monibuffer write failed | {0}".format(repr(e)), cr_log)
+            try:
+                import traceback
+                cr_log.error(traceback.format_exc())
+            except Exception:
+                pass
 
             # attempt to delete existing file if its there
             # NOTE: dont care if it fails, we just want to try it
@@ -1658,10 +1865,32 @@ init 200 python in mas_dockstat:
             moni_buffer.close()
 
         ### Now to verify that we output the file correctly
+        try:
+            size = os.path.getsize(moni_path) if os.path.isfile(moni_path) else -1
+        except Exception:
+            size = -1
+        _take_monika_note(
+            "after write isfile={0} size={1} enabled={2}".format(
+                os.path.isfile(moni_path), size, dockstat.enabled
+            ),
+            cr_log,
+        )
         moni_pkg = dockstat.getPackage("monika")
+        _take_monika_note("getPackage={0}".format(moni_pkg is not None), cr_log)
+        if moni_pkg is None:
+            try:
+                if os.path.isfile(moni_path):
+                    moni_pkg = open(moni_path, "rb")
+                    cr_log.info("getPackage missed, opened path directly")
+                    _take_monika_note("getPackage missed, opened path directly", cr_log)
+            except Exception as e:
+                cr_log.error("direct open failed | {0}".format(repr(e)))
+                _take_monika_note("direct open failed | {0}".format(repr(e)), cr_log)
+                moni_pkg = None
         if moni_pkg is None:
             # ALERT ALERT HOW DID WE FAIL
             cr_log.error("monika not found.")
+            _take_monika_note("FAIL: monika not found at {0}".format(moni_path), cr_log)
             mas_utils.trydel(moni_path)
             return False
 
@@ -1670,6 +1899,7 @@ init 200 python in mas_dockstat:
         if moni_slip is None:
             # ALERT ALERT WE FAILED AGAIN
             cr_log.error("monika could not be validated.")
+            _take_monika_note("FAIL: createPackageSlip returned None", cr_log)
             mas_utils.trydel(moni_path)
             return False
 
@@ -1678,13 +1908,70 @@ init 200 python in mas_dockstat:
             cr_log.critical(
                 "monisums didn't match, did we have write failure?"
             )
+            _take_monika_note(
+                "FAIL: checksum mismatch slip={0} sum={1}".format(moni_slip, moni_sum),
+                cr_log,
+            )
             mas_utils.trydel(moni_path)
             return -1
 
         # otherwise, we managed to create a monika! Congrats!
         cr_log.info("chk: {0}".format(moni_sum))
+        _take_monika_note("OK chk={0} path={1}".format(moni_sum, moni_path), cr_log)
         return moni_sum
 
+
+    def force_monika_home_flag_path():
+        """Documents/_mas/flags/.mas_force_monika_home from BIOS recovery."""
+        try:
+            root = store.mas_os.user_data_root()
+        except Exception:
+            root = None
+        if not root:
+            try:
+                root = store.renpy.config.basedir
+            except Exception:
+                return None
+        return os.path.join(root, "_mas", "flags", ".mas_force_monika_home")
+
+    def force_monika_home_flag_paths():
+        paths = []
+        neu = force_monika_home_flag_path()
+        if neu:
+            paths.append(neu)
+        try:
+            root = store.mas_os.user_data_root()
+        except Exception:
+            root = None
+        if root:
+            legacy = os.path.join(root, ".mas_force_monika_home")
+            if legacy not in paths:
+                paths.append(legacy)
+        return paths
+
+    def consume_force_monika_home():
+        """
+        BIOS «Вернуть за стол»: clear checkout so Monika sits at the desk
+        even if characters/monika is gone.
+        """
+        path = None
+        for candidate in force_monika_home_flag_paths():
+            if candidate and os.path.isfile(candidate):
+                path = candidate
+                break
+        if not path:
+            return False
+        checkinMonika()
+        try:
+            os.remove(path)
+        except Exception:
+            pass
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        _take_monika_note("force home: chksum cleared via BIOS flag")
+        return True
 
     def init_findMonika(dockstat):
         """
@@ -1694,6 +1981,11 @@ init 200 python in mas_dockstat:
             dockstat - MASDockingStation to use
         """
         global retmoni_status, retmoni_data
+
+        if consume_force_monika_home():
+            retmoni_status = None
+            retmoni_data = None
+            return
 
         # try to find this monika
         retmoni_status, retmoni_data = findMonika(dockstat, rd_log_path, True)
@@ -2250,25 +2542,56 @@ label mas_dockstat_empty_desk_from_empty:
         if promise.ready:
             promise.start()
 
-        #wait 1 seconds before checking again
-        renpy.pause(1.0, hard=True)
+    call screen mas_dockstat_empty_wait
 
+    if _return == "home":
+        jump mas_dockstat_found_monika_from_empty
+
+    python:
         #Check for surprise visuals
         if mas_confirmedParty() and mas_isMonikaBirthday():
             persistent._mas_bday_visuals = True
             store.mas_surpriseBdayShowVisuals(cake=not persistent._mas_bday_sbp_reacted)
 
-        #Check for monika
-        if promise.done():
+        if store.mas_dockstat.consume_force_monika_home():
+            store.mas_dockstat.retmoni_status = None
+            store.mas_dockstat.retmoni_data = None
+        elif promise.done():
             # we have a result! lets get and then check if we found anything.
             _status, _data_line = promise.get()
             mas_dockstat.retmoni_status = _status
             mas_dockstat.retmoni_data = _data_line
             mas_dockstat.triageMonika(True)
 
+    if persistent._mas_moni_chksum is None:
+        jump mas_dockstat_found_monika_from_empty
+
     # otherwise we still havent' found monika, so lets just continue
     # the loop
     jump mas_dockstat_empty_desk_from_empty
+
+
+screen mas_dockstat_empty_wait():
+    zorder 200
+    timer 1.0 action Return("tick")
+
+    use mas_os_return_chip(xpos=28, ypos=28)
+
+    text _("Моника сейчас в файле. Верни characters/monika, открой MAS OS или верни её за стол."):
+        xpos 28
+        ypos 96
+        xsize 620
+        size 16
+        color "#FFE6F3"
+        outlines [(2, "#14070d", 0, 0)]
+
+    textbutton _("Вернуть Монику за стол"):
+        xpos 28
+        ypos 150
+        xsize 280
+        action Return("home")
+        hover_sound gui.hover_sound
+        activate_sound gui.activate_sound
 
 define mas_dockstat.different_moni_flow = False
 
@@ -2395,8 +2718,25 @@ label mas_dockstat_found_monika:
 label mas_dockstat_iostart:
     show monika 2dsc
     python:
+        import os
         persistent._mas_dockstat_going_to_leave = True
         first_pass = True
+        try:
+            store.mas_os.apply_user_data_tree()
+        except Exception:
+            pass
+        try:
+            chars = store.mas_os.characters_dir()
+            if chars:
+                if not str(chars).endswith("/") and not str(chars).endswith("\\"):
+                    chars = chars + "/"
+                store.mas_docking_station.station = os.path.normcase(chars)
+                folder = store.mas_docking_station.station.rstrip("/\\")
+                if folder and not os.path.isdir(folder):
+                    os.makedirs(folder)
+                store.mas_docking_station.enabled = True
+        except Exception:
+            pass
 
         # launch I/O thread
         promise = store.mas_dockstat.monikagen_promise

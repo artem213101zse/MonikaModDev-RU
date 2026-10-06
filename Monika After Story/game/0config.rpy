@@ -28,27 +28,37 @@ python early:
     import os as _mas_os_early_os
 
     def _mas_os_early_overlay_searchpath():
+        overlays = []
+        for root in _mas_os_early_docs_roots():
+            overlays.append(_mas_os_early_os.path.normpath(
+                _mas_os_early_os.path.join(root, "game")
+            ))
         try:
-            overlay = _mas_os_early_os.path.normpath(
+            overlays.append(_mas_os_early_os.path.normpath(
                 _mas_os_early_os.path.join(renpy.config.basedir, "game")
-            )
-        except Exception:
-            return
-        if not overlay:
-            return
-        try:
-            if not _mas_os_early_os.path.isdir(overlay):
-                _mas_os_early_os.makedirs(overlay)
+            ))
         except Exception:
             pass
         sp = getattr(renpy.config, "searchpath", None)
         if sp is None:
             return
-        try:
-            if overlay not in sp:
-                sp.append(overlay)
-        except Exception:
-            pass
+        # Insert last-to-first so Documents/game ends up at index 0.
+        seen = set()
+        for overlay in reversed(overlays):
+            if not overlay or overlay in seen:
+                continue
+            seen.add(overlay)
+            try:
+                if not _mas_os_early_os.path.isdir(overlay):
+                    _mas_os_early_os.makedirs(overlay)
+            except Exception:
+                pass
+            try:
+                if overlay in sp:
+                    sp.remove(overlay)
+                sp.insert(0, overlay)
+            except Exception:
+                pass
 
     def _mas_os_early_docs_roots():
         roots = []
@@ -86,6 +96,12 @@ python early:
             overlay = _mas_os_early_os.path.join(root, "game", "Submods")
             if overlay not in srcs:
                 srcs.append(overlay)
+            docs_skip.append(_mas_os_early_os.path.join(
+                root, "_mas", "flags", "skip_submods"
+            ))
+            docs_skip.append(_mas_os_early_os.path.join(
+                root, "_mas", "flags", "mas_os_safe_mode"
+            ))
             docs_skip.append(_mas_os_early_os.path.join(root, "flags", "skip_submods"))
             docs_skip.append(_mas_os_early_os.path.join(root, "mas_os_safe_mode"))
         return {
@@ -150,6 +166,58 @@ python early:
             except Exception:
                 pass
 
+    def _mas_os_early_off_names():
+        names = set()
+        paths = []
+        try:
+            based = _mas_os_early_os.path.normpath(renpy.config.basedir)
+            paths.append(_mas_os_early_os.path.join(based, "mas_os_submods_off.txt"))
+            paths.append(_mas_os_early_os.path.join(based, "game", "mas_os_submods_off.txt"))
+        except Exception:
+            pass
+        for root in _mas_os_early_docs_roots():
+            paths.append(_mas_os_early_os.path.join(
+                root, "_mas", "flags", "submods_off.txt"
+            ))
+        for path in paths:
+            try:
+                if not _mas_os_early_os.path.isfile(path):
+                    continue
+                handle = open(path, "r")
+                try:
+                    for line in handle:
+                        name = line.strip()
+                        if not name or name.startswith("#"):
+                            continue
+                        names.add(name.replace("\\", "/").split("/")[-1].lower())
+                finally:
+                    handle.close()
+            except Exception:
+                pass
+        return names
+
+    def _mas_os_early_filter_scripts(skip_all=False):
+        script = getattr(getattr(renpy, "game", None), "script", None)
+        files = getattr(script, "script_files", None) if script is not None else None
+        if not files:
+            return
+        off = _mas_os_early_off_names()
+        kept = []
+        for item in files:
+            try:
+                fn, dn = item
+            except Exception:
+                kept.append(item)
+                continue
+            norm = str(fn or "").replace("\\", "/")
+            parts = [p for p in norm.split("/") if p]
+            if len(parts) >= 2 and parts[0] == "Submods":
+                folder = parts[1].lower()
+                if skip_all or folder in off:
+                    continue
+            kept.append(item)
+        script.script_files = kept
+
     def _mas_os_early_bios_skip(p):
         for path in p.get("docs_skip") or []:
             if _mas_os_early_os.path.isfile(path):
@@ -173,11 +241,20 @@ python early:
             or bios_skip
         )
         crashed = _mas_os_early_os.path.isfile(p["lock"])
+        skip_all = forced or crashed
+        try:
+            _mas_os_early_filter_scripts(skip_all)
+        except Exception:
+            pass
         if forced:
-            _mas_os_early_park_submods("safe")
             _mas_os_early_clear_bios_skip(p)
         elif crashed:
-            _mas_os_early_park_submods("crash")
+            try:
+                handle = open(p["auto"], "w")
+                handle.write("crash\n")
+                handle.close()
+            except Exception:
+                pass
         try:
             handle = open(p["lock"], "w")
             handle.write("1\n")

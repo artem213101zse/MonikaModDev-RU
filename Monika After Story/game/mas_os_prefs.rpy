@@ -63,6 +63,7 @@ init -20 python in mas_os:
         "_mas_os_settings_ui",
         "_mas_os_store_ui",
         "_mas_os_about_ui",
+        "_mas_os_talk_drag",
     )
 
     notify_open = False

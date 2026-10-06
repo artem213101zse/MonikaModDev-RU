@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>MAS BIOS — эскизы оболочек</title>
+<style>
+:root { --safe: env(safe-area-inset-bottom, 0px); }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; overflow: hidden; font-family: "Segoe UI", Roboto, sans-serif; }
+button { font: inherit; color: inherit; }
+.picker {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; gap: 6px; overflow-x: auto; padding: 8px 8px 10px;
+  background: #0d0d0ecc; backdrop-filter: blur(12px);
+  border-bottom: 1px solid #ffffff22;
+}
+.picker b { flex: none; align-self: center; font-size: 11px; color: #9ad; padding: 0 6px; }
+.chip {
+  flex: none; border: 0; border-radius: 999px; padding: 8px 12px;
+  background: #222; color: #eee; font-size: 12px;
+}
+.chip.on { background: #c94a7a; color: #fff; }
+.stage { position: fixed; inset: 52px 0 0; overflow: hidden; }
+.wall { position: absolute; inset: 0; }
+.icons { position: absolute; top: 10px; left: 8px; display: flex; flex-direction: column; gap: 8px; z-index: 2; }
+.dicon { width: 72px; border: 0; background: transparent; color: #fff; text-shadow: 0 1px 3px #000;
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; border-radius: 6px; }
+.dicon i { width: 36px; height: 36px; border-radius: 8px; background: #0078d4; display: grid; place-items: center; font-style: normal; font-size: 16px; }
+.dicon span { font-size: 11px; }
+.win {
+  position: absolute; left: 8px; right: 8px; top: 8px; bottom: 56px;
+  background: #1b1b1b; color: #f3e6ee; display: none; flex-direction: column;
+  border-radius: 6px; overflow: hidden; z-index: 5; box-shadow: 0 12px 40px #0008;
+}
+.stage.open .win { display: flex; }
+.titlebar .dots { display: none; }
+.titlebar {
+  height: 36px; display: flex; align-items: center; gap: 8px;
+  padding: 0 8px 0 12px; background: #2a2a2a; font-size: 13px;
+}
+.titlebar .x { margin-left: auto; width: 36px; height: 28px; border: 0; background: transparent; }
+.body { flex: 1; overflow: auto; padding: 12px; }
+.lead { margin: 0 0 10px; font-size: 13px; opacity: .75; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile { min-height: 64px; border: 0; border-radius: 10px; background: #322; color: #ffe6f3;
+  text-align: left; padding: 10px; }
+.tile b { display: block; font-size: 14px; }
+.tile span { display: block; font-size: 11px; opacity: .7; margin-top: 2px; }
+.tile.go { background: #c94a7a; color: #fff; }
+.logbox { margin-top: 10px; background: #111; border-radius: 8px; padding: 8px; font-size: 11px; min-height: 64px; white-space: pre-wrap; }
+.bar { display: none; height: 6px; background: #333; border-radius: 99px; margin: 8px 0; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 42%; background: #7ee0d6; }
+.stage.busy .bar { display: block; }
+.task {
+  position: absolute; left: 0; right: 0; bottom: 0; height: calc(48px + var(--safe));
+  padding-bottom: var(--safe); display: flex; align-items: center; background: #1f1f1f; color: #fff; z-index: 8;
+}
+.start { height: 100%; border: 0; background: transparent; font-weight: 700; padding: 0 16px; }
+.task .app { margin-left: 8px; padding: 6px 10px; background: #0078d4; border: 0; border-radius: 4px; font-size: 12px; max-width: 40vw; overflow: hidden; }
+.tray { margin-left: auto; padding-right: 12px; font-size: 13px; font-weight: 700; }
+.startmenu, .more, .notify {
+  position: absolute; bottom: calc(48px + var(--safe)); left: 0; width: min(280px, 86vw);
+  max-height: 70%; overflow: auto; background: #2b2b2b; color: #fff; z-index: 12; display: none; padding: 8px 0;
+}
+.more { left: min(280px, 86vw); background: #222; }
+.mitem { width: 100%; border: 0; background: transparent; display: flex; gap: 10px; align-items: center;
+  padding: 12px 16px; text-align: left; min-height: 46px; }
+.mitem:active { background: #0078d4; }
+.stage.start-on .startmenu { display: block; }
+.stage.more-on .more { display: block; }
+.xmb, .cards, .spring, .uefi, .dash, .menubar { display: none; }
+
+/* skins */
+.skin-masl .wall { background: linear-gradient(180deg, #3f8ec9, #6bb3de 36%, #d7e9a4 68%, #7eae4a); }
+.skin-win10 .wall { background: #0b3a62 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='18' fill='%231e90ff22'/%3E%3C/svg%3E"); }
+.skin-win10 .startmenu { width: min(96vw, 420px); display: none; }
+.skin-win10 .stage.start-on .startmenu { display: grid; grid-template-columns: 1fr 1fr; }
+.skin-win10 .mitem { min-height: 72px; background: #0078d4; margin: 4px; width: auto; }
+.skin-win11 .wall { background: linear-gradient(160deg, #1a2744, #3a2a4a 50%, #1a3a4a); }
+.skin-win11 .task { justify-content: center; background: #1c1c1ecc; backdrop-filter: blur(16px); }
+.skin-win11 .start { position: absolute; left: 12px; }
+.skin-win11 .startmenu { left: 50%; transform: translateX(-50%); width: min(360px, 94vw); border-radius: 18px; bottom: calc(56px + var(--safe)); }
+.skin-win11 .win { border-radius: 12px; }
+.skin-win11 .titlebar { background: #2b2b2bcc; }
+.skin-gnome .wall { background: #2e3440; }
+.skin-gnome .task { top: 0; bottom: auto; height: 32px; }
+.skin-gnome .dash {
+  display: flex; flex-direction: column; position: absolute; left: 0; top: 32px; bottom: 0;
+  width: 56px; background: #1118; padding: 8px 6px; gap: 8px; z-index: 8;
+}
+.skin-gnome .dash button { width: 44px; height: 44px; border: 0; border-radius: 12px; background: #3b4252; }
+.skin-gnome .win { left: 64px; top: 40px; bottom: 8px; right: 8px; }
+.skin-gnome .startmenu { left: 56px; top: 32px; bottom: auto; width: min(280px, 70vw); }
+.skin-kde .wall { background: linear-gradient(#1b2838, #0d1117); }
+.skin-kde .task { background: #1e1e2ecc; }
+.skin-macos .wall { background: linear-gradient(#7aa2d4, #d9c4e8 55%, #f2d5c4); }
+.skin-macos .menubar { display: flex; position: absolute; top: 0; left: 0; right: 0; height: 28px;
+  background: #ffffff33; backdrop-filter: blur(12px); color: #111; font-size: 12px; align-items: center; padding: 0 10px; gap: 12px; z-index: 9; }
+.skin-macos .task { left: 50%; transform: translateX(-50%); width: min(420px, 92vw); bottom: 10px;
+  height: 58px; border-radius: 16px; background: #ffffff55; backdrop-filter: blur(16px); justify-content: center; gap: 8px; }
+.skin-macos .start, .skin-macos .app, .skin-macos .tray { display: none; }
+.skin-macos .dockbtn { width: 44px; height: 44px; border: 0; border-radius: 12px; background: #fff8; }
+.skin-macos .win { top: 36px; bottom: 78px; border-radius: 12px; }
+.skin-macos .titlebar { background: #e8e8e8; color: #222; }
+.skin-macos .dots { display: flex; gap: 6px; }
+.skin-macos .dots i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; display: block; }
+.skin-macos .dots i:nth-child(2) { background: #febc2e; }
+.skin-macos .dots i:nth-child(3) { background: #28c840; }
+.skin-psp .wall { background: #0a0a12; }
+.skin-psp .task, .skin-psp .icons { display: none; }
+.skin-psp .xmb { display: flex; position: absolute; inset: 0; align-items: center; overflow: hidden; }
+.skin-psp .xmb-col { min-width: 28vw; text-align: center; opacity: .45; color: #9cf; transition: .2s; }
+.skin-psp .xmb-col.on { opacity: 1; transform: scale(1.08); color: #fff; }
+.skin-psp .xmb-col b { display: block; font-size: 15px; margin-bottom: 12px; }
+.skin-psp .xmb-col button { display: block; width: 80%; margin: 6px auto; border: 0; background: transparent; color: inherit; padding: 10px; }
+.skin-ps5 .wall { background: radial-gradient(800px 400px at 20% 0%, #1b4, transparent), #0b0b10; }
+.skin-ps5 .task { top: 0; bottom: auto; background: transparent; height: 40px; }
+.skin-ps5 .cards { display: flex; position: absolute; left: 0; right: 0; top: 80px; gap: 12px;
+  overflow-x: auto; padding: 20px 16px; }
+.skin-ps5 .card { flex: none; width: 58vw; height: 28vh; border: 0; border-radius: 16px;
+  background: linear-gradient(180deg, #333, #111); color: #fff; text-align: left; padding: 16px; font-size: 18px; }
+.skin-ps5 .card.on { outline: 3px solid #fff; }
+.skin-ps5 .win { top: auto; height: 42%; }
+.skin-switch .wall { background: #2d2d2d; }
+.skin-switch .menubar { display: flex; position: absolute; top: 0; left: 0; right: 0; height: 36px;
+  color: #eee; align-items: center; padding: 0 12px; justify-content: space-between; z-index: 9; }
+.skin-switch .spring { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; position: absolute;
+  top: 48px; left: 12px; right: 12px; bottom: 64px; overflow: auto; }
+.skin-switch .sq { border: 0; border-radius: 8px; min-height: 88px; background: #444; color: #fff; }
+.skin-switch .task { background: #1a1a1a; justify-content: space-around; }
+.skin-xp .wall { background: linear-gradient(#5d9ce2, #87ce6a 70%, #3a7a2a); }
+.skin-xp .task { background: linear-gradient(#3b6ea5, #24559a); }
+.skin-xp .start { background: linear-gradient(#5fad46, #3c8a2e); border-radius: 0 12px 12px 0; }
+.skin-xp .win { border: 3px solid #0a5ad6; border-radius: 8px 8px 0 0; }
+.skin-xp .titlebar { background: linear-gradient(#0a5ad6, #3f8cf4); color: #fff; }
+.skin-uefi .wall { background: #010080; }
+.skin-uefi .task, .skin-uefi .icons, .skin-uefi .win { display: none !important; }
+.skin-psp .win { display: none !important; }
+.skin-uefi .uefi { display: block; position: absolute; inset: 0; color: #eee; padding: 12px; overflow: auto; }
+.skin-uefi .uefi h2 { margin: 0 0 8px; color: #ff0; font-size: 16px; }
+.skin-uefi .tabs { display: flex; gap: 0; overflow-x: auto; margin-bottom: 10px; }
+.skin-uefi .tabs button { border: 1px solid #aaa; background: #000060; color: #fff; padding: 8px 12px; }
+.skin-uefi .tabs button.on { background: #ccc; color: #000; }
+.skin-android .wall { background: #1c1b1f; }
+.skin-android .task { background: #211f26; border-radius: 24px 24px 0 0; justify-content: space-around; }
+.skin-android .win { left: 0; right: 0; top: 0; bottom: calc(56px + var(--safe)); border-radius: 0; }
+.skin-android .titlebar { display: none; }
+.skin-ios .wall { background: linear-gradient(#4b6cb7, #182848); }
+.skin-ios .spring { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; position: absolute;
+  top: 48px; left: 16px; right: 16px; }
+.skin-ios .sq { width: 58px; height: 58px; border-radius: 14px; margin: 0 auto; display: block; }
+.skin-ios .task { left: 16px; right: 16px; bottom: 12px; height: 64px; border-radius: 20px;
+  background: #ffffff44; backdrop-filter: blur(16px); justify-content: space-around; }
+.skin-ios .win { border-radius: 18px 18px 0 0; top: 12px; }
+.skin-class .wall { background: linear-gradient(#f3d9c8, #c98a78 40%, #6b3a3a); }
+.skin-class .icons { flex-direction: row; flex-wrap: wrap; top: auto; bottom: 70px; left: 10px; right: 10px; }
+.skin-class .dicon { background: #fff8f0cc; color: #4a2030; text-shadow: none; border-radius: 4px; width: 90px; }
+.skin-class .dicon i { background: #c94a7a; }
+.skin-class .task { background: #3a1524; }
+.skin-class .win { background: #fff8f0; color: #3a1524; }
+.skin-class .titlebar { background: #c94a7a; color: #fff; }
+.skin-class .tile { background: #f3d9c8; color: #3a1524; }
+.skin-steam .wall { background: #1b2838; }
+.skin-steam .task { height: 64px; background: #171a21; }
+.skin-steam .start, .skin-steam .tray { font-size: 11px; opacity: .8; }
+.skin-steam .cards { display: grid; grid-template-columns: 1fr 1fr; position: absolute;
+  top: 12px; left: 12px; right: 12px; bottom: 76px; gap: 10px; overflow: auto; }
+.skin-steam .card { width: auto; height: auto; min-height: 90px; }
+.note {
+  position: absolute; right: 8px; top: 8px; font-size: 11px; color: #fff; background: #0007;
+  padding: 6px 8px; border-radius: 8px; max-width: 46vw; z-index: 20; pointer-events: none;
+}
+</style>
+</head>
+<body class="skin-masl">
+<div class="picker" id="picker"></div>
+<div class="stage" id="stage">
+  <div class="wall" onclick="deskTap()"></div>
+  <div class="menubar" id="menubar"><span>BIOS</span><span>Файл</span><span>Вид</span><span style="margin-left:auto" id="mbClock">12:00</span></div>
+  <div class="icons" id="icons"></div>
+  <div class="dash" id="dash"></div>
+  <div class="xmb" id="xmb"></div>
+  <div class="cards" id="cards"></div>
+  <div class="spring" id="spring"></div>
+  <div class="uefi" id="uefi"></div>
+  <div class="win" id="win">
+    <div class="titlebar">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span id="wtitle">Игра</span>
+      <button class="x" onclick="closeWin()">✕</button>
+    </div>
+    <div class="body" id="wbody"></div>
+  </div>
+  <div class="startmenu" id="startmenu"></div>
+  <div class="more" id="more"></div>
+  <div class="task" id="task">
+    <button class="start" onclick="toggleStart()">Пуск</button>
+    <button class="app" id="taskApp" onclick="openWin(current)">Игра</button>
+    <button class="dockbtn" data-app="play" onclick="openWin('play')">▶</button>
+    <button class="dockbtn" data-app="content" onclick="openWin('content')">📦</button>
+    <button class="dockbtn" data-app="saves" onclick="openWin('saves')">💾</button>
+    <button class="dockbtn" data-app="system" onclick="openWin('system')">⚙</button>
+    <div class="tray" id="clock">12:00</div>
+  </div>
+  <div class="note" id="note"></div>
+</div>
+<script>
+var SKINS = [
+  { id: "masl", name: "MASL / Пуск", note: "Как у Just: рабочий стол, Пуск слева, все программы второй колонкой, окна." },
+  { id: "win10", name: "Windows 10", note: "Пуск слева, живые плитки 2×N, панель снизу. Крупные пальцевые плитки." },
+  { id: "win11", name: "Windows 11", note: "Центр панели, скруглённый Пуск, окна с большим радиусом." },
+  { id: "gnome", name: "Linux GNOME", note: "Верхняя полоса + док слева. Окно занимает остаток — удобно в ландшафте." },
+  { id: "kde", name: "Linux KDE", note: "Нижняя панель как Windows, тёмная тема Plasma." },
+  { id: "macos", name: "macOS", note: "Строка меню сверху, док по центру снизу, светофор в окне." },
+  { id: "psp", name: "PSP XMB", note: "Горизонтальные категории, вертикальные пункты. Листай колонку пальцем." },
+  { id: "ps5", name: "PS5", note: "Большие горизонтальные карточки. Детали выбранной — нижней панелью." },
+  { id: "switch", name: "Nintendo Switch", note: "Сетка софта 2 колонки, нижняя панель. Хорошо одной рукой." },
+  { id: "xp", name: "Windows XP", note: "Bliss, зелёный Пуск, синяя рамка окна. Ностальгия, крупные кнопки." },
+  { id: "uefi", name: "UEFI / BIOS", note: "Синие вкладки прошивки. Вся навигация — список, без окон." },
+  { id: "android", name: "Android", note: "Нижние 5 вкладок, контент на весь экран. Самый «телефонный» вариант." },
+  { id: "ios", name: "iOS", note: "Сетка иконок 4×N и док. Окно как sheet снизу." },
+  { id: "class", name: "Класс DDLC", note: "Парта, тетрадки-ярлыки, розовая шапка окна." },
+  { id: "steam", name: "Steam Deck", note: "Крупные плитки 2×N как в колоде BIOS, панель снизу." }
+];
+var APPS = [
+  { id: "play", name: "Игра", icon: "▶", tiles: [
+    ["Запустить MAS", "Ren'Py → комната", "go"],
+    ["Безопасный вход", "без сабмодов"],
+    ["Проверить диск", "папки и архивы"],
+    ["Снимок папок", "подарки, музыка, сейвы"]
+  ]},
+  { id: "files", name: "Файлы", icon: "📁", tiles: [
+    ["Все файлы", "Android 11+"],
+    ["Documents", "Monika_after_story", "go"],
+    ["Обои", "custom_wallpaper.png"],
+    ["Gift / музыка", "characters, custom_bgm"]
+  ]},
+  { id: "archives", name: "Архивы", icon: "💿", tiles: [
+    ["ddlc.moe", "официальный zip", "go"],
+    ["GitHub RPA", "images / audio"],
+    ["Выбрать zip", "с телефона"],
+    ["Проверить", "какие паки на месте"]
+  ]},
+  { id: "content", name: "Контент", icon: "📦", tiles: [
+    ["Скачать zip", "тип определится сам", "go"],
+    ["Выбрать zip", "с диска"],
+    ["История ссылок", "подставить и скачать"],
+    ["Очистить историю", "забыть URL"]
+  ]},
+  { id: "library", name: "Библиотека", icon: "📚", tiles: [
+    ["Список паков", "манифесты"],
+    ["Снять последний", "только его файлы", "go"],
+    ["Сабмод / спрайт / рескин", "колонка тип"]
+  ]},
+  { id: "saves", name: "Сейвы", icon: "💾", tiles: [
+    ["Импорт zip", "с другой сборки", "go"],
+    ["Импорт папки", "уже распаковано"],
+    ["Экспорт", "_mas/backups"],
+    ["Поделиться", "отправить бэкап"]
+  ]},
+  { id: "update", name: "Обновление", icon: "⬆", tiles: [
+    ["Проверить", "GitHub release"],
+    ["Скачать APK", "и поставить", "go"]
+  ]},
+  { id: "engine", name: "Движок", icon: "♞", tiles: [
+    ["ELF Stockfish", "libstockfish.so"],
+    ["uci / isready", "журнал UCI"],
+    ["Ход depth 1", "bestmove", "go"]
+  ]},
+  { id: "recovery", name: "Рекавери", icon: "♥", tiles: [
+    ["Статус monika", "characters/"],
+    ["Найти файл", "обход Documents", "go"],
+    ["Вернуть за стол", "force home"]
+  ]},
+  { id: "system", name: "Система", icon: "⚙", tiles: [
+    ["Traceback", "почему не стартанула"],
+    ["Сразу MAS OS", "пропуск BIOS"],
+    ["Сменить вид", "эти эскизы — превью"]
+  ]}
+];
+var current = "play", skin = "masl";
+var stage = document.getElementById("stage");
+
+function appBy(id) {
+  for (var i = 0; i < APPS.length; i++) if (APPS[i].id === id) return APPS[i];
+  return APPS[0];
+}
+function log(s) {
+  var el = document.getElementById("log");
+  if (el) el.textContent = (el.textContent || "") + "\n" + s;
+}
+function renderBody(id) {
+  var a = appBy(id);
+  var h = "<p class='lead'>Эскиз. Кнопки пишут в журнал, Java-моста нет.</p><div class='bar'><i></i></div><div class='grid'>";
+  for (var i = 0; i < a.tiles.length; i++) {
+    var t = a.tiles[i];
+    h += "<button class='tile" + (t[2] ? " go" : "") + "' onclick='tapTile(\"" + t[0] + "\")'><b>" + t[0] + "</b><span>" + (t[1] || "") + "</span></button>";
+  }
+  h += "</div><div class='logbox' id='log'>готово · " + a.name + "</div>";
+  document.getElementById("wbody").innerHTML = h;
+  document.getElementById("wtitle").textContent = a.name;
+  document.getElementById("taskApp").textContent = a.name;
+}
+function tapTile(name) {
+  stage.classList.add("busy");
+  log("→ " + name);
+}
+function openWin(id) {
+  current = id;
+  renderBody(id);
+  var ub = document.getElementById("uefiBody");
+  if (ub) ub.innerHTML = document.getElementById("wbody").innerHTML;
+  if (skin !== "psp" && skin !== "uefi") {
+    stage.classList.add("open");
+  }
+  stage.classList.remove("start-on", "more-on");
+}
+function closeWin() {
+  stage.classList.remove("open");
+}
+function toggleStart() {
+  if (skin === "psp" || skin === "uefi" || skin === "ps5" || skin === "switch" || skin === "ios" || skin === "steam") {
+    return;
+  }
+  stage.classList.toggle("start-on");
+  stage.classList.remove("more-on");
+}
+function deskTap() {
+  stage.classList.remove("start-on", "more-on");
+}
+function setSkin(id) {
+  skin = id;
+  document.body.className = "skin-" + id;
+  var chips = document.querySelectorAll(".chip");
+  for (var i = 0; i < chips.length; i++) chips[i].className = chips[i].dataset.id === id ? "chip on" : "chip";
+  var s;
+  for (i = 0; i < SKINS.length; i++) if (SKINS[i].id === id) s = SKINS[i];
+  document.getElementById("note").textContent = s ? s.note : "";
+  stage.classList.remove("start-on", "more-on", "open");
+  if (id === "android" || id === "uefi") openWin(current);
+}
+function boot() {
+  var p = document.getElementById("picker");
+  p.innerHTML = "<b>эскизы</b>";
+  SKINS.forEach(function (s) {
+    var b = document.createElement("button");
+    b.className = "chip" + (s.id === "masl" ? " on" : "");
+    b.dataset.id = s.id;
+    b.textContent = s.name;
+    b.onclick = function () { setSkin(s.id); };
+    p.appendChild(b);
+  });
+  var icons = document.getElementById("icons");
+  var dash = document.getElementById("dash");
+  var start = document.getElementById("startmenu");
+  var more = document.getElementById("more");
+  var xmb = document.getElementById("xmb");
+  var cards = document.getElementById("cards");
+  var spring = document.getElementById("spring");
+  var uefi = document.getElementById("uefi");
+  APPS.forEach(function (a, idx) {
+    var ic = document.createElement("button");
+    ic.className = "dicon";
+    ic.innerHTML = "<i>" + a.icon + "</i><span>" + a.name + "</span>";
+    ic.onclick = function () { openWin(a.id); };
+    if (idx < 5) icons.appendChild(ic);
+    var d = document.createElement("button");
+    d.textContent = a.icon;
+    d.onclick = function () { openWin(a.id); };
+    dash.appendChild(d);
+    var m = document.createElement("button");
+    m.className = "mitem";
+    m.textContent = a.icon + "  " + a.name;
+    m.onclick = function () { openWin(a.id); };
+    if (idx < 5) start.appendChild(m); else more.appendChild(m);
+    var col = document.createElement("div");
+    col.className = "xmb-col" + (idx === 0 ? " on" : "");
+    col.innerHTML = "<b>" + a.name + "</b>";
+    a.tiles.forEach(function (t) {
+      var bt = document.createElement("button");
+      bt.textContent = t[0];
+      bt.onclick = function () { openWin(a.id); tapTile(t[0]); };
+      col.appendChild(bt);
+    });
+    col.onclick = function () {
+      var cs = xmb.querySelectorAll(".xmb-col");
+      for (var j = 0; j < cs.length; j++) cs[j].className = "xmb-col";
+      col.className = "xmb-col on";
+      current = a.id;
+    };
+    xmb.appendChild(col);
+    var card = document.createElement("button");
+    card.className = "card" + (idx === 0 ? " on" : "");
+    card.textContent = a.icon + "  " + a.name;
+    card.onclick = function () { openWin(a.id); };
+    cards.appendChild(card);
+    var sq = document.createElement("button");
+    sq.className = "sq";
+    sq.textContent = a.icon + "\n" + a.name;
+    sq.onclick = function () { openWin(a.id); };
+    spring.appendChild(sq);
+  });
+  var all = document.createElement("button");
+  all.className = "mitem";
+  all.textContent = "▸  Все программы";
+  all.onclick = function () { stage.classList.toggle("more-on"); };
+  start.appendChild(all);
+  var tabs = "<div class='tabs'>";
+  APPS.forEach(function (a, i) {
+    tabs += "<button class='" + (i === 0 ? "on" : "") + "' onclick='openWin(\"" + a.id + "\")'>" + a.name + "</button>";
+  });
+  tabs += "</div><div id='uefiBody'></div>";
+  uefi.innerHTML = "<h2>MAS BIOS Setup Utility</h2>" + tabs;
+  renderBody("play");
+  setSkin("masl");
+  function tick() {
+    var t = new Date();
+    var s = ("0" + t.getHours()).slice(-2) + ":" + ("0" + t.getMinutes()).slice(-2);
+    document.getElementById("clock").textContent = s;
+    document.getElementById("mbClock").textContent = s;
+  }
+  tick();
+  setInterval(tick, 10000);
+}
+boot();
+</script>
+</body>
+</html>

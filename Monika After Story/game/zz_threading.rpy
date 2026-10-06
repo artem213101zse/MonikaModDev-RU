@@ -161,7 +161,19 @@ init -2000 python in mas_threading:
             Actually runs the async function and sets the result var
             appropriately.
             """
-            temp_result = self._th_function(*self._th_args, **self._th_kwargs)
+            temp_result = None
+            try:
+                temp_result = self._th_function(*self._th_args, **self._th_kwargs)
+            except Exception:
+                temp_result = None
+                try:
+                    import traceback
+                    import store as _store
+                    _store.mas_utils.mas_log.error(
+                        "async fail: {0}".format(traceback.format_exc())
+                    )
+                except Exception:
+                    pass
 
             # acquire lock and set the result var
             self._th_cond.acquire()

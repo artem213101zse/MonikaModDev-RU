@@ -77,44 +77,6 @@
             android:orientation="vertical">
 
             <Button
-                android:id="@+id/bios_download"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/sideload_button"
-                android:minHeight="40dp"
-                android:text="Скачать мод"
-                android:textAllCaps="false"
-                android:textColor="#1a1420"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/bios_install"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:background="@drawable/sideload_button"
-                android:minHeight="40dp"
-                android:text="Установить zip"
-                android:textAllCaps="false"
-                android:textColor="#1a1420"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/bios_delete"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:background="@drawable/sideload_button"
-                android:minHeight="40dp"
-                android:text="Удалить мод"
-                android:textAllCaps="false"
-                android:textColor="#1a1420"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <Button
                 android:id="@+id/bios_export_saves"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -199,7 +161,7 @@
                 android:layout_marginTop="4dp"
                 android:background="@drawable/sideload_button"
                 android:minHeight="40dp"
-                android:text="Выбрать zip"
+                android:text="Выбрать zip пака"
                 android:textAllCaps="false"
                 android:textColor="#1a1420"
                 android:textSize="14sp"

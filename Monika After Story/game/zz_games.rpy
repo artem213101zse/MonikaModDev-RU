@@ -11,14 +11,97 @@
 default persistent._mas_game_database = dict()
 
 init -10 python in mas_games:
+    import os
     import store
 
     #Runtime eventlabel: event map for game evs
     game_db = {}
 
+    def _path_isfile(path):
+        try:
+            return bool(path) and os.path.isfile(path)
+        except Exception:
+            return False
+
+    def _stockfish_from_paths_file(private):
+        marker = os.path.join(private, "engine_paths.txt")
+        if not _path_isfile(marker):
+            return ""
+        try:
+            f = open(marker, "r")
+            try:
+                for raw in f:
+                    line = raw.strip()
+                    if line.startswith("stockfish="):
+                        path = line.split("=", 1)[1].strip()
+                        if _path_isfile(path):
+                            return path
+            finally:
+                f.close()
+        except Exception:
+            pass
+        return ""
+
+    def _stockfish_from_maps():
+        try:
+            f = open("/proc/self/maps", "r")
+            try:
+                for raw in f:
+                    if ".so" not in raw:
+                        continue
+                    if "/lib/" not in raw and "/lib64/" not in raw:
+                        continue
+                    parts = raw.split()
+                    if not parts:
+                        continue
+                    so = parts[-1]
+                    if so.startswith("["):
+                        continue
+                    cand = os.path.join(os.path.dirname(so), "libstockfish.so")
+                    if _path_isfile(cand):
+                        return cand
+            finally:
+                f.close()
+        except Exception:
+            pass
+        return ""
+
+    def android_stockfish_path():
+        """libstockfish.so in nativeLibraryDir. files/stockfish is noexec on Android 10+."""
+        private = os.environ.get("ANDROID_PRIVATE") or ""
+        libdir = os.environ.get("ANDROID_NATIVE_LIBDIR") or ""
+        candidates = []
+        if libdir:
+            candidates.append(os.path.join(libdir, "libstockfish.so"))
+        if private:
+            marked = _stockfish_from_paths_file(private)
+            if marked:
+                candidates.append(marked)
+            candidates.append(os.path.join(private, "libstockfish.so"))
+            candidates.append(os.path.join(private, "stockfish"))
+        mapped = _stockfish_from_maps()
+        if mapped:
+            candidates.append(mapped)
+        seen = {}
+        for path in candidates:
+            if not path or path in seen:
+                continue
+            seen[path] = True
+            if _path_isfile(path):
+                return path
+        return ""
+
     def is_platform_good_for_chess():
         import platform
         import sys
+
+        android = False
+        try:
+            android = bool(store.renpy.android) or bool(os.environ.get("ANDROID_PRIVATE"))
+        except Exception:
+            android = bool(os.environ.get("ANDROID_PRIVATE"))
+        if android:
+            return bool(android_stockfish_path())
 
         if sys.maxsize > 2**32:
             return platform.system() == 'Windows' or platform.system() == 'Linux' or platform.system() == 'Darwin'

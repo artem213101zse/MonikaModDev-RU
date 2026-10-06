@@ -116,7 +116,7 @@ init 970 python:
     if persistent._mas_moni_chksum is not None:
 #        mas_temp_moni_chksum = persistent._mas_moni_chksum
 
-        # do check for monika existence
+        # BIOS recovery can clear checkout before we look for the file.
         store.mas_dockstat.init_findMonika(mas_docking_station)
 
 
@@ -347,8 +347,11 @@ init python:
             pass
 
     try:
-        renpy.file("../characters/monika.chr")
-        initial_monika_file_check = True
+        if store.mas_utils.is_file_present("/characters/monika.chr"):
+            initial_monika_file_check = True
+        else:
+            renpy.file("../characters/monika.chr")
+            initial_monika_file_check = True
     except:
         #Monika will mention that you don't have a char file in ch30_main instead
         pass

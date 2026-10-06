@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "base_url": "https://github.com/artem213101zse/MonikaModDev-RU/releases/latest/download/",
+  "ddlc": {
+    "page": "https://ddlc.moe",
+    "itch_game": "https://teamsalvato.itch.io/ddlc",
+    "upload_name": "DDLC (Windows)",
+    "file": "ddlc-win.zip",
+    "direct_urls": [
+      "https://ddlc.moe/ddlc-win.zip"
+    ],
+    "rpas": ["images.rpa", "audio.rpa", "fonts.rpa", "scripts.rpa"],
+    "unpack": ["images.rpa", "audio.rpa"]
+  },
+  "packs": [
+    {
+      "id": "images",
+      "file": "images.rpa",
+      "title": "Картинки DDLC",
+      "sha256": "3761fd1e3dda67c67d3bacb1a4b5067f4f113f151b734da9173afb2868d80d9b",
+      "bytes": 133394854,
+      "required": true,
+      "marker": "images/bg/bedroom.png"
+    },
+    {
+      "id": "audio",
+      "file": "audio.rpa",
+      "title": "Музыка и звуки",
+      "sha256": "3aa88d321eae0b7b1937a472b3315f8b8ffed898af0a32d55f1701805155c181",
+      "bytes": 65629495,
+      "required": true,
+      "marker": "bgm/1.ogg"
+    }
+  ]
+}

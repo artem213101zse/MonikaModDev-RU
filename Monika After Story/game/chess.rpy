@@ -44,6 +44,9 @@ default persistent._mas_chess_mangle_all = False
 # skip file checks
 default persistent._mas_chess_skip_file_checks = False
 
+# None = auto (touch devices on), True/False = user pick. Classic drag stays available.
+default persistent._mas_chess_touch = None
+
 # mass chess store
 init python in mas_chess:
     import os
@@ -51,6 +54,27 @@ init python in mas_chess:
     import store.mas_ui as mas_ui
     import store
     import random
+
+    def chess_touch_on():
+        val = getattr(store.persistent, "_mas_chess_touch", None)
+        if val is None:
+            try:
+                return store.mas_os.is_touch()
+            except Exception:
+                return False
+        return bool(val)
+
+    def set_chess_touch(on):
+        store.persistent._mas_chess_touch = bool(on)
+        try:
+            store.renpy.save_persistent()
+        except Exception:
+            pass
+        return None
+
+    def toggle_chess_touch():
+        set_chess_touch(not chess_touch_on())
+        return None
 
     CHESS_SAVE_PATH = "/chess_games/"
     CHESS_SAVE_EXT = ".pgn"
@@ -1043,23 +1067,34 @@ label mas_chess_start_chess:
     window hide None
     show monika 1eua at t21
     python:
-        #Disable quick menu
+        #Disable quick menu and HKB so the touch board is not covered.
         quick_menu = False
+        store._mas_chess_hkb = mas_HKBIsVisible()
+        if store._mas_chess_hkb:
+            HKBHideButtons()
 
-        #Add the displayable
-        chess_displayable_obj = MASChessDisplayable(
-            is_player_white,
-            pgn_game=loaded_game,
-            practice_mode=practice_mode,
-            starting_fen=starting_fen,
-            casual_rules=casual_rules
-        )
-        chess_displayable_obj.show()
-        results = chess_displayable_obj.game_loop()
-        chess_displayable_obj.hide()
-
-        #Enable quick menu
-        quick_menu = True
+        chess_displayable_obj = None
+        results = None
+        try:
+            chess_displayable_obj = MASChessDisplayable(
+                is_player_white,
+                pgn_game=loaded_game,
+                practice_mode=practice_mode,
+                starting_fen=starting_fen,
+                casual_rules=casual_rules
+            )
+            chess_displayable_obj.show()
+            results = chess_displayable_obj.game_loop()
+        finally:
+            if chess_displayable_obj is not None:
+                try:
+                    chess_displayable_obj.hide()
+                except Exception:
+                    pass
+            if getattr(store, "_mas_chess_hkb", False):
+                HKBShowButtons()
+            store._mas_chess_hkb = False
+            quick_menu = True
 
         # unpack results
         new_pgn_game, is_monika_winner, is_surrender, num_turns = results
@@ -1961,6 +1996,7 @@ init python:
     import threading
     import StringIO
     import os
+    import sys
 
     #Only add the chess_games folder if we can even do chess
     if mas_games.is_platform_good_for_chess():
@@ -2506,20 +2542,166 @@ init python:
                 or (result == MASChessDisplayableBase.STATE_BLACK_WIN and not self.is_player_white) #Player is black, so monika is white
             )
 
+        def _touch_on(self):
+            return store.mas_chess.chess_touch_on()
+
+        def _touch_label(self):
+            if self._touch_on():
+                return _("Сенсор вкл")
+            return _("Сенсор выкл")
+
+        def _make_touch_button(self):
+            old = getattr(self, "_button_touch", None)
+            self._button_touch = MASButtonDisplayable.create_stb(
+                self._touch_label(),
+                True,
+                20,
+                20,
+                220,
+                MASChessDisplayableBase.BUTTON_HEIGHT,
+                hover_sound=gui.hover_sound,
+                activate_sound=gui.activate_sound
+            )
+            for lst in (
+                getattr(self, "_visible_buttons", None),
+                getattr(self, "_visible_buttons_winner", None),
+            ):
+                if not lst:
+                    continue
+                replaced = False
+                if old is not None:
+                    for i, btn in enumerate(lst):
+                        if btn is old:
+                            lst[i] = self._button_touch
+                            replaced = True
+                            break
+                if not replaced and self._button_touch not in lst:
+                    lst.insert(0, self._button_touch)
+
+        def _event_xy(self, ev, x, y):
+            """Pixel coords for mouse and 0..1 finger events."""
+            finger_types = (
+                getattr(pygame, "FINGERDOWN", -1),
+                getattr(pygame, "FINGERUP", -2),
+                getattr(pygame, "FINGERMOTION", -3),
+            )
+            if ev.type in finger_types:
+                fx = getattr(ev, "x", None)
+                fy = getattr(ev, "y", None)
+                try:
+                    fx = float(fx)
+                    fy = float(fy)
+                except Exception:
+                    return x, y
+                if 0.0 <= fx <= 1.0 and 0.0 <= fy <= 1.0:
+                    return int(fx * 1280), int(fy * 720)
+            return x, y
+
+        def _geom(self):
+            """Board placement. Touch mode draws the board on the right."""
+            if not self._touch_on():
+                return {
+                    "x": MASChessDisplayableBase.BOARD_X_POS,
+                    "y": MASChessDisplayableBase.BOARD_Y_POS,
+                    "cell": MASChessDisplayableBase.PIECE_WIDTH,
+                    "border": MASChessDisplayableBase.BOARD_BORDER_WIDTH,
+                    "w": MASChessDisplayableBase.BOARD_WIDTH,
+                    "h": MASChessDisplayableBase.BOARD_HEIGHT,
+                    "base_x": MASChessDisplayableBase.BASE_PIECE_X,
+                    "base_y": MASChessDisplayableBase.BASE_PIECE_Y,
+                    "touch": False,
+                }
+            # Same size and place as the PC board, on the right.
+            return {
+                "x": MASChessDisplayableBase.BOARD_X_POS,
+                "y": MASChessDisplayableBase.BOARD_Y_POS,
+                "cell": MASChessDisplayableBase.PIECE_WIDTH,
+                "border": MASChessDisplayableBase.BOARD_BORDER_WIDTH,
+                "w": MASChessDisplayableBase.BOARD_WIDTH,
+                "h": MASChessDisplayableBase.BOARD_HEIGHT,
+                "base_x": MASChessDisplayableBase.BASE_PIECE_X,
+                "base_y": MASChessDisplayableBase.BASE_PIECE_Y,
+                "touch": True,
+            }
+
+        def _view_xy(self, ix, iy, g=None):
+            """Board coords (file, rank) to screen, with player-color reflection."""
+            if g is None:
+                g = self._geom()
+            vx = ix
+            vy = iy
+            if self.is_player_white:
+                vy = 7 - iy
+            else:
+                vx = 7 - ix
+            return (
+                int(g["base_x"] + vx * g["cell"]),
+                int(g["base_y"] + vy * g["cell"]),
+            )
+
+        def _color_for_view(self, vx, vy):
+            return (vx + vy) % 2 == 0
+
+        def _own_piece(self, piece):
+            if piece is None:
+                return False
+            return (
+                (piece.is_white and self.is_player_white)
+                or (not piece.is_white and not self.is_player_white)
+            )
+
+        def _fill_sq(self, renderer, x, y, cell, rgb, st, at):
+            color = "#%02x%02x%02x" % (rgb[0], rgb[1], rgb[2])
+            renderer.blit(renpy.render(Solid(color), cell, cell, st, at), (x, y))
+
+        def _touch_tap(self, mx, my):
+            if self.is_game_over or not self.sensitive or not self.is_player_turn():
+                return
+            px, py = self.get_piece_pos(mx, my)
+            if px is None:
+                return
+            piece = self.get_piece_at(px, py)
+            if self.selected_piece is None:
+                if self._own_piece(piece):
+                    self.selected_piece = (px, py)
+                    self.possible_moves = self.board.legal_moves
+                return
+            if (px, py) == self.selected_piece:
+                self.selected_piece = None
+                self.possible_moves = set([])
+                return
+            if self._own_piece(piece):
+                self.selected_piece = (px, py)
+                self.possible_moves = self.board.legal_moves
+                return
+            self.handle_player_move(px, py)
+            self.selected_piece = None
+            self.possible_moves = set([])
+
         # Renders the board, pieces, etc.
         def render(self, width, height, st, at):
             #SETUP
             #The Render object we'll be drawing into.
             renderer = renpy.Render(width, height)
-
-            # Prepare the board as a renderer.
-            board = renpy.render(MASChessDisplayableBase.BOARD_IMAGE, 1280, 720, st, at)
+            g = self._geom()
+            cell = g["cell"]
+            touch = g["touch"]
 
             # Prepare the highlights as a renderers.
-            highlight_red = renpy.render(MASChessDisplayableBase.PIECE_HIGHLIGHT_RED_IMAGE, 1280, 720, st, at)
-            highlight_green = renpy.render(MASChessDisplayableBase.PIECE_HIGHLIGHT_GREEN_IMAGE, 1280, 720, st, at)
-            highlight_yellow = renpy.render(MASChessDisplayableBase.PIECE_HIGHLIGHT_YELLOW_IMAGE, 1280, 720, st, at)
-            highlight_magenta = renpy.render(MASChessDisplayableBase.PIECE_HIGHLIGHT_MAGENTA_IMAGE, 1280, 720, st, at)
+            hl_src_r = MASChessDisplayableBase.PIECE_HIGHLIGHT_RED_IMAGE
+            hl_src_g = MASChessDisplayableBase.PIECE_HIGHLIGHT_GREEN_IMAGE
+            hl_src_y = MASChessDisplayableBase.PIECE_HIGHLIGHT_YELLOW_IMAGE
+            hl_src_m = MASChessDisplayableBase.PIECE_HIGHLIGHT_MAGENTA_IMAGE
+            if touch and cell != MASChessDisplayableBase.PIECE_WIDTH:
+                pz = float(cell) / float(MASChessDisplayableBase.PIECE_WIDTH)
+                hl_src_r = Transform(hl_src_r, zoom=pz)
+                hl_src_g = Transform(hl_src_g, zoom=pz)
+                hl_src_y = Transform(hl_src_y, zoom=pz)
+                hl_src_m = Transform(hl_src_m, zoom=pz)
+            highlight_red = renpy.render(hl_src_r, 1280, 720, st, at)
+            highlight_green = renpy.render(hl_src_g, 1280, 720, st, at)
+            highlight_yellow = renpy.render(hl_src_y, 1280, 720, st, at)
+            highlight_magenta = renpy.render(hl_src_m, 1280, 720, st, at)
 
             #Get our mouse pos
             mx, my = mas_getMousePos()
@@ -2541,7 +2723,13 @@ init python:
                 ]
 
             #(Re)draw the board.
-            renderer.blit(board, (MASChessDisplayableBase.BOARD_X_POS, MASChessDisplayableBase.BOARD_Y_POS))
+            if touch:
+                zoom = float(g["w"]) / float(MASChessDisplayableBase.BOARD_WIDTH)
+                board_img = Transform(MASChessDisplayableBase.BOARD_IMAGE, zoom=zoom)
+                renderer.blit(renpy.render(board_img, 1280, 720, st, at), (g["x"], g["y"]))
+            else:
+                board = renpy.render(MASChessDisplayableBase.BOARD_IMAGE, 1280, 720, st, at)
+                renderer.blit(board, (MASChessDisplayableBase.BOARD_X_POS, MASChessDisplayableBase.BOARD_Y_POS))
 
             # Draw the move indicator
             renderer.blit(
@@ -2558,72 +2746,50 @@ init python:
             for b in visible_buttons:
                 renderer.blit(b[0], (b[1], b[2]))
 
+            def _mark(hl_img, pos, rgb):
+                sx, sy = self._view_xy(pos[0], pos[1], g)
+                renderer.blit(hl_img, (sx, sy))
+
             #If we have a last move, we should render that now
             if self.last_move_src and self.last_move_dst:
-                #Get our highlight color
-                highlight = highlight_magenta if self.is_player_turn() else highlight_green
-
-                #Render the from highlight
-                renderer.blit(
-                    highlight,
-                    MASChessDisplayableBase.board_coords_to_screen_coords(
-                        self.last_move_src,
-                        MASChessDisplayableBase.COORD_REFLECT_MAP[self.is_player_white]
-                    )
-                )
-                #And the to highlight
-                renderer.blit(
-                    highlight,
-                    MASChessDisplayableBase.board_coords_to_screen_coords(
-                        self.last_move_dst,
-                        MASChessDisplayableBase.COORD_REFLECT_MAP[self.is_player_white]
-                    )
-                )
+                if self.is_player_turn():
+                    hl_img = highlight_magenta
+                    rgb = (196, 92, 160)
+                else:
+                    hl_img = highlight_green
+                    rgb = (118, 186, 90)
+                _mark(hl_img, self.last_move_src, rgb)
+                _mark(hl_img, self.last_move_dst, rgb)
 
             #Do possible move highlighting here
             if self.selected_piece and self.possible_moves:
                 #There's possible moves, we need to filter things out
                 possible_moves_to_draw = filter(
-                    lambda x: MASChessDisplayableBase.square_to_board_coords(x.from_square) == (self.selected_piece[0], self.selected_piece[1]),
+                    lambda mv: MASChessDisplayableBase.square_to_board_coords(mv.from_square) == (self.selected_piece[0], self.selected_piece[1]),
                     self.possible_moves
                 )
 
                 for move in possible_moves_to_draw:
-                    renderer.blit(
+                    _mark(
                         highlight_green,
-                        MASChessDisplayableBase.board_coords_to_screen_coords(
-                            MASChessDisplayableBase.square_to_board_coords(move.to_square),
-                            MASChessDisplayableBase.COORD_REFLECT_MAP[self.is_player_white]
-                        )
+                        MASChessDisplayableBase.square_to_board_coords(move.to_square),
+                        (118, 186, 90),
                     )
 
             #Now render requested highlights if any
             for hl in self.requested_highlights:
-                renderer.blit(highlight_yellow, MASChessDisplayableBase.board_coords_to_screen_coords(hl))
+                _mark(highlight_yellow, hl, (240, 220, 80))
 
             #Draw the pieces on the Board renderer.
             for piece_location, Piece in self.piece_map.iteritems():
                 #Unpack the location
-                ix, iy = piece_location
+                ix_orig, iy_orig = piece_location
+                x, y = self._view_xy(ix_orig, iy_orig, g)
 
-                #Copy this for future use
-                iy_orig = iy
-                ix_orig = ix
-
-                #White
-                if self.is_player_white:
-                    iy = 7 - iy
-
-                #Black
-                else:
-                    #Black player should be reversed X
-                    ix = 7 - ix
-
-                x, y = MASChessDisplayableBase.board_coords_to_screen_coords((ix, iy))
-
-                #Don't render the currently held piece again
+                #Don't render the currently held piece again (classic drag)
                 if (
-                    self.selected_piece is not None
+                    not touch
+                    and self.selected_piece is not None
                     and ix_orig == self.selected_piece[0]
                     and iy_orig == self.selected_piece[1]
                 ):
@@ -2632,22 +2798,24 @@ init python:
 
                 piece = self.get_piece_at(ix_orig, iy_orig)
 
-                possible_move_str = None
-                blit_rendered = False
-
                 if piece is None:
                     continue
+
+                if (
+                    self.selected_piece is not None
+                    and ix_orig == self.selected_piece[0]
+                    and iy_orig == self.selected_piece[1]
+                ):
+                    renderer.blit(highlight_yellow, (x, y))
 
                 if (
                     self.selected_piece is None
                     and not self.is_game_over
                     and self.is_player_turn()
-                    and mx >= x and mx < x + MASChessDisplayableBase.PIECE_WIDTH
-                    and my >= y and my < y + MASChessDisplayableBase.PIECE_HEIGHT
-                    and (
-                        (piece.is_white and self.is_player_white)
-                        or (not piece.is_white and not self.is_player_white)
-                    )
+                    and not touch
+                    and mx >= x and mx < x + cell
+                    and my >= y and my < y + cell
+                    and self._own_piece(piece)
                 ):
                     renderer.blit(highlight_green, (x, y))
 
@@ -2664,16 +2832,16 @@ init python:
                         renderer.blit(highlight_red, (x, y))
 
                 #Render the piece
-                piece.render(width, height, st, at, x, y, renderer)
+                piece.render(width, height, st, at, x, y, renderer, cell)
 
-            if self.selected_piece is not None:
-                #Draw the selected piece.
+            if self.selected_piece is not None and not touch:
+                #Draw the selected piece following the mouse (classic).
                 piece = self.get_piece_at(self.selected_piece[0], self.selected_piece[1])
-
-                px, py = mas_getMousePos()
-                px -= MASChessDisplayableBase.PIECE_WIDTH / 2
-                py -= MASChessDisplayableBase.PIECE_HEIGHT / 2
-                piece.render(width, height, st, at, px, py, renderer)
+                if piece is not None:
+                    px, py = mas_getMousePos()
+                    px -= cell / 2
+                    py -= cell / 2
+                    piece.render(width, height, st, at, px, py, renderer, cell)
 
             #Ask that we be re-rendered ASAP, so we can show the next frame.
             renpy.redraw(self, 0)
@@ -2681,15 +2849,60 @@ init python:
             #Return the Render object.
             return renderer
 
+        def _sensor_click(self, ev, x, y, st):
+            """Hit-test the sensor toggle. Debounce finger+mouse duplicates."""
+            if not hasattr(self, "_button_touch"):
+                return None
+            finger_down = getattr(pygame, "FINGERDOWN", -1)
+            finger_up = getattr(pygame, "FINGERUP", -2)
+            if ev.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
+                if getattr(ev, "button", 1) != 1:
+                    return None
+            over = self._button_touch._isOverMe(x, y)
+            is_down = ev.type in (pygame.MOUSEBUTTONDOWN, finger_down)
+            is_up = ev.type in (pygame.MOUSEBUTTONUP, finger_up)
+            if is_down and over:
+                self._button_touch.hover()
+                self._touch_armed = True
+                return None
+            if is_up:
+                armed = getattr(self, "_touch_armed", False)
+                self._touch_armed = False
+                if over or armed:
+                    if not over:
+                        return None
+                    last = getattr(self, "_touch_toggle_st", -99.0)
+                    try:
+                        delta = float(st) - float(last)
+                    except Exception:
+                        delta = 1.0
+                    if delta < 0.25:
+                        return "touch_toggle"
+                    self._touch_toggle_st = st
+                    store.mas_chess.toggle_chess_touch()
+                    self._make_touch_button()
+                    self.selected_piece = None
+                    self.possible_moves = set([])
+                    renpy.redraw(self, 0)
+                    return "touch_toggle"
+            return None
+
         #Handles events.
         def event(self, ev, x, y, st):
+            bx, by = self._event_xy(ev, x, y)
+            finger_down = getattr(pygame, "FINGERDOWN", -1)
+            finger_up = getattr(pygame, "FINGERUP", -2)
+            finger_motion = getattr(pygame, "FINGERMOTION", -3)
+
+            toggled = self._sensor_click(ev, bx, by, st)
+            if toggled is not None:
+                return toggled
+
             #Buttons are always sensitive since they are only semi-part of this displayable
-            #Are we in mouse button things
-            if ev.type in self.MOUSE_EVENTS:
+            if ev.type in self.MOUSE_EVENTS or ev.type in (finger_down, finger_up, finger_motion):
                 ret_value = None
-                #Run button checks if there are any in a function which requires implementation
                 if self._visible_buttons or self._visible_buttons_winner:
-                    ret_value = self.check_buttons(ev, x, y, st)
+                    ret_value = self.check_buttons(ev, bx, by, st)
 
                 if ret_value is not None:
                     return ret_value
@@ -2703,56 +2916,82 @@ init python:
                     else:
                         self._button_draw.disable()
 
+            over_touch = (
+                hasattr(self, "_button_touch")
+                and self._button_touch._isOverMe(bx, by)
+            )
+
             #Board events however respect the displayable state
-            if self.sensitive:
-                # Mousebutton down == possibly select the piece to move
-                if (
-                    ev.type == pygame.MOUSEBUTTONDOWN
-                    and ev.button == 1
-                    and not self.is_game_over# don't allow to move pieces if the game is over
-                ):
-                    # continue
-                    px, py = self.get_piece_pos()
-                    test_piece = self.get_piece_at(px, py)
+            if self.sensitive and not over_touch:
+                if self._touch_on():
+                    is_tap = False
+                    tx, ty = bx, by
+                    if ev.type == pygame.MOUSEBUTTONDOWN and getattr(ev, "button", 1) == 1:
+                        is_tap = True
+                    elif ev.type == finger_down:
+                        is_tap = True
+                    if is_tap and not self.is_game_over:
+                        last = getattr(self, "_tap_st", -1)
+                        if st - last >= 0.05:
+                            self._tap_st = st
+                            self._touch_tap(tx, ty)
+                            return "touch_tap"
+                        return None
+
+                else:
+                    # Mousebutton down == possibly select the piece to move
                     if (
-                        self.is_player_turn()
-                        and test_piece is not None
-                        and (
-                            (test_piece.is_white and self.is_player_white)
-                            or (not test_piece.is_white and not self.is_player_white)
-                        )
+                        ev.type == pygame.MOUSEBUTTONDOWN
+                        and ev.button == 1
+                        and not self.is_game_over# don't allow to move pieces if the game is over
                     ):
-                        piece = test_piece
+                        # continue
+                        px, py = self.get_piece_pos(x, y)
+                        test_piece = self.get_piece_at(px, py)
+                        if (
+                            self.is_player_turn()
+                            and test_piece is not None
+                            and (
+                                (test_piece.is_white and self.is_player_white)
+                                or (not test_piece.is_white and not self.is_player_white)
+                            )
+                        ):
+                            piece = test_piece
 
-                        self.possible_moves = self.board.legal_moves
-                        self.selected_piece = (px, py)
-                        return "mouse_button_down"
+                            self.possible_moves = self.board.legal_moves
+                            self.selected_piece = (px, py)
+                            return "mouse_button_down"
 
-                # Mousebutton up == possibly release the selected piece
-                if (
-                    ev.type == pygame.MOUSEBUTTONUP
-                    and ev.button == 1
-                ):
-                    self.handle_player_move()
+                    # Mousebutton up == possibly release the selected piece
+                    if (
+                        ev.type == pygame.MOUSEBUTTONUP
+                        and ev.button == 1
+                    ):
+                        self.handle_player_move()
 
-                    self.selected_piece = None
-                    self.possible_moves = set([])
-                    return "mouse_button_up"
+                        self.selected_piece = None
+                        self.possible_moves = set([])
+                        return "mouse_button_up"
 
             return None
 
-        def get_piece_pos(self):
+        def get_piece_pos(self, mx=None, my=None):
             """
             Gets the piece position of the current piece held by the mouse
 
             OUT:
                 Tuple of coordinates (x, y) marking where the piece is
             """
-            mx, my = mas_getMousePos()
-            mx -= MASChessDisplayableBase.BASE_PIECE_X
-            my -= MASChessDisplayableBase.BASE_PIECE_Y
-            px = mx / MASChessDisplayableBase.PIECE_WIDTH
-            py = my / MASChessDisplayableBase.PIECE_HEIGHT
+            g = self._geom()
+            if mx is None or my is None:
+                mx, my = mas_getMousePos()
+            mx -= g["base_x"]
+            my -= g["base_y"]
+            cell = g["cell"]
+            if cell <= 0:
+                return (None, None)
+            px = int(mx / cell)
+            py = int(my / cell)
 
             #White
             if self.is_player_white:
@@ -3004,7 +3243,7 @@ init python:
             #Add back to the piece map
             self.piece_map[(new_x, new_y)] = self
 
-        def render(self, width, height, st, at, x, y, renderer):
+        def render(self, width, height, st, at, x, y, renderer, cell=None):
             """
             Internal render call to render the pieces. To be called by the board
 
@@ -3016,9 +3255,16 @@ init python:
                 x - x position on the board to render the piece
                 y - y position on the board to render the piece
                 renderer to draw this piece on
+                cell - square size; defaults to the original 57px sprites
             """
+            if cell is None:
+                cell = MASChessDisplayableBase.PIECE_WIDTH
+            img = self.__piece_image
+            if cell != MASChessDisplayableBase.PIECE_WIDTH:
+                zoom = float(cell) / float(MASChessDisplayableBase.PIECE_WIDTH)
+                img = Transform(img, zoom=zoom)
             renderer.blit(
-                renpy.render(self.__piece_image, width, height, st, at),
+                renpy.render(img, width, height, st, at),
                 (x, y)
             )
 
@@ -3300,6 +3546,8 @@ init python:
                 activate_sound=gui.activate_sound
             )
 
+            self._make_touch_button()
+
             #Init the base displayable
             super(MASChessDisplayable, self).__init__(
                 is_player_white,
@@ -3339,6 +3587,7 @@ init python:
             if self.practice_mode:
                 #Setup the visible buttons list
                 self._visible_buttons = [
+                    self._button_touch,
                     self._button_save,
                     self._button_undo,
                     self._button_giveup,
@@ -3346,18 +3595,21 @@ init python:
                 ]
 
                 self._visible_buttons_winner = [
+                    self._button_touch,
                     self._button_done,
                     self._button_undo
                 ]
 
             else:
                 self._visible_buttons = [
+                    self._button_touch,
                     self._button_save,
                     self._button_giveup,
                     self._button_draw
                 ]
 
                 self._visible_buttons_winner = [
+                    self._button_touch,
                     self._button_done
                 ]
 
@@ -3389,6 +3641,10 @@ init python:
             self.stockfish.stdin.write("position fen {0}\n".format(self.board.fen()))
             self.stockfish.stdin.write("go depth {0}\n".format(persistent._mas_chess_difficulty[1]))
             self.stockfish.stdin.write("go movetime {0}\n".format(self.MONIKA_WAITTIME))
+            try:
+                self.stockfish.stdin.flush()
+            except Exception:
+                pass
 
         def additional_setup(self):
             """
@@ -3465,14 +3721,51 @@ init python:
                     mas_utils.mas_log.exception(ex)
                     renpy.jump("mas_chess_cannot_work_embarrassing")
 
+            def uci_write(proc, line):
+                proc.stdin.write(line)
+                if not line.endswith("\n"):
+                    proc.stdin.write("\n")
+                try:
+                    proc.stdin.flush()
+                except Exception:
+                    pass
+
             # Launch the appropriate version based on the architecture and OS.
             if not mas_games.is_platform_good_for_chess():
                 # This is the last-resort check, the availability of the chess game should be checked independently beforehand.
                 renpy.jump("mas_chess_cannot_work_embarrassing")
 
+            android = False
+            try:
+                android = bool(renpy.android)
+            except Exception:
+                android = False
+
             is_64_bit = sys.maxsize > 2**32
 
-            if renpy.windows:
+            if android:
+                path = store.mas_games.android_stockfish_path()
+                if not path:
+                    mas_utils.mas_log.error("android stockfish missing")
+                    renpy.jump("mas_chess_cannot_work_embarrassing")
+                try:
+                    os.chmod(path, 0755)
+                except Exception:
+                    pass
+                try:
+                    self.stockfish = subprocess.Popen(
+                        [path],
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        bufsize=0,
+                    )
+                    mas_utils.mas_log.info("android stockfish " + path)
+                except Exception as ex:
+                    mas_utils.mas_log.exception(ex)
+                    renpy.jump("mas_chess_cannot_work_embarrassing")
+
+            elif renpy.windows:
                 startupinfo = subprocess.STARTUPINFO()
                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
@@ -3487,10 +3780,13 @@ init python:
                 os.chmod(config.basedir + "/game/".format(fp), 0755)
                 self.stockfish = open_stockfish(fp)
 
+            else:
+                renpy.jump("mas_chess_cannot_work_embarrassing")
+
             #Set Monika's parameters
-            self.stockfish.stdin.write("setoption name Skill Level value {0}\n".format(persistent._mas_chess_difficulty[0]))
-            self.stockfish.stdin.write("setoption name Contempt value {0}\n".format(self.MONIKA_OPTIMISM))
-            self.stockfish.stdin.write("setoption name Ponder value False\n")
+            uci_write(self.stockfish, "setoption name Skill Level value {0}\n".format(persistent._mas_chess_difficulty[0]))
+            uci_write(self.stockfish, "setoption name Contempt value {0}\n".format(self.MONIKA_OPTIMISM))
+            uci_write(self.stockfish, "setoption name Ponder value False\n")
 
             #And set up facilities for asynchronous communication
             self.queue = collections.deque()
@@ -3584,7 +3880,7 @@ init python:
             self.set_button_states()
             return None
 
-        def handle_player_move(self):
+        def handle_player_move(self, px=None, py=None):
             """
             Manages player move
             """
@@ -3593,7 +3889,8 @@ init python:
                 self.set_button_states()
                 return
 
-            px, py = self.get_piece_pos()
+            if px is None or py is None:
+                px, py = self.get_piece_pos()
 
             move_str = None
 

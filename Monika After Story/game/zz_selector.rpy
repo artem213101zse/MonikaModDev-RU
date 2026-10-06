@@ -3354,6 +3354,7 @@ screen mas_selector_sidebar(items, mailbox, confirm, cancel, restore, remover=No
                     viewport id "sidebar_scroll_acs":
                         mousewheel True
                         yfill False
+                        draggable mas_talk_drag()
 
                         vbox:
                             xsize 300
@@ -3456,6 +3457,7 @@ screen mas_selector_sidebar(items, mailbox, confirm, cancel, restore, remover=No
             viewport id "sidebar_scroll":
                 mousewheel True
                 arrowkeys True
+                draggable mas_talk_drag()
 
                 vbox:
                     xsize 200

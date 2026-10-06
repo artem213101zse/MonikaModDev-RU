@@ -15,6 +15,10 @@ python tools/sync_mas_bios.py
 
 Превью без телефона: открой `index.html` в браузере. Без Java кнопки пишут в журнал.
 
+Виды живого BIOS (кнопка «вид»): классика → остров → колода → MASL.
+MASL — рабочий стол с Пуском, как у Traduction Club MASL (Just).
+Другие эскизы (не в APK): открой `previews/index.html`.
+
 ## Кто что делает
 
 BIOS — то, что нужно **до** SDL / скана скриптов, или то, что умеет только
@@ -26,9 +30,17 @@ MAS OS — рабочий стол **после** входа в Ren'Py: тема
 
 ### BIOS
 
+- при старте: если нет доступа ко всем файлам — карточка с объяснением и кнопка в настройки
+- флаг `.use_documents_saves` в `getFilesDir()`: сейвы и userdata только Documents
+- проверка диска: папки, запись, маркеры `images/bg/bedroom.png` и `bgm/1.ogg`
+- `.nomedia` в Documents-дереве, чтобы распакованные картинки не лезли в галерею
+- после распаковки DDLC: `archives/ddlc/` и дубли `.rpa` в `game/` сносятся, zip остаётся
 - разрешение «все файлы» и ожидание гранта
 - SAF: zip, картинка, любой файл → Documents / Transfer
 - установка zip/RPA/сабмода так, чтобы файлы попали в первый скан
+- загрузка и распаковка RPA-3.0 (картинки/музыка DDLC) до Python:
+  хеш SHA-256, прогресс в МБ, %, скорость и ETA
+- архивы с диска: `Documents/Monika_after_story/archives`
 - экспорт / импорт / шаринг zip сейвов
 - проверка GitHub Release и установка APK
 - копия нативного движка в `getFilesDir()` и проверка ELF
@@ -93,14 +105,40 @@ BIOS читает extra, грузит `index.html#submods`, Java вызывае�
 Java кладёт `BiosBridge` (как в лаборатории). Страница зовёт:
 
 `startGame`, `startSafe`, `grantAllFiles`, `pickZip`, `pickImage`,
-`pickFile`, `installZips`, `pickSubmodZip`, `deleteMod`,
-`exportSaves`, `importSaves`, `shareSaves`, `checkUpdate`,
+`pickFile`, `pickSubmodZip`, `downloadSubmodUrl`, `listSubmods`,
+`uninstallLastSubmod`, `pickSavesZip`, `pickSavesFolder`,
+`exportSaves`, `shareSaves`, `checkUpdate`,
 `downloadUpdate`, `installLocalApk`, `downloadUpdateAgain`,
-`installEngine`, `testEngine`, `testStockfish`, `toggleBoot`,
-`shareLogs`, `useNativeUi`
+`toggleBoot`, `shareLogs`, `useNativeUi`, `downloadArchives`,
+`downloadDdlcMoe`, `installArchives`, `pickArchive`, `checkArchives`,
+`showTraceback`, `installEngine`, `testEngine`, `testStockfish`,
+`stockfishReady`, `stockfishGo`, `sendStockfish`
+
+Серые кнопки: «Выбрать zip сюда» в Файлах (сабмод — Сабмоды,
+DDLC — Архивы). Раздел «Движок» живой: Stockfish как
+`libstockfish.so` в `nativeLibraryDir` (Android 10 блокирует
+exec из `getFilesDir()`). UCI-кнопки пишут ответ в журнал.
+
+Установщик сабмода пишет в Documents/game,
+бекапит замены в `submod_backups/<id>/`, манифест в
+`submods_installed/<id>.json`. Импорт сейвов принимает zip или
+распакованную папку (SAF tree) и раскладывает persistent/слоты/
+characters/custom_bgm.
 
 Обратно в страницу: `biosLog`, `biosProgress`, `biosSetStatus`,
 `biosOpen`.
+
+Архивы DDLC не пакуются в APK (`game/images`, `bgm`, `sfx`).
+Официальный zip BIOS берёт с ddlc.moe (виджет itch.io на сайте):
+скачивает `ddlc-win.zip`, достаёт `images.rpa` / `audio.rpa` / `fonts.rpa`
+/ `scripts.rpa`. `images.rpa` и `audio.rpa` идут в overlay и распаковываются.
+`scripts.rpa` остаётся архивом. `fonts.rpa` не кладётся в overlay и не
+распаковывается, если те же имена уже есть в APK (кириллица). Файлы,
+которые уже лежат в APK или overlay, при распаковке пропускаются.
+GitHub-паки (`images.rpa` / `audio.rpa` с хешем) остаются второй кнопкой.
+Сборка паков: `python tools/make_android_archives.py`.
+Залей `images.rpa` / `audio.rpa` и `.sha256` в GitHub Release
+или скопируй zip/.rpa в `Documents/Monika_after_story/archives`.
 
 Полка (сабмоды-менеджер, третий вид, Documents FM) не трогаем:
 BIOS стыкуется с последним коммитом, те вещи приедут отдельно.

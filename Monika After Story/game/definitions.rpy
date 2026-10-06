@@ -2663,11 +2663,15 @@ python early:
 
                         renpy.redraw(self, 0.0)
 
+                elif ev.type == pygame.MOUSEBUTTONDOWN and getattr(ev, "button", 1) == self._button_click:
+                    if self._isOverMe(x, y):
+                        self.hover()
+
                 elif (
                         ev.type == self._button_down
-                        and ev.button == self._button_click
+                        and getattr(ev, "button", 1) == self._button_click
                     ):
-                    if self.hovered:
+                    if self.hovered or self._isOverMe(x, y):
                         if self.activate_sound:
                             self._playActivateSound()
                         return self.return_value

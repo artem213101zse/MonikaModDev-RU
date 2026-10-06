@@ -421,6 +421,7 @@ default persistent._mas_sprites_json_gifted_sprites = {}
 init -21 python in mas_sprites_json:
     import __builtin__
     import json
+    import os
     import store
     import store.mas_utils as mas_utils
     import traceback
@@ -498,8 +499,42 @@ init -21 python in mas_sprites_json:
     py_list = __builtin__.list
     py_dict = __builtin__.dict
 
+    def _sprite_json_dirs():
+        """Documents overlay first, then basedir/gamedir. Spritepacks live in overlay."""
+        dirs = []
+        try:
+            wg = store.mas_os.writable_gamedir()
+            if wg:
+                dirs.append(os.path.join(wg, "mod_assets", "monika", "j"))
+        except Exception:
+            pass
+        try:
+            root = store.mas_os.user_data_root()
+            if root:
+                dirs.append(os.path.join(root, "game", "mod_assets", "monika", "j"))
+        except Exception:
+            pass
+        dirs.append(os.path.normcase(renpy.config.basedir + "/game/mod_assets/monika/j/"))
+        try:
+            dirs.append(os.path.join(renpy.config.gamedir, "mod_assets", "monika", "j"))
+        except Exception:
+            pass
+        out = []
+        seen = set()
+        for path in dirs:
+            if not path:
+                continue
+            norm = os.path.normcase(os.path.normpath(path))
+            key = norm.replace("\\", "/").lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(norm)
+        return out
+
+    _json_dirs = _sprite_json_dirs()
     sprite_station = store.MASDockingStation(
-        renpy.config.basedir + "/game/mod_assets/monika/j/"
+        (_json_dirs[0] if _json_dirs else renpy.config.basedir + "/game/mod_assets/monika/j/")
     )
     # docking station for custom sprites.
 
@@ -2635,19 +2670,28 @@ init 189 python in mas_sprites_json:
             post_proc_data - data to be used in post processing code
                 (should be a dict)
         """
-        json_files = sprite_station.getPackageList(".json")
-
-        if len(json_files) < 1:
-            return
-
-        # otherwise we have stuff
-        for j_obj in json_files:
-            j_path = sprite_station.station + j_obj
+        seen = {}
+        for folder in _sprite_json_dirs():
             try:
-                addSpriteObject(j_path, post_proc_data)
-            except Exception as e:
-                # TODO - ValueError is the real exception
-                log.exception(e)
+                if not os.path.isdir(folder):
+                    continue
+                names = os.listdir(folder)
+            except Exception:
+                continue
+            for name in names:
+                if not name or not name.lower().endswith(".json"):
+                    continue
+                key = name.lower()
+                if key in seen:
+                    continue
+                seen[key] = True
+                j_path = os.path.join(folder, name)
+                try:
+                    addSpriteObject(j_path, post_proc_data)
+                except Exception as e:
+                    log.exception(e)
+        if len(seen) < 1:
+            return
 
 
     def initSpriteObjectProc():

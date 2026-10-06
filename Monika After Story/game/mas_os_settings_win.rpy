@@ -672,11 +672,27 @@ screen mas_os_win_iface(sub):
         )
 
         use mas_os_pref_onoff(
+            _("Прокрутка списка тем"),
+            _("Палец двигает список «Эй, Моника…». Выкл — только боковой ползунок, как раньше."),
+            store.mas_os.talk_drag_on(),
+            Function(store.mas_os.set_talk_drag, True),
+            Function(store.mas_os.set_talk_drag, False),
+        )
+
+        use mas_os_pref_onoff(
             _("Сенсорное пианино"),
             _("Клавиши внизу экрана. Палец и мышь нажимают ноты, как настоящие клавиши."),
             store.mas_piano_keys.piano_touch_on(),
             Function(store.mas_piano_keys.set_piano_touch, True),
             Function(store.mas_piano_keys.set_piano_touch, False),
+        )
+
+        use mas_os_pref_onoff(
+            _("Сенсорные шахматы"),
+            _("Крупная доска, ход в два нажатия. Выкл — старая доска с перетаскиванием."),
+            store.mas_chess.chess_touch_on(),
+            Function(store.mas_chess.set_chess_touch, True),
+            Function(store.mas_chess.set_chess_touch, False),
         )
 
         use mas_os_pref_onoff(

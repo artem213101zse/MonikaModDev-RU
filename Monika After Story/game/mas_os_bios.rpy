@@ -39,7 +39,7 @@ init -4 python in mas_os:
 
     def open_bios(section="play"):
         """
-        From MAS OS: open BIOS on a section (play/files/submods/saves/update/engine/system).
+        From MAS OS: open BIOS on a section (play/files/archives/content/library/saves/update/engine/system).
         """
         global bios_note
         if not android_on():
@@ -96,5 +96,5 @@ init -4 python in mas_os:
             return False
 
     def open_bios_submods():
-        open_bios("submods")
+        open_bios("content")
         return None
