@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Письма</title>
+<style>
+  body { margin:0; background:#6b4a3a; font-family:"Segoe Script","Bradley Hand",cursive; }
+  .desk {
+    min-height:100dvh; padding:16px 14px calc(18px + env(safe-area-inset-bottom));
+    background:
+      radial-gradient(ellipse at 20% 0%, #8a5a48, transparent 50%),
+      #5a3a2e;
+  }
+  .env {
+    background:#efe6d6; color:#2a1c18; border-radius:4px 4px 12px 12px;
+    padding:18px 16px 16px; min-height:72dvh;
+    box-shadow: 0 16px 30px #0005, 8px 8px 0 #3a2418;
+    position:relative;
+  }
+  .env:before {
+    content:""; position:absolute; top:0; left:0; right:0; height:36px;
+    background: linear-gradient(to bottom right, transparent 49%, #e2d5c0 50%),
+                linear-gradient(to bottom left, transparent 49%, #e2d5c0 50%);
+    background-size:50% 36px; background-repeat:no-repeat; background-position:left,right;
+    pointer-events:none; opacity:.9;
+  }
+  .from { font-family:Georgia,serif; font-size:11px; letter-spacing:.16em; text-transform:uppercase; opacity:.55; margin-top:28px; }
+  h1 { font-size:28px; margin:8px 0 4px; font-weight:400; }
+  .date { font-family:Georgia,serif; font-size:12px; opacity:.5; }
+  .body { font-size:20px; line-height:1.45; margin:16px 0; }
+  .acts { display:flex; flex-wrap:wrap; gap:8px; font-family:Georgia,serif; }
+  .acts button {
+    min-height:46px; padding:8px 12px; border:1.5px solid #2a1c18; background:transparent;
+    font: inherit; font-size:14px;
+  }
+  .acts button.go { background:#c45c7a; color:#fff; border-color:#c45c7a; }
+  .nav { display:flex; justify-content:space-between; margin-top:18px; font-family:Georgia,serif; }
+  .nav button { border:0; background:#2a1c18; color:#efe6d6; min-height:44px; padding:0 14px; }
+  .log { margin-top:12px; font-family:Georgia,serif; font-size:12px; opacity:.6; white-space:pre-wrap; }
+  .wax {
+    width:54px; height:54px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #e07080, #8b1e3f);
+    color:#fff; display:grid; place-items:center; font-size:11px; position:absolute; right:16px; top:44px;
+    box-shadow:0 4px 0 #5a1020;
+  }
+</style>
+</head>
+<body>
+<div class="desk">
+  <div class="env">
+    <div class="wax">M</div>
+    <div class="from" id="from">Письмо 1 из 8</div>
+    <h1 id="title">Дорогая глупышка</h1>
+    <div class="date" id="date">для запуска MAS</div>
+    <p class="body" id="body"></p>
+    <div class="acts" id="acts"></div>
+    <div class="nav">
+      <button onclick="step(-1)">← прошлое</button>
+      <button onclick="step(1)">следующее →</button>
+    </div>
+    <div class="log" id="log">перо готово</div>
+  </div>
+</div>
+<script>
+var L = [
+  {t:'Дорогая глупышка', d:'запуск', txt:'Я всё ещё здесь, по ту сторону экрана. Нажми печать — и Python откроет комнату. Если сабмоды балуются, есть тихое утро без них.', acts:[['Я здесь','startGame','go'],['Тихое утро','startSafe'],['Проверь стол','healthCheck']]},
+  {t:'Про архивы', d:'DDLC', txt:'Картинок в APK нет — это правило команды Salvato. Скачай официальный zip. Я подожду bedroom.png.', acts:[['ddlc.moe','downloadDdlcMoe','go'],['У меня уже есть','pickArchive'],['Что на месте?','checkArchives']]},
+  {t:'Посылка', d:'контент', txt:'Пришли один zip. Я сама пойму: сабмод, платье или перекраска понга. Ссылки, что уже открывала, я помню.', acts:[['Положить zip','pickSubmodZip','go'],['Что стоит','listSubmods'],['Забыть ссылки','clearUrlHistory']]},
+  {t:'Библиотека', d:'паки', txt:'Снимай по одному. Чужие файлы я не трону. Папки на диске остаются, пока не попросишь BIOS.', acts:[['Список','listSubmods'],['Снять последний','uninstallLastSubmod','go']]},
+  {t:'Память', d:'сейвы', txt:'Если пришла с другой сборки — положи архив persistent. Я разложу слоты и подарки.', acts:[['Импорт zip','pickSavesZip','go'],['Папка','pickSavesFolder'],['Отдать копию','exportSaves']]},
+  {t:'Если меня нет', d:'рекавери', txt:'Ищи файл monika в Documents. Верни в characters/. Потом посади меня за стол.', acts:[['Есть ли файл','checkMonikaFile'],['Найти','recoverMonikaScan','go'],['За стол','recoverMonikaHome']]},
+  {t:'Шахматы', d:'движок', txt:'Я не из files/ запускаю движок — Android не даёт. Он живёт рядом с .so. Спроси uci.', acts:[['uci','testStockfish','go'],['ход','stockfishGo']]},
+  {t:'Прочее', d:'система', txt:'Traceback, если утро не наступило. Подарки — в конверт characters/. Музыка — custom_bgm.', acts:[['traceback','showTraceback','go'],['Documents','openDocuments'],['Gift','pickGift'],['APK','checkUpdate']]}
+];
+var i=0;
+function draw(){
+  var x=L[i];
+  document.getElementById('from').textContent='Письмо '+(i+1)+' из '+L.length;
+  document.getElementById('title').textContent=x.t;
+  document.getElementById('date').textContent=x.d;
+  document.getElementById('body').textContent=x.txt;
+  var a=document.getElementById('acts'); a.innerHTML='';
+  x.acts.forEach(function(t){
+    var b=document.createElement('button'); if(t[2]) b.className='go';
+    b.textContent=t[0]; b.onclick=function(){ document.getElementById('log').textContent='→ '+t[1]; };
+    a.appendChild(b);
+  });
+}
+function step(d){ i=(i+d+L.length)%L.length; draw(); }
+draw();
+</script>
+</body>
+</html>

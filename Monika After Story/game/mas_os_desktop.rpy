@@ -389,7 +389,7 @@ screen mas_os_layout_toggle(width=388):
             size 13
 
 
-screen mas_os_desk_icon(caption, act, icon, hue, badge=False, delay=0, xpos=0, ypos=0):
+screen mas_os_desk_icon(caption, act, icon, hue, badge=False, delay=0, xpos=0, ypos=0, muted=False):
     $ ipath = store.mas_os.icon_path(icon)
 
     button:
@@ -425,6 +425,9 @@ screen mas_os_desk_icon(caption, act, icon, hue, badge=False, delay=0, xpos=0, y
                 style "mas_os_desk_icon_text"
                 xalign 0.5
                 substitute False
+
+        if muted:
+            add Solid("#00000099")
 
         if badge:
             frame:
@@ -993,9 +996,11 @@ screen mas_os_home_desktop():
 
     for i in range(len(icons)):
         $ caption, ret, icon, hue, badge = icons[i]
+        $ _store_muted = (ret == "store" and store.mas_os.safe_boot_active())
+        $ _hue = "#6E6E6E" if _store_muted else hue
         $ _cx = 28 + (i % 2) * 118
         $ _cy = 20 + (i // 2) * 106
-        use mas_os_desk_icon(caption, MASOSGo(ret), icon, hue, badge, delay=0.04 * i, xpos=_cx, ypos=_cy)
+        use mas_os_desk_icon(caption, MASOSGo(ret), icon, _hue, badge, delay=0.04 * i, xpos=_cx, ypos=_cy, muted=_store_muted)
 
     if _aff_on:
         use mas_os_desk_window(_("Моника"), 860, 36, 380, 150):

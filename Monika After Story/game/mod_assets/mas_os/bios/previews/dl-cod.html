@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Загрузки · COD / Delta Force</title>
+<script src="packs.js"></script>
+<style>
+  :root { --bg:#0b0d12; --card:#141821; --ink:#e8eef8; --mute:#8b97ab; --ok:#3dcc8a; --hot:#e2b341; --bad:#e25b5b; --bar:#1f2a3a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app { display: flex; flex-direction: column; height: 100dvh; }
+  header {
+    padding: 12px 14px 8px;
+    background: linear-gradient(#1a2230, #0b0d12);
+    border-bottom: 1px solid #ffffff12;
+  }
+  .row1 { display: flex; justify-content: space-between; align-items: center; }
+  .title { letter-spacing: .16em; font-size: 12px; font-weight: 800; }
+  .storage { font-size: 12px; color: var(--mute); }
+  .sbar { height: 6px; background: var(--bar); border-radius: 99px; margin-top: 8px; overflow: hidden; }
+  .sbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--ok), var(--hot)); }
+  .need { font-size: 12px; margin-top: 6px; color: var(--mute); }
+  .need.ok { color: var(--ok); }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 12px 0; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #111; }
+  .tabs { display: flex; gap: 0; padding: 8px 8px 0; }
+  .tab {
+    flex: 1; min-height: 40px; border: 0; background: transparent; color: var(--mute);
+    font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    border-bottom: 2px solid transparent;
+  }
+  .tab.on { color: var(--hot); border-bottom-color: var(--hot); }
+  .list { flex: 1; overflow: auto; padding: 8px 10px 8px; }
+  .item {
+    display: grid; grid-template-columns: 44px 1fr 72px; gap: 10px; align-items: center;
+    background: var(--card); border-radius: 10px; padding: 10px; margin-bottom: 8px;
+    border-left: 3px solid #2a3344;
+  }
+  .item.ready { border-left-color: var(--ok); }
+  .item.downloading { border-left-color: var(--hot); }
+  .item.paused { border-left-color: #8b97ab; }
+  .item.missing, .item.error { border-left-color: var(--bad); }
+  .thumb {
+    width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center;
+    font-size: 11px; font-weight: 800; background: #0e131c; color: var(--mute);
+  }
+  .item.ready .thumb { color: var(--ok); }
+  .item.downloading .thumb { color: var(--hot); }
+  .name { font-size: 14px; font-weight: 650; }
+  .meta { font-size: 11px; color: var(--mute); margin-top: 2px; }
+  .pbar { height: 4px; background: var(--bar); border-radius: 99px; margin-top: 6px; overflow: hidden; }
+  .pbar i { display: block; height: 100%; background: var(--hot); width: 0; }
+  .item.ready .pbar i { background: var(--ok); }
+  .go {
+    border: 0; min-height: 40px; border-radius: 8px; font: inherit; font-size: 12px; font-weight: 700;
+    background: #243044; color: var(--ink);
+  }
+  .item.ready .go { background: transparent; color: var(--ok); }
+  .item.missing .go { background: var(--hot); color: #111; }
+  .item.downloading .go { background: #2a2410; color: var(--hot); }
+  .dock {
+    display: flex; gap: 8px; padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+    background: #10141c; border-top: 1px solid #ffffff10;
+  }
+  .dock button {
+    flex: 1; min-height: 48px; border: 0; border-radius: 8px; font-weight: 800; font: inherit; font-size: 13px;
+  }
+  .pri { background: var(--hot); color: #111; }
+  .ghost { background: #243044; color: var(--ink); }
+  #log { height: 48px; margin: 0; padding: 6px 12px; font-size: 11px; color: var(--mute); background: #000; overflow: auto; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="row1">
+      <div class="title">DOWNLOAD MANAGER</div>
+      <div class="storage" id="storage">—</div>
+    </div>
+    <div class="sbar"><i id="sfill"></i></div>
+    <div class="need" id="need">обязательные пакеты</div>
+  </header>
+  <div id="switch">
+    <a class="sw" href="nav.html">хаб</a>
+    <a class="sw on" href="dl-cod.html">COD / DF</a>
+    <a class="sw" href="dl-delta.html">ресурсы</a>
+    <a class="sw" href="dl-queue.html">очередь</a>
+    <a class="sw" href="dl-cards.html">карточки</a>
+    <a class="sw" href="rail-gear.html">шестерёнка</a>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-g="all">Всё</button>
+    <button class="tab" data-g="need">База</button>
+    <button class="tab" data-g="content">Контент</button>
+    <button class="tab" data-g="update">APK</button>
+  </div>
+  <div class="list" id="list"></div>
+  <div class="dock">
+    <button class="pri" id="needBtn" type="button">Скачать обязательное</button>
+    <button class="ghost" id="allBtn" type="button">Скачать всё</button>
+  </div>
+  <pre id="log">как в COD / Delta Force: полоска на каждом паке, видно что уже на диске</pre>
+</div>
+<script>
+(function () {
+  var group = "all";
+  function ico(p) {
+    if (p.status === "ready") return "✓";
+    if (p.status === "downloading") return Math.round(p.pct) + "%";
+    if (p.status === "paused") return "❚❚";
+    if (p.status === "queued") return "…";
+    return "↓";
+  }
+  function btn(p) {
+    if (p.status === "ready") return p.required ? "OK" : "удалить";
+    if (p.status === "downloading") return "пауза";
+    if (p.status === "paused") return "далее";
+    if (p.status === "queued") return "ждёт";
+    return "скачать";
+  }
+  function render() {
+    var tot = biosDlTotals(), list = biosDlFilter(group), i, p, html = "", cls;
+    document.getElementById("storage").textContent = biosDlMb(tot.haveMb) + " / " + biosDlMb(tot.allMb);
+    document.getElementById("sfill").style.width = tot.pct + "%";
+    document.getElementById("need").textContent = tot.readyToPlay
+      ? "база на месте · можно запускать MAS"
+      : "база " + tot.needOk + " / " + tot.need + " · без картинок и музыки игра не стартует";
+    document.getElementById("need").className = "need" + (tot.readyToPlay ? " ok" : "");
+    for (i = 0; i < list.length; i++) {
+      p = list[i];
+      cls = "item " + p.status;
+      html += '<div class="' + cls + '"><div class="thumb">' + ico(p) + "</div><div>" +
+        '<div class="name">' + p.name + "</div>" +
+        '<div class="meta">' + p.file + " · " + biosDlMb(p.mb) +
+        (p.status === "downloading" && p.speed ? " · " + p.speed.toFixed(1) + " МБ/с" : "") +
+        " · " + biosDlLabels[p.status] + "</div>" +
+        '<div class="pbar"><i style="width:' + p.pct + '%"></i></div></div>' +
+        '<button class="go" type="button" data-id="' + p.id + '">' + btn(p) + "</button></div>";
+    }
+    document.getElementById("list").innerHTML = html;
+  }
+  document.getElementById("list").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-id]");
+    var p;
+    if (!b) return;
+    p = biosDlGet(b.getAttribute("data-id"));
+    biosDlAct(p.id);
+    biosDlLog(p.cmd, p.name + " → " + p.status);
+    render();
+  });
+  document.querySelector(".tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-g]");
+    var tabs, i;
+    if (!b) return;
+    group = b.getAttribute("data-g");
+    tabs = document.querySelectorAll(".tab");
+    for (i = 0; i < tabs.length; i++) tabs[i].className = tabs[i] === b ? "tab on" : "tab";
+    render();
+  });
+  document.getElementById("needBtn").onclick = function () {
+    biosDlDownloadRequired();
+    biosDlLog("downloadArchives", "обязательные");
+    render();
+  };
+  document.getElementById("allBtn").onclick = function () {
+    biosDlQueueAllMissing();
+    biosDlLog("downloadArchives", "все недостающие");
+    render();
+  };
+  biosDlStartTick(render);
+  render();
+})();
+</script>
+</body>
+</html>

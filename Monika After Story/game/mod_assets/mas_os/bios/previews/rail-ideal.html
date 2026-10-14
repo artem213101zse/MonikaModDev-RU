@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Идеальный</title>
+<script src="packs.js"></script>
+<style>
+  :root {
+    --rail: 188px;
+    --log: minmax(240px, 30vw);
+    --bg: #12080e;
+    --railbg: #0c0508;
+    --pane: #1a0c12;
+    --ink: #ffe6f3;
+    --mute: #c989a8;
+    --hot: #c94a7a;
+    --ok: #7ee0a6;
+    --line: #ffffff16;
+    --tile: #ffffff0e;
+    --logbg: #090407;
+  }
+  html[data-theme="light"] {
+    --bg: #efe4d2;
+    --railbg: #e4d5be;
+    --pane: #f7efe3;
+    --ink: #2a1814;
+    --mute: #7a534c;
+    --hot: #c94a7a;
+    --ok: #2a8a58;
+    --line: #2a181418;
+    --tile: #fffaf3;
+    --logbg: #e8dcc8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app {
+    display: grid;
+    grid-template-columns: var(--rail) minmax(0, 1fr) var(--log);
+    height: 100dvh;
+    transition: grid-template-columns .22s ease;
+  }
+  .app.slim { --rail: 64px; }
+  aside.rail {
+    background: var(--railbg); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; padding: 8px 6px;
+  }
+  .fold {
+    border: 0; background: var(--tile); color: var(--ink); min-height: 40px;
+    border-radius: 10px; margin-bottom: 8px; font: inherit; font-size: 16px;
+  }
+  .cat {
+    width: 100%; border: 0; background: transparent; color: var(--mute);
+    min-height: 48px; border-radius: 12px; font: inherit; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 10px; padding: 0 10px; text-align: left;
+  }
+  .cat i { font-style: normal; width: 28px; text-align: center; font-size: 16px; flex-shrink: 0; }
+  .cat span { font-size: 14px; font-weight: 650; white-space: nowrap; overflow: hidden; }
+  .app.slim .cat { justify-content: center; padding: 0; }
+  .app.slim .cat span { display: none; }
+  .cat.on { background: var(--hot); color: #fff; }
+  .cat .dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--hot); margin-left: auto; flex-shrink: 0;
+  }
+  .cat.on .dot { background: #fff; }
+  .app.slim .cat .dot { position: absolute; margin: 0; }
+  main {
+    background: var(--pane); display: flex; flex-direction: column; min-width: 0;
+  }
+  .head { display: flex; justify-content: space-between; align-items: flex-end; padding: 14px 16px 8px; gap: 8px; }
+  .kicker { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+  h1 { margin: 2px 0 0; font-size: 22px; font-weight: 650; }
+  .clock { opacity: .55; font-variant-numeric: tabular-nums; }
+  .all { font-size: 12px; color: var(--mute); text-decoration: none; }
+  html[data-theme="dark"] .all { color: #7ee0d6; }
+  .subs { display: flex; gap: 6px; padding: 0 16px 12px; overflow-x: auto; }
+  .sub {
+    border: 1px solid var(--line); background: transparent; color: var(--ink);
+    min-height: 34px; padding: 0 12px; border-radius: 999px; white-space: nowrap; font: inherit; font-size: 13px;
+  }
+  .sub.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .board { flex: 1; overflow: auto; padding: 0 16px 16px; }
+  .lead { font-size: 13px; color: var(--mute); margin: 0 0 12px; line-height: 1.4; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile {
+    border: 0; background: var(--tile); color: inherit; text-align: left; font: inherit;
+    border-radius: 16px; padding: 14px; min-height: 76px; display: flex; flex-direction: column; gap: 6px;
+    box-shadow: 0 1px 0 var(--line); cursor: pointer;
+  }
+  .tile.big { grid-column: 1 / -1; min-height: 108px; padding: 16px 18px; }
+  .tile.pri { background: var(--hot); color: #fff; }
+  .tile b { font-size: 15px; }
+  .tile.big b { font-size: 22px; letter-spacing: -.02em; }
+  .tile span { font-size: 12px; color: var(--mute); line-height: 1.3; }
+  .tile.pri span { color: #ffd6ea; }
+  .opt {
+    margin-top: auto; display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: inherit; user-select: none;
+  }
+  .tile.pri .opt { color: #fff; }
+  .opt input { width: 18px; height: 18px; accent-color: #fff; }
+  .pbar { height: 6px; background: #0004; border-radius: 99px; overflow: hidden; margin-top: 4px; }
+  .pbar i { display: block; height: 100%; background: currentColor; width: 0; }
+  .url {
+    width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 12px;
+    padding: 0 12px; background: var(--tile); color: var(--ink); font-size: 15px; margin-bottom: 8px;
+  }
+  .hero {
+    background: var(--tile); border-radius: 18px; padding: 16px; margin-bottom: 12px; min-height: 120px;
+  }
+  .hero.empty { display: grid; place-items: center; color: var(--mute); }
+  .hero b { font-size: 18px; }
+  .hbar { height: 10px; background: #0004; border-radius: 99px; overflow: hidden; margin: 12px 0 8px; }
+  .hbar i { display: block; height: 100%; background: var(--hot); }
+  .nums { display: flex; justify-content: space-between; font-size: 12px; color: var(--mute); }
+  .qrow {
+    display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+  }
+  .qrow b { display: block; font-size: 14px; }
+  .qrow em { font-style: normal; font-size: 12px; color: var(--mute); }
+  .mini { width: 72px; height: 4px; background: #0003; border-radius: 99px; overflow: hidden; }
+  .mini i { display: block; height: 100%; background: var(--hot); }
+  .rowbtns { display: flex; gap: 8px; margin-top: 12px; }
+  .rowbtns button {
+    flex: 1; min-height: 40px; border: 0; border-radius: 10px; font: inherit; font-weight: 700;
+    background: var(--tile); color: var(--ink);
+  }
+  .rowbtns .p { background: var(--hot); color: #fff; }
+  .switch {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    background: var(--tile); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px;
+  }
+  .switch b { display: block; font-size: 16px; }
+  .switch span { display: block; font-size: 12px; color: var(--mute); margin-top: 4px; line-height: 1.35; }
+  .tog {
+    width: 48px; height: 28px; border-radius: 99px; background: #ffffff22; border: 0; position: relative; flex-shrink: 0;
+  }
+  .tog.on { background: var(--hot); }
+  .tog i {
+    position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff;
+    transition: left .18s;
+  }
+  .tog.on i { left: 23px; }
+  .note { font-size: 12px; color: var(--mute); line-height: 1.4; margin: 0 4px 14px; }
+  .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .th {
+    border: 2px solid var(--line); border-radius: 16px; padding: 12px; min-height: 88px;
+    background: var(--tile); color: inherit; text-align: left; font: inherit;
+  }
+  .th.on { border-color: var(--hot); }
+  .swatch { height: 28px; border-radius: 8px; margin-bottom: 8px; }
+  .swatch.d { background: linear-gradient(90deg, #12080e 50%, #c94a7a 50%); }
+  .swatch.l { background: linear-gradient(90deg, #efe4d2 50%, #c94a7a 50%); }
+  .logpane {
+    background: var(--logbg); border-left: 1px solid var(--line);
+    display: flex; flex-direction: column; min-width: 0;
+  }
+  .loghead {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 12px 8px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute);
+  }
+  .loghead button { border: 0; background: transparent; color: var(--mute); font: inherit; min-height: 32px; }
+  #log {
+    flex: 1; margin: 0; padding: 0 12px 12px; overflow: auto; white-space: pre-wrap;
+    font-size: 12px; line-height: 1.45; color: var(--ink); opacity: .8;
+  }
+  @media (max-width: 860px) {
+    .app, .app.slim {
+      grid-template-columns: var(--rail) 1fr;
+      grid-template-rows: 1fr 28vh;
+    }
+    .logpane { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="rail">
+    <button class="fold" id="fold" type="button" title="свернуть меню">‹</button>
+    <nav id="rail"></nav>
+  </aside>
+  <main>
+    <div class="head">
+      <div>
+        <div class="kicker">MAS BIOS</div>
+        <h1 id="title">Игра</h1>
+      </div>
+      <div style="text-align:right">
+        <div class="clock" id="clock"></div>
+        <a class="all" href="nav.html">все виды</a>
+      </div>
+    </div>
+    <div class="subs" id="subs"></div>
+    <div class="board" id="board"></div>
+  </main>
+  <aside class="logpane">
+    <div class="loghead">Журнал <button type="button" id="wipe">очистить</button></div>
+    <pre id="log">логи всегда справа · действия пишутся сюда</pre>
+  </aside>
+</div>
+<script>
+(function () {
+  var CATS = [
+    { id: "play", label: "Игра", icon: "▶", hint: "запуск и архивы DDLC",
+      kids: [
+        { id: "boot", label: "Запуск", hint: "Сессия Моники ещё не началась." },
+        { id: "archives", label: "Архивы", hint: "Картинки и музыка не внутри APK." }
+      ] },
+    { id: "content", label: "Контент", icon: "▣", hint: "паки, подарки, музыка",
+      kids: [
+        { id: "install", label: "Установить", hint: "Один zip — тип определится сам." },
+        { id: "library", label: "Библиотека", hint: "Что уже стоит." },
+        { id: "media", label: "Медиа", hint: "Gift, музыка, обои." }
+      ] },
+    { id: "data", label: "Данные", icon: "◇", hint: "сейвы и файл Моники",
+      kids: [
+        { id: "saves", label: "Сейвы", hint: "Zip или папка с другой сборки." },
+        { id: "monika", label: "Моника", hint: "characters/monika для стола в комнате." }
+      ] },
+    { id: "dl", label: "Загрузки", icon: "↓", hint: "очередь файлов", kids: [] },
+    { id: "set", label: "Настройки", icon: "●", hint: "тема, холодный старт, диск", kids: [] }
+  ];
+
+  var catId = "play", kidId = "boot";
+  var slim = localStorage.getItem("mas_prev_rail") === "slim";
+  var theme = localStorage.getItem("mas_prev_theme") || "dark";
+  var skip = localStorage.getItem("mas_prev_skip") === "1";
+  var safe = false;
+
+  function cat() {
+    var i;
+    for (i = 0; i < CATS.length; i++) if (CATS[i].id === catId) return CATS[i];
+    return CATS[0];
+  }
+  function kid() {
+    var c = cat(), i;
+    if (!c.kids.length) return null;
+    for (i = 0; i < c.kids.length; i++) if (c.kids[i].id === kidId) return c.kids[i];
+    return c.kids[0];
+  }
+  function log(cmd, extra) {
+    biosDlLog(cmd, extra);
+  }
+  function clock() {
+    var d = new Date();
+    document.getElementById("clock").textContent =
+      ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+  }
+  function applyChrome() {
+    document.documentElement.setAttribute("data-theme", theme);
+    document.getElementById("app").className = "app" + (slim ? " slim" : "");
+    document.getElementById("fold").textContent = slim ? "›" : "‹";
+    document.getElementById("fold").title = slim ? "развернуть меню" : "свернуть меню";
+  }
+  function rail() {
+    var tot = biosDlTotals(), i, c, html = "", on, badge;
+    for (i = 0; i < CATS.length; i++) {
+      c = CATS[i];
+      on = c.id === catId ? " on" : "";
+      badge = (c.id === "dl" && tot.down) ? '<em class="dot"></em>' : "";
+      html += '<button type="button" class="cat' + on + '" data-cat="' + c.id +
+        '" title="' + c.label + '"><i>' + c.icon + "</i><span>" + c.label + "</span>" + badge + "</button>";
+    }
+    document.getElementById("rail").innerHTML = html;
+  }
+  function tile(o) {
+    var cls = "tile" + (o.big ? " big" : "") + (o.pri ? " pri" : "");
+    var tag = o.check ? "div" : "button";
+    var html = "<" + tag + (o.check ? "" : ' type="button"') + ' class="' + cls + '" data-cmd="' + o.cmd +
+      '" data-t="' + o.t + '"><b>' + o.t + "</b><span>" + o.s + "</span>";
+    if (o.check) {
+      html += '<label class="opt"><input type="checkbox" id="safe"' + (safe ? " checked" : "") +
+        "> безопасный режим</label>";
+    }
+    if (o.bar != null) html += '<div class="pbar"><i style="width:' + o.bar + '%"></i></div>';
+    return html + "</" + tag + ">";
+  }
+  function tiles(list) {
+    var i, html = '<div class="tiles">';
+    for (i = 0; i < list.length; i++) html += tile(list[i]);
+    return html + "</div>";
+  }
+  function activePack() {
+    var i, p;
+    for (i = 0; i < biosDlPacks.length; i++) {
+      p = biosDlPacks[i];
+      if (p.status === "downloading") return p;
+    }
+    return null;
+  }
+  function queueHtml() {
+    var a = activePack(), tot = biosDlTotals(), html = "", i, p, n = 1;
+    if (!a) {
+      html += '<div class="hero empty">' + (tot.readyToPlay
+        ? "очередь пуста · обязательное на месте"
+        : "ничего не качается") + "</div>";
+    } else {
+      html += '<div class="hero"><b>' + a.name + "</b><div class=\"lead\" style=\"margin:6px 0 0\">" +
+        a.file + " · " + biosDlMb(a.mb) + "</div>" +
+        '<div class="hbar"><i style="width:' + a.pct + '%"></i></div>' +
+        '<div class="nums"><span>' + Math.round(a.pct) + "% · " +
+        (a.speed ? a.speed.toFixed(1) + " МБ/с" : "") + "</span><span>ещё " +
+        Math.max(1, Math.round((100 - a.pct) / 6)) + " с</span></div>" +
+        '<div class="rowbtns"><button class="p" data-id="' + a.id + '">Пауза</button>' +
+        '<button data-cmd="downloadArchives" data-t="пропустить" data-id="' + a.id + '">Пропустить</button></div></div>';
+    }
+    html += '<div class="lead">Очередь</div>';
+    for (i = 0; i < biosDlPacks.length; i++) {
+      p = biosDlPacks[i];
+      if (a && p.id === a.id) continue;
+      html += '<div class="qrow" data-id="' + p.id + '"><div>' + (p.status === "ready" ? "✓" : n++) +
+        "</div><div><b>" + p.name + "</b><em>" + biosDlLabels[p.status] + " · " + biosDlMb(p.mb) +
+        "</em></div><div class=\"mini\"><i style=\"width:" + p.pct + '%"></i></div></div>';
+    }
+    html += '<div class="rowbtns"><button data-q="need">Обязательное</button><button class="p" data-q="all">Качать недостающее</button></div>';
+    return html;
+  }
+  function settingsHtml() {
+    return '<div class="switch"><div><b>Сразу MAS, минуя BIOS</b><span>Холодный старт откроет игру, этот экран не покажется.</span></div>' +
+      '<button type="button" class="tog' + (skip ? " on" : "") + '" id="skip" aria-pressed="' + skip + '"><i></i></button></div>' +
+      '<p class="note">Вернуть BIOS из игры: в MAS OS открой плитку «BIOS» (перезапуск оболочки). Если тумблер выключен, лаунчер снова встретит при холодном старте.</p>' +
+      '<div class="lead">Тема</div>' +
+      '<div class="themes">' +
+      '<button type="button" class="th' + (theme === "dark" ? " on" : "") + '" data-theme="dark"><div class="swatch d"></div><b>Тёмная</b></button>' +
+      '<button type="button" class="th' + (theme === "light" ? " on" : "") + '" data-theme="light"><div class="swatch l"></div><b>Светлая</b></button>' +
+      "</div>" +
+      tiles([
+        { t: "Все файлы", s: "разрешение Android 11+", cmd: "grantAllFiles", pri: 1, big: 1 },
+        { t: "Documents", s: "открыть папку порта", cmd: "openDocuments" },
+        { t: "traceback", s: "почему не стартовала игра", cmd: "showTraceback" },
+        { t: "uci шахмат", s: "libstockfish.so", cmd: "testStockfish" }
+      ]);
+  }
+  function boardHtml() {
+    var k = kid(), tot = biosDlTotals(), a = activePack(), bar = a ? a.pct : (tot.readyToPlay ? 100 : 0);
+    if (catId === "dl") return '<p class="lead">Один файл качается, остальные ждут. Как очередь, которая понравилась.</p>' + queueHtml();
+    if (catId === "set") return settingsHtml();
+    if (!k) return "";
+    if (k.id === "boot") {
+      return '<p class="lead">' + k.hint + "</p>" + tiles([
+        { t: "Запустить MAS", s: "Ren'Py → MAS OS → комната", cmd: "startGame", pri: 1, big: 1, check: 1 },
+        { t: "Проверить диск", s: "папки, архивы, разрешение", cmd: "healthCheck" },
+        { t: "Снимок папок", s: "подарки, музыка, сейвы", cmd: "diskSnapshot" }
+      ]);
+    }
+    if (k.id === "archives") {
+      return '<p class="lead">' + k.hint + (tot.readyToPlay ? " База на месте." : " Без images.rpa и audio.rpa MAS не стартует.") + "</p>" + tiles([
+        { t: tot.down ? "Качается " + Math.round(bar) + "%" : (tot.readyToPlay ? "Архивы на месте" : "Скачать недостающее"),
+          s: tot.needOk + " / " + tot.need + " обязательных · " + biosDlMb(tot.haveMb),
+          cmd: "downloadDdlcMoe", pri: 1, big: 1, bar: tot.pct },
+        { t: "Файл с диска", s: ".rpa / .zip", cmd: "pickArchive" },
+        { t: "Проверить", s: "какие паки уже лежат", cmd: "checkArchives" }
+      ]);
+    }
+    if (k.id === "install") {
+      return '<p class="lead">' + k.hint + '</p><input class="url" placeholder="GitHub / прямая ссылка на zip">' + tiles([
+        { t: "Скачать и поставить", s: "по ссылке", cmd: "downloadSubmodUrl", pri: 1, big: 1 },
+        { t: "Zip с диска", s: "сабмод / спрайт / рескин", cmd: "pickSubmodZip", pri: 1 },
+        { t: "История ссылок", s: "недавние URL", cmd: "listUrlHistory" }
+      ]);
+    }
+    if (k.id === "library") {
+      return '<p class="lead">' + k.hint + "</p>" + tiles([
+        { t: "Обновить список", s: "перечитать манифесты", cmd: "listSubmods", pri: 1, big: 1 },
+        { t: "Снять последний", s: "только его файлы", cmd: "uninstallLastSubmod" }
+      ]);
+    }
+    if (k.id === "media") {
+      return '<p class="lead">' + k.hint + "</p>" + tiles([
+        { t: "Положить gift", s: "characters/", cmd: "pickGift", pri: 1, big: 1 },
+        { t: "Музыка", s: "custom_bgm/", cmd: "pickMusic", pri: 1 },
+        { t: "Обои", s: "custom_wallpaper.png", cmd: "pickImage" },
+        { t: "Любой файл", s: "сам разложится", cmd: "pickFile" }
+      ]);
+    }
+    if (k.id === "saves") {
+      return '<p class="lead">' + k.hint + "</p>" + tiles([
+        { t: "Импорт zip", s: "архив сейвов", cmd: "pickSavesZip", pri: 1, big: 1 },
+        { t: "Импорт папки", s: "уже распакованные saves", cmd: "pickSavesFolder", pri: 1 },
+        { t: "Экспорт", s: "_mas/backups", cmd: "exportSaves" },
+        { t: "Поделиться", s: "отправить бэкап", cmd: "shareSaves" }
+      ]);
+    }
+    if (k.id === "monika") {
+      return '<p class="lead">' + k.hint + "</p>" + tiles([
+        { t: "Вернуть за стол", s: "если пропала из комнаты", cmd: "recoverMonikaHome", pri: 1, big: 1 },
+        { t: "Статус файла", s: "есть ли characters/monika", cmd: "checkMonikaFile" },
+        { t: "Найти в Documents", s: "обход папок", cmd: "recoverMonikaScan" }
+      ]);
+    }
+    return "";
+  }
+  function render(keepSafe) {
+    var c = cat(), k = kid(), i, html = "", was = keepSafe ? document.getElementById("safe") : null;
+    if (was) safe = was.checked;
+    applyChrome();
+    rail();
+    document.getElementById("title").textContent = c.label;
+    html = "";
+    for (i = 0; i < c.kids.length; i++) {
+      html += '<button type="button" class="sub' + (c.kids[i].id === kidId ? " on" : "") +
+        '" data-kid="' + c.kids[i].id + '">' + c.kids[i].label + "</button>";
+    }
+    document.getElementById("subs").innerHTML = html;
+    document.getElementById("board").innerHTML = boardHtml();
+  }
+
+  document.getElementById("fold").onclick = function () {
+    slim = !slim;
+    localStorage.setItem("mas_prev_rail", slim ? "slim" : "open");
+    applyChrome();
+  };
+  document.getElementById("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cat]");
+    if (!b) return;
+    catId = b.getAttribute("data-cat");
+    kidId = cat().kids[0] ? cat().kids[0].id : "";
+    render();
+  });
+  document.getElementById("subs").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-kid]");
+    if (!b) return;
+    kidId = b.getAttribute("data-kid");
+    render();
+  });
+  document.getElementById("board").addEventListener("click", function (e) {
+    var tog = e.target.closest(".tog");
+    var pack = e.target.closest("[data-id]");
+    var q = e.target.closest("[data-q]");
+    var th = e.target.closest("[data-theme]");
+    var cmd = e.target.closest("[data-cmd]");
+    var p, box;
+    if (e.target.closest(".opt")) {
+      box = document.getElementById("safe");
+      safe = !!(box && box.checked);
+      return;
+    }
+    if (tog && tog.id === "skip") {
+      skip = !skip;
+      localStorage.setItem("mas_prev_skip", skip ? "1" : "0");
+      log("toggleBoot", skip ? "сразу MAS" : "показывать BIOS");
+      render();
+      return;
+    }
+    if (th) {
+      theme = th.getAttribute("data-theme");
+      localStorage.setItem("mas_prev_theme", theme);
+      log("setBiosView", theme === "light" ? "светлая тема" : "тёмная тема");
+      render();
+      return;
+    }
+    if (q) {
+      if (q.getAttribute("data-q") === "need") biosDlDownloadRequired();
+      else biosDlQueueAllMissing();
+      log("downloadArchives", q.getAttribute("data-q"));
+      render();
+      return;
+    }
+    if (pack && !e.target.closest("[data-cmd]")) {
+      p = biosDlGet(pack.getAttribute("data-id"));
+      if (!p) return;
+      biosDlAct(p.id);
+      log(p.cmd, p.name + " → " + p.status);
+      render();
+      return;
+    }
+    if (cmd) {
+      if (cmd.getAttribute("data-cmd") === "startGame" && document.getElementById("safe") && document.getElementById("safe").checked) {
+        log("startSafe", "безопасный режим");
+      } else if (cmd.getAttribute("data-cmd") === "downloadDdlcMoe" && catId === "play") {
+        biosDlQueueAllMissing();
+        catId = "dl";
+        kidId = "";
+        log("downloadArchives", "недостающее → очередь");
+        render();
+      } else {
+        log(cmd.getAttribute("data-cmd"), cmd.getAttribute("data-t"));
+      }
+    }
+  });
+  document.getElementById("wipe").onclick = function () {
+    document.getElementById("log").textContent = "очищено";
+  };
+  biosDlStartTick(function () {
+    rail();
+    if (catId === "dl" || (catId === "play" && kidId === "archives")) render(true);
+  });
+  clock();
+  setInterval(clock, 10000);
+  applyChrome();
+  render();
+})();
+</script>
+</body>
+</html>

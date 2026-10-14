@@ -354,7 +354,7 @@ screen mas_os_saves_picker(in_setup=False):
                     xsize wide
                     substitute False
 
-                text _("characters, custom_bgm, chess_games и сейвы тоже здесь. Логи и архивы — в _mas/. Папка переживает переустановку, пока выдан доступ ко всем файлам."):
+                text _("characters, custom_bgm, chess_games и сейвы тоже здесь. Логи — в log/, служебное — в mas_bios/, обои и шрифты — в mas_os/. Папка переживает переустановку, пока выдан доступ ко всем файлам."):
                     style "mas_os_body"
                     xsize wide
 
@@ -512,7 +512,7 @@ screen mas_os_android_saves_row():
                         color warn_b
                         xsize 720
         else:
-            text _("Documents переживает переустановку. characters и custom_bgm лежат рядом с сейвами, служебное — в _mas/."):
+            text _("Documents переживает переустановку. characters и custom_bgm лежат рядом с сейвами, логи — в log/, служебное — в mas_bios/."):
                 style "mas_os_hint"
     else:
         text _("На ПК сейвы уже в видимой папке. Подмена файлов — через «Данные» и «Файлы»."):

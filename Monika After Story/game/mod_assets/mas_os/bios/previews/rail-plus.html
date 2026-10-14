@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Плитки+</title>
+<script src="tree.js"></script>
+<script src="packs.js"></script>
+<style>
+  :root { --bg:#14070d; --rail:#1c0a12; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; --ok:#7ee0a6; --line:#ffffff14; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 108px 1fr; height: 100dvh; }
+  aside { background: var(--rail); display: flex; flex-direction: column; padding: 10px 8px calc(10px + env(safe-area-inset-bottom)); }
+  .rail-btn {
+    border: 0; background: transparent; color: var(--mute); min-height: 48px;
+    text-align: left; padding: 8px 10px; border-radius: 12px; font: inherit; margin-bottom: 4px; display: block;
+  }
+  .rail-btn i { display: none; }
+  .rail-btn span { font-size: 14px; font-weight: 650; }
+  .rail-btn.on { background: var(--hot); color: #fff; }
+  .play { margin-top: auto; display: grid; grid-template-columns: 1fr 40px; gap: 4px; }
+  .play .go {
+    border: 0; min-height: 48px; border-radius: 12px 4px 4px 12px; background: #fff; color: #14070d; font-weight: 800; font-size: 12px;
+  }
+  .play .g {
+    border: 0; border-radius: 4px 12px 12px 4px; background: #ffd6ea; color: #14070d; font-size: 16px;
+  }
+  .pane { display: flex; flex-direction: column; min-width: 0; }
+  .top { display: flex; justify-content: space-between; align-items: center; padding: 12px 12px 4px; }
+  .kicker { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+  .dlpill {
+    border: 0; background: #ffffff10; color: inherit; border-radius: 999px; min-height: 34px;
+    padding: 0 12px; font: inherit; font-size: 12px;
+  }
+  .dlpill.run { background: var(--hot); }
+  h1 { margin: 0; padding: 0 14px 6px; font-size: 22px; }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #fff; }
+  .chips { display: flex; gap: 6px; padding: 0 12px 10px; overflow-x: auto; }
+  .chip {
+    border: 1px solid var(--line); background: transparent; color: var(--ink);
+    min-height: 34px; padding: 0 12px; border-radius: 999px; white-space: nowrap; font: inherit; font-size: 13px;
+  }
+  .chip.on { background: #fff; color: #14070d; }
+  .body { flex: 1; overflow: auto; padding: 0 12px 8px; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile {
+    position: relative; min-height: 96px; border: 0; border-radius: 16px; background: #ffffff0e; color: inherit;
+    text-align: left; padding: 12px 36px 12px 12px; font: inherit;
+  }
+  .tile.pri { background: var(--hot); grid-column: 1 / -1; }
+  .tile b { display: block; font-size: 14px; }
+  .tile span { display: block; font-size: 12px; color: var(--mute); margin-top: 4px; }
+  .tile.pri span { color: #ffd6ea; }
+  .tg {
+    position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border: 0; border-radius: 10px;
+    background: #0004; color: inherit; font-size: 14px;
+  }
+  .pop {
+    display: none; position: fixed; z-index: 5; min-width: 200px; background: #2a1620;
+    border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 12px 32px #0008; overflow: hidden;
+  }
+  .pop.on { display: block; }
+  .pop button {
+    display: block; width: 100%; text-align: left; border: 0; background: transparent; color: inherit;
+    min-height: 44px; padding: 8px 12px; font: inherit;
+  }
+  .dim { display: none; position: fixed; inset: 0; background: #0007; z-index: 6; }
+  .dim.on { display: block; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; background: #1c1016;
+    border-radius: 20px 20px 0 0; max-height: 72dvh; overflow: auto;
+    padding: 10px 14px calc(16px + env(safe-area-inset-bottom)); transform: translateY(110%); transition: .25s;
+  }
+  .sheet.on { transform: none; }
+  .grab { width: 36px; height: 4px; background: #ffffff33; border-radius: 4px; margin: 4px auto 10px; }
+  .srow { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .srow b { display: block; }
+  .srow span { font-size: 11px; color: var(--mute); }
+  .bar { height: 4px; background: #0006; border-radius: 99px; margin-top: 6px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--hot); }
+  .srow button { border: 0; min-height: 36px; padding: 0 10px; border-radius: 8px; background: #ffffff12; color: inherit; }
+  #log { height: 52px; margin: 0; padding: 6px 12px; font-size: 11px; color: var(--mute); background: #0005; overflow: auto; white-space: pre-wrap; }
+  .bootpop {
+    display: none; position: fixed; left: 12px; right: 12px; bottom: 72px; z-index: 4;
+    background: #2a1620; border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
+  }
+  .bootpop.on { display: block; }
+  .bootpop button {
+    width: 100%; text-align: left; border: 0; background: transparent; color: inherit;
+    min-height: 48px; padding: 10px 14px; font: inherit; border-bottom: 1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div id="rail"></div>
+    <div class="play">
+      <button class="go" data-cmd="startGame" data-t="Запустить MAS">Запустить MAS</button>
+      <button class="g" id="bootGear" type="button">⚙</button>
+    </div>
+  </aside>
+  <section class="pane">
+    <div class="top">
+      <div class="kicker">MAS BIOS · плитки+</div>
+      <button class="dlpill" id="dlpill" type="button">↓ загрузки</button>
+    </div>
+    <h1 id="title">Запуск</h1>
+    <div id="switch">
+      <a class="sw" href="nav.html">хаб</a>
+      <a class="sw" href="rail-list.html">список</a>
+      <a class="sw" href="rail-tiles.html">плитки</a>
+      <a class="sw" href="rail-gear.html">шестерёнка</a>
+      <a class="sw on" href="rail-plus.html">плитки+</a>
+      <a class="sw" href="dl-cod.html">COD</a>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="body" id="body"></div>
+    <pre id="log">шестерёнка на плитке и на Play · стрелка сверху открывает загрузки</pre>
+  </section>
+</div>
+<div class="bootpop" id="bootpop">
+  <button type="button" data-cmd="startGame" data-t="Обычный запуск">Обычный запуск</button>
+  <button type="button" data-cmd="startSafe" data-t="Безопасный вход">Безопасный вход · без сабмодов</button>
+  <button type="button" data-cmd="healthCheck" data-t="Проверить диск">Сначала проверить диск</button>
+</div>
+<div class="pop" id="pop"></div>
+<div class="dim" id="dim"></div>
+<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <h2 style="margin:0 0 8px;font-size:18px">Менеджер загрузок</h2>
+  <div id="slist"></div>
+</div>
+<script>
+(function () {
+  var catId = "play", kidId = "boot";
+  var EXTRA = {
+    boot: [{ t: "Безопасный вход", cmd: "startSafe" }, { t: "Проверить диск", cmd: "healthCheck" }],
+    archives: [{ t: "GitHub RPA", cmd: "downloadArchives" }, { t: "Файл с диска", cmd: "pickArchive" }, { t: "Проверить", cmd: "checkArchives" }],
+    install: [{ t: "По ссылке", cmd: "downloadSubmodUrl" }, { t: "История", cmd: "listUrlHistory" }],
+    saves: [{ t: "Папка", cmd: "pickSavesFolder" }, { t: "Экспорт", cmd: "exportSaves" }],
+    update: [{ t: "Скачать APK", cmd: "downloadUpdate" }, { t: "Локальный файл", cmd: "installLocalApk" }]
+  };
+
+  function pill() {
+    var tot = biosDlTotals();
+    document.getElementById("dlpill").textContent = tot.down ? "↓ " + tot.down + " качается" : (tot.readyToPlay ? "↓ база ✓" : "↓ нет базы");
+    document.getElementById("dlpill").className = "dlpill" + (tot.down ? " run" : "");
+  }
+
+  function render() {
+    var cat = biosCat(catId), kid = biosKid(cat, kidId), i, a, html = "", extras;
+    document.getElementById("rail").innerHTML = biosRailHtml(catId);
+    document.getElementById("title").textContent = kid.label;
+    html = "";
+    for (i = 0; i < cat.kids.length; i++) {
+      html += '<button type="button" class="chip' + (cat.kids[i].id === kidId ? " on" : "") +
+        '" data-kid="' + cat.kids[i].id + '">' + cat.kids[i].label + "</button>";
+    }
+    document.getElementById("chips").innerHTML = html;
+    html = '<div class="tiles">';
+    for (i = 0; i < kid.acts.length; i++) {
+      a = kid.acts[i];
+      extras = EXTRA[kid.id] && i === 0;
+      html += '<button class="tile' + (a.primary ? " pri" : "") + '" data-cmd="' + a.cmd +
+        '" data-t="' + a.t + '"><b>' + a.t + "</b><span>" + a.s + "</span>" +
+        (extras ? '<span class="tg" data-gear="' + kid.id + '">⚙</span>' : "") + "</button>";
+    }
+    html += "</div>";
+    document.getElementById("body").innerHTML = html;
+    pill();
+  }
+
+  function sheet() {
+    var i, p, html = "";
+    for (i = 0; i < biosDlPacks.length; i++) {
+      p = biosDlPacks[i];
+      html += '<div class="srow"><div><b>' + p.name + "</b><span>" + biosDlLabels[p.status] +
+        " · " + biosDlMb(p.mb) + '</span><div class="bar"><i style="width:' + p.pct +
+        '%"></i></div></div><button type="button" data-id="' + p.id + '">' +
+        (p.status === "ready" ? "OK" : p.status === "downloading" ? "❚❚" : "↓") + "</button></div>";
+    }
+    document.getElementById("slist").innerHTML = html;
+  }
+
+  document.getElementById("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cat]");
+    if (!b) return;
+    catId = b.getAttribute("data-cat");
+    kidId = biosCat(catId).kids[0].id;
+    render();
+  });
+  document.getElementById("chips").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-kid]");
+    if (!b) return;
+    kidId = b.getAttribute("data-kid");
+    render();
+  });
+  document.body.addEventListener("click", function (e) {
+    var gear = e.target.closest("[data-gear]");
+    var cmd = e.target.closest("[data-cmd]");
+    var pack = e.target.closest("[data-id]");
+    var pop = document.getElementById("pop"), i, it, html, r, items, p;
+    if (e.target.id === "bootGear") {
+      document.getElementById("bootpop").classList.toggle("on");
+      pop.className = "pop";
+      return;
+    }
+    if (gear) {
+      e.preventDefault();
+      e.stopPropagation();
+      items = EXTRA[gear.getAttribute("data-gear")] || [];
+      html = "";
+      for (i = 0; i < items.length; i++) {
+        it = items[i];
+        html += '<button type="button" data-cmd="' + it.cmd + '" data-t="' + it.t + '">' + it.t + "</button>";
+      }
+      pop.innerHTML = html;
+      r = gear.getBoundingClientRect();
+      pop.style.top = Math.min(r.bottom + 4, window.innerHeight - 160) + "px";
+      pop.style.left = Math.max(8, r.right - 210) + "px";
+      pop.className = "pop on";
+      document.getElementById("bootpop").className = "bootpop";
+      return;
+    }
+    if (pack && document.getElementById("sheet").contains(pack)) {
+      p = biosDlGet(pack.getAttribute("data-id"));
+      biosDlAct(p.id);
+      biosDlLog(p.cmd, p.name);
+      sheet();
+      pill();
+      return;
+    }
+    if (cmd) {
+      biosDlLog(cmd.getAttribute("data-cmd"), cmd.getAttribute("data-t"));
+      pop.className = "pop";
+      document.getElementById("bootpop").className = "bootpop";
+    } else if (!e.target.closest(".pop") && !e.target.closest(".bootpop")) {
+      pop.className = "pop";
+      document.getElementById("bootpop").className = "bootpop";
+    }
+  });
+  document.getElementById("dlpill").onclick = function () {
+    sheet();
+    document.getElementById("dim").className = "dim on";
+    document.getElementById("sheet").className = "sheet on";
+  };
+  document.getElementById("dim").onclick = function () {
+    this.className = "dim";
+    document.getElementById("sheet").className = "sheet";
+  };
+  biosDlStartTick(function () {
+    pill();
+    if (document.getElementById("sheet").className.indexOf("on") >= 0) sheet();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

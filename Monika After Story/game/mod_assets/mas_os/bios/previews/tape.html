@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Кассета</title>
+<style>
+  body { margin:0; background:#1a120c; color:#f3e6d4; font-family:"IBM Plex Mono", ui-monospace, Consolas, monospace; }
+  .wood {
+    min-height:100dvh; padding:16px 14px calc(20px + env(safe-area-inset-bottom));
+    background:
+      repeating-linear-gradient(90deg, #3b2418 0 14px, #4a2e1c 14px 15px, #2e1b12 15px 28px);
+  }
+  .deck {
+    background: linear-gradient(#d9c4a0, #c4aa7a); color:#2a1810; border-radius:18px;
+    padding:14px; box-shadow:0 18px 40px #0008, inset 0 1px 0 #fff6;
+  }
+  .brand { display:flex; justify-content:space-between; font-size:11px; letter-spacing:.2em; }
+  .window {
+    margin:12px 0; height:110px; border-radius:8px; background:#111; position:relative; overflow:hidden;
+    box-shadow: inset 0 0 0 4px #6a4a30;
+  }
+  .reel {
+    position:absolute; top:18px; width:64px; height:64px; border-radius:50%;
+    background: conic-gradient(#2a2a2a, #666, #2a2a2a, #888, #2a2a2a);
+    animation: spin 4s linear infinite;
+  }
+  .r1 { left:28px; } .r2 { right:28px; animation-direction:reverse; }
+  .tape { position:absolute; left:70px; right:70px; top:46px; height:8px; background:#1a1a1a; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .paused .reel { animation-play-state: paused; }
+  .play {
+    width:100%; min-height:64px; margin:8px 0 4px; border:0; border-radius:12px;
+    background:#8b1e3f; color:#fff; font-size:20px; font-weight:800; letter-spacing:.08em;
+  }
+  .play:active { filter:brightness(.9); }
+  .vu { display:flex; gap:3px; height:28px; align-items:flex-end; margin:8px 0 4px; }
+  .vu i { flex:1; background:#3a2; height:30%; border-radius:2px 2px 0 0; }
+  .vu i:nth-child(3){height:70%;background:#ca2}
+  .vu i:nth-child(4){height:90%;background:#c94a7a}
+  .vu i:nth-child(5){height:50%}
+  .tracks { margin-top:16px; }
+  .trk {
+    width:100%; display:flex; gap:10px; align-items:center; text-align:left;
+    border:0; background:#2a1c14cc; color:#f3e6d4; padding:12px; min-height:56px; margin-bottom:8px;
+    border-radius:10px; font: inherit;
+  }
+  .trk b { flex:1; font-size:14px; }
+  .trk span { opacity:.55; font-size:12px; }
+  .n { width:28px; opacity:.5; }
+  .sheet { display:none; margin-top:8px; background:#2a1c14; padding:12px; border-radius:12px; }
+  .sheet.on { display:block; }
+  .sheet .row { display:flex; flex-wrap:wrap; gap:8px; }
+  .sheet button { flex:1 1 40%; min-height:44px; border:0; border-radius:8px; background:#4a3024; color:#fff; }
+  .sheet button.go { background:#c94a7a; }
+  .log { margin-top:10px; font-size:11px; opacity:.7; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<div class="wood">
+  <div class="deck" id="deck">
+    <div class="brand"><span>MAS · TAPE BIOS</span><span>TYPE I</span></div>
+    <div class="window">
+      <div class="reel r1"></div><div class="tape"></div><div class="reel r2"></div>
+    </div>
+    <div class="vu"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <button class="play" onclick="go('startGame')">▶  PLAY  MAS</button>
+    <button class="trk" style="background:#4a3024" onclick="go('startSafe')"><span class="n">00</span><b>Safe side</b><span>без сабмодов</span></button>
+  </div>
+  <div class="tracks" id="tracks"></div>
+  <div class="sheet" id="sheet">
+    <div class="row" id="acts"></div>
+    <div class="log" id="log">стоп · вставь кассету пальцем</div>
+  </div>
+</div>
+<script>
+var T = [
+  ['A1','Файлы','gift / музыка / Documents',[['Documents','openDocuments','go'],['Gift','pickGift'],['Обои','pickImage']]],
+  ['A2','Архивы DDLC','ddlc.moe → rpa',[['Скачать','downloadDdlcMoe','go'],['Выбрать','pickArchive'],['Проверить','checkArchives']]],
+  ['A3','Контент','zip → тип сам',[['Поставить','pickSubmodZip','go'],['История','listUrlHistory']]],
+  ['A4','Библиотека','снять пак',[['Список','listSubmods'],['Снять','uninstallLastSubmod','go']]],
+  ['B1','Сейвы','импорт / экспорт',[['Zip','pickSavesZip','go'],['Экспорт','exportSaves']]],
+  ['B2','Рекавери','monika домой',[['Найти','recoverMonikaScan','go'],['За стол','recoverMonikaHome']]],
+  ['B3','Шахматы','stockfish',[['uci','testStockfish','go'],['ход','stockfishGo']]],
+  ['B4','Система','apk / traceback',[['Обновить','checkUpdate'],['traceback','showTraceback','go']]]
+];
+var tracks=document.getElementById('tracks');
+T.forEach(function(t,i){
+  var b=document.createElement('button'); b.className='trk';
+  b.innerHTML='<span class="n">'+t[0]+'</span><b>'+t[1]+'</b><span>'+t[2]+'</span>';
+  b.onclick=function(){ open(i); };
+  tracks.appendChild(b);
+});
+function open(i){
+  var t=T[i], s=document.getElementById('sheet'), a=document.getElementById('acts');
+  s.className='sheet on'; a.innerHTML='';
+  t[3].forEach(function(x){
+    var b=document.createElement('button'); if(x[2]) b.className='go';
+    b.textContent=x[0]; b.onclick=function(){ go(x[1]); };
+    a.appendChild(b);
+  });
+  go('track '+t[0]+' '+t[1]);
+}
+function go(cmd){
+  document.getElementById('deck').classList.remove('paused');
+  document.getElementById('log').textContent='→ '+cmd;
+}
+</script>
+</body>
+</html>

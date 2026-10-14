@@ -343,6 +343,8 @@ screen mas_os_setup():
                     text _("Обои"):
                         style "mas_os_subtitle"
 
+                    use mas_os_ibutton(_("Обновить"), Function(store.mas_os.refresh_user_catalog), "R", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="rescan")
+
                     $ wp_cur = store.mas_os.wallpaper_id()
                     $ wp_pack = store.mas_os.wallpaper_grid_cells()
                     $ wp_nrows = wp_pack[1]
@@ -365,7 +367,9 @@ screen mas_os_setup():
                                         yalign 0.5
                                         xoffset 8
 
-                                        if cell[2]:
+                                        if cell[3]:
+                                            use mas_os_pending_mark(width=160)
+                                        elif cell[2]:
                                             add store.mas_os.fit_image(cell[2], 160, 56):
                                                 yalign 0.5
                                         else:

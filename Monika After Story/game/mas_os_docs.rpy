@@ -414,15 +414,16 @@ init -8 python in mas_os:
                     (DOC_IMG_SPLASH, _("Корень Documents: saves, characters, custom_bgm, game.")),
                     (DOC_IMG_MENU, _("characters — подарки и oki doki.")),
                     (DOC_IMG_GAME, _("saves — persistent и .bak.")),
-                    (DOC_IMG_BG, _("_mas/log — журналы BIOS и take_monika.")),
-                    (DOC_IMG_BOX, _("game/Submods — паки. Служебное установщика — _mas/submods.")),
+                    (DOC_IMG_BG, _("log/ — журналы BIOS и take_monika.")),
+                    (DOC_IMG_BOX, _("game/Submods — паки. Служебное установщика — mas_bios/submods. Обои и шрифты — mas_os/.")),
                 ],
                 intro=_(
                     "Слева в «Файлах» — места. На Android корень — Documents/"
-                    "Monika_after_story. Служебное спрятано в _mas/."
+                    "Monika_after_story. Служебное спрятано в mas_bios/. "
+                    "Обои, шрифты и текстбоксы — в mas_os/."
                 ),
                 tags=["папки", "файлы", "persistent", "characters"],
-                summary=_("saves, characters, game, _mas."),
+                summary=_("saves, characters, game, mas_os, mas_bios."),
             ),
             doc_text(
                 "saves_where",
@@ -441,7 +442,8 @@ init -8 python in mas_os:
                     "Android, Documents (если выбрали в мастере и выдали "
                     "доступ ко всем файлам):\n"
                     "Documents/Monika_after_story/saves — переживает "
-                    "переустановку. Служебное — в _mas/.\n\n"
+                    "переустановку. Служебное — в mas_bios/, логи — в log/, "
+                    "обои и шрифты — в mas_os/.\n\n"
                     "Точный путь показывает раздел «Данные» и Настройки → "
                     "Система. Рядом лежат mas_os_prefs.json (вид оболочки) "
                     "и бэкапы persistent*.bak."
@@ -701,8 +703,9 @@ init -8 python in mas_os:
                     "Форматы: ogg, opus, mp3. Положите файлы и зайдите в "
                     "MAS OS или перезапустите — плеер подхватит трек.\n\n"
                     "Рядом лежат characters (подарки), chess_games, "
-                    "piano_songs, saves, game. Служебное — в _mas/ "
-                    "(архивы, логи, бэкапы). В корне есть README_MAS_OS.txt."
+                    "piano_songs, saves, game, log. Обои и шрифты — mas_os/. "
+                    "Служебное — в mas_bios/ (архивы, бэкапы). В корне есть "
+                    "README_MAS_OS.txt."
                 ),
                 tags=["музыка", "custom_bgm", "ogg"],
                 summary=_("custom_bgm: ogg/opus/mp3, затем плеер."),
@@ -947,6 +950,8 @@ init -8 python in mas_os:
             return DOC_IMG_SPLASH
         return None
 
+    _fit_cache = {}
+
     def fit_image(path, max_w, max_h=None):
         """
         Scale a loadable image to fit a box.
@@ -958,21 +963,31 @@ init -8 python in mas_os:
         max_w = max(int(max_w or 0), 1)
         if max_h:
             max_h = max(int(max_h), 1)
+        else:
+            max_h = 0
+        key = (unicode(path), max_w, max_h)
+        hit = _fit_cache.get(key)
+        if hit is not None:
+            return hit
         iw = ih = 0
         try:
             iw, ih = store.renpy.image_size(path)
         except Exception:
             iw = ih = 0
         if not iw or not ih:
-            return path
+            _fit_cache[key] = store.Null()
+            return store.Null()
         z = float(max_w) / float(iw)
         if max_h:
             z = min(z, float(max_h) / float(ih))
         if z > 1.0:
             z = 1.0
         if z >= 0.995:
+            _fit_cache[key] = path
             return path
-        return store.Transform(path, zoom=z)
+        disp = store.Transform(path, zoom=z)
+        _fit_cache[key] = disp
+        return disp
 
     def active_slide():
         page = _active_doc if isinstance(_active_doc, dict) else None

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Загрузки · Ресурсы</title>
+<script src="packs.js"></script>
+<style>
+  :root { --bg:#101318; --ink:#f2f4f7; --mute:#9aa3b2; --acc:#d7a441; --ok:#4caf7a; --line:#ffffff14; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app { max-width: 520px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
+  header { padding: 16px 16px 8px; }
+  .k { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--acc); }
+  h1 { margin: 4px 0 0; font-size: 22px; font-weight: 650; }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 16px 10px; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--acc); color: #111; }
+  .hd {
+    margin: 0 16px 12px; padding: 12px; background: #1a1f27; border-radius: 12px;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .seg { display: flex; background: #0d1014; border-radius: 8px; padding: 3px; }
+  .seg button {
+    border: 0; min-height: 34px; padding: 0 12px; background: transparent; color: var(--mute); font: inherit; font-size: 12px; border-radius: 6px;
+  }
+  .seg button.on { background: var(--acc); color: #111; font-weight: 700; }
+  .grp { padding: 0 16px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin: 8px 0 4px; }
+  .pack {
+    margin: 0 16px 8px; padding: 12px; background: #1a1f27; border-radius: 12px;
+  }
+  .top { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; }
+  .ck {
+    width: 22px; height: 22px; border: 2px solid var(--acc); border-radius: 4px;
+    display: grid; place-items: center; font-size: 12px; color: #111; background: transparent;
+  }
+  .ck.on { background: var(--acc); }
+  .ck.lock { border-color: #555; color: var(--mute); background: #2a2f38; }
+  .nm b { display: block; font-size: 14px; }
+  .nm span { font-size: 12px; color: var(--mute); }
+  .sz { font-size: 12px; color: var(--mute); }
+  .bar { height: 5px; background: #0d1014; border-radius: 99px; margin-top: 10px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--acc); }
+  .pack.ready .bar i { background: var(--ok); }
+  .st { font-size: 11px; color: var(--mute); margin-top: 6px; }
+  .body { flex: 1; overflow: auto; padding-bottom: 8px; }
+  .dock {
+    padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
+    background: #161a20; border-top: 1px solid var(--line);
+  }
+  .sum { display: flex; justify-content: space-between; font-size: 12px; color: var(--mute); margin-bottom: 8px; }
+  .install {
+    width: 100%; min-height: 50px; border: 0; border-radius: 10px; background: var(--acc);
+    color: #111; font-weight: 800; font-size: 15px;
+  }
+  #log { height: 44px; margin: 0; padding: 6px 16px; font-size: 11px; color: var(--mute); overflow: auto; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="k">Download Center</div>
+    <h1>Ресурсы игры</h1>
+  </header>
+  <div id="switch">
+    <a class="sw" href="nav.html">хаб</a>
+    <a class="sw" href="dl-cod.html">COD / DF</a>
+    <a class="sw on" href="dl-delta.html">ресурсы</a>
+    <a class="sw" href="dl-queue.html">очередь</a>
+    <a class="sw" href="dl-cards.html">карточки</a>
+    <a class="sw" href="rail-gear.html">шестерёнка</a>
+  </div>
+  <div class="hd">
+    <div>
+      <b>Качество архивов</b>
+      <div style="font-size:12px;color:var(--mute);margin-top:2px">как SD / HD в Delta Force</div>
+    </div>
+    <div class="seg">
+      <button type="button" id="sd" class="on">SD</button>
+      <button type="button" id="hdq">HD</button>
+    </div>
+  </div>
+  <div class="body" id="body"></div>
+  <div class="dock">
+    <div class="sum"><span id="sumL">выбрано</span><span id="sumR"></span></div>
+    <button class="install" id="install" type="button">Установить выбранное</button>
+  </div>
+  <pre id="log">база всегда включена · галочки на опциональном · одна кнопка внизу</pre>
+</div>
+<script>
+(function () {
+  var hd = false;
+  function selectedMb() {
+    var i, p, n = 0;
+    for (i = 0; i < biosDlPacks.length; i++) {
+      p = biosDlPacks[i];
+      if (p.status === "ready") continue;
+      if (p.required || p.selected) n += p.mb * (hd && p.group === "need" ? 1.6 : 1);
+    }
+    return n;
+  }
+  function render() {
+    var html = "", i, p, groups = [
+      ["need", "Базовый пакет"],
+      ["content", "Дополнительно"],
+      ["update", "Клиент"]
+    ], g, list, ck;
+    for (g = 0; g < groups.length; g++) {
+      list = biosDlFilter(groups[g][0]);
+      html += '<div class="grp">' + groups[g][1] + "</div>";
+      for (i = 0; i < list.length; i++) {
+        p = list[i];
+        ck = p.required ? "ck lock" : ("ck" + (p.selected ? " on" : ""));
+        html += '<div class="pack ' + p.status + '"><div class="top">' +
+          '<div class="' + ck + '" data-tog="' + p.id + '">' + (p.required || p.selected ? "✓" : "") + "</div>" +
+          "<div class=\"nm\"><b>" + p.name + "</b><span>" + p.file + (hd && p.required ? " · HD" : "") + "</span></div>" +
+          '<div class="sz">' + biosDlMb(p.mb * (hd && p.required ? 1.6 : 1)) + "</div></div>" +
+          '<div class="bar"><i style="width:' + p.pct + '%"></i></div>' +
+          '<div class="st">' + biosDlLabels[p.status] +
+          (p.status === "downloading" ? " · " + Math.round(p.pct) + "%" : "") + "</div></div>";
+      }
+    }
+    document.getElementById("body").innerHTML = html;
+    document.getElementById("sumL").textContent = biosDlTotals().readyToPlay ? "база готова" : "без базы MAS не стартует";
+    document.getElementById("sumR").textContent = "к загрузке " + biosDlMb(selectedMb());
+  }
+  document.getElementById("body").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-tog]");
+    var p;
+    if (!b) return;
+    p = biosDlGet(b.getAttribute("data-tog"));
+    if (p.required) return;
+    p.selected = !p.selected;
+    render();
+  });
+  document.getElementById("sd").onclick = function () {
+    hd = false;
+    this.className = "on";
+    document.getElementById("hdq").className = "";
+    render();
+  };
+  document.getElementById("hdq").onclick = function () {
+    hd = true;
+    this.className = "on";
+    document.getElementById("sd").className = "";
+    biosDlLog("downloadArchives", "качество HD");
+    render();
+  };
+  document.getElementById("install").onclick = function () {
+    var i, p, first = true;
+    for (i = 0; i < biosDlPacks.length; i++) {
+      p = biosDlPacks[i];
+      if (p.status === "ready") continue;
+      if (!(p.required || p.selected)) continue;
+      p.status = first ? "downloading" : "queued";
+      first = false;
+    }
+    biosDlLog("downloadArchives", "установить выбранное");
+    render();
+  };
+  biosDlStartTick(render);
+  render();
+})();
+</script>
+</body>
+</html>

@@ -757,8 +757,10 @@ screen mas_os_settings_classic():
                     text _("Обои MAS OS"):
                         style "mas_os_subtitle"
 
-                    text _("Картинки из папки game/mod_assets/mas_os/wallpapers. PNG или JPG. На Android файлы из APK и скачанные со Склада подхватываются с диска автоматически."):
+                    text _("Картинки из mas_os/обои. PNG или JPG. Каталог читается только по кнопке «Обновить»."):
                         style "mas_os_hint"
+
+                    use mas_os_ibutton(_("Обновить"), Function(store.mas_os.refresh_user_catalog), "R", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="rescan")
 
                     use mas_os_onoff(
                         _("Затемнение поверх обоев"),
@@ -790,7 +792,9 @@ screen mas_os_settings_classic():
                                         yalign 0.5
                                         xoffset 10
 
-                                        if cell[2]:
+                                        if cell[3]:
+                                            use mas_os_pending_mark(width=210)
+                                        elif cell[2]:
                                             add store.mas_os.fit_image(cell[2], 210, 56):
                                                 yalign 0.5
                                         else:
@@ -1057,7 +1061,7 @@ screen mas_os_settings_classic():
 
                     use mas_os_ibutton(_("Установщик MAS OS"), MASOSGo("setup"), "Up", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="boot")
 
-                    use mas_os_ibutton(_("Сбросить настройки MAS OS"), Show("mas_os_confirm", message=_("Сбросить оформление, звук и поведение оболочки к заводским?\nСкачанные файлы и прочитанные события не трогаем."), yes_action=[Function(store.mas_os.reset_os_settings), Hide("mas_os_confirm")], no_action=Hide("mas_os_confirm")), "R", "#8A3A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="reboot")
+                    use mas_os_ibutton(_("Сбросить настройки MAS OS"), Show("mas_os_confirm", message=_("Сбросить оформление, звук и поведение оболочки к заводским?\nСкачанные файлы и прочитанные события не трогаем.\nПосле сброса игра перезапустится, чтобы вернулись прежние шрифты."), yes_action=[Function(store.mas_os.reset_os_settings), Function(store.mas_os.reboot_shell)], no_action=Hide("mas_os_confirm")), "R", "#8A3A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="reboot")
 
                     use mas_os_ibutton(_("Проверить обновления порта"), Function(store.mas_os.upd_manual), "Up", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="updates", badge=store.mas_os.upd_has_update())
 
@@ -1173,46 +1177,58 @@ screen mas_os_about_classic():
             xysize (360, 340)
             padding (16, 12)
 
-            vbox:
-                spacing 8
-                xfill True
+            viewport:
+                xysize (328, 316)
+                draggable True
+                mousewheel True
+                scrollbars "vertical"
 
-                text store.mas_os.STUDIO:
-                    style "mas_os_studio_title"
-                    substitute False
+                vbox:
+                    spacing 8
+                    xfill True
 
-                text store.mas_os.STUDIO_LONG:
-                    style "mas_os_hint"
-                    size 13
-                    substitute False
+                    text store.mas_os.STUDIO:
+                        style "mas_os_studio_title"
+                        substitute False
 
-                text store.mas_os.ABOUT_BLURB:
-                    style "mas_os_hint"
-                    size 14
-                    xsize 320
-                    substitute False
+                    text store.mas_os.STUDIO_LONG:
+                        style "mas_os_hint"
+                        size 13
+                        substitute False
 
-                text _("Сейчас: [layout_name], тема [theme_name]"):
-                    style "mas_os_body"
-                    size 15
+                    text store.mas_os.ABOUT_BLURB:
+                        style "mas_os_hint"
+                        size 14
+                        xsize 300
+                        substitute False
 
-                text store.mas_os.ABOUT_NOTE:
-                    style "mas_os_hint"
-                    size 13
-                    xsize 320
-                    substitute False
+                    text _("Сейчас: [layout_name], тема [theme_name]"):
+                        style "mas_os_body"
+                        size 15
 
-                textbutton _("Открыть логи"):
-                    style "mas_os_nav_btn"
-                    text_style "mas_os_nav_btn_text"
-                    xsize 200
-                    action MASOSGo("logs")
+                    text store.mas_os.ABOUT_NOTE:
+                        style "mas_os_hint"
+                        size 13
+                        xsize 300
+                        substitute False
 
-                textbutton _("Тест дисклеймера"):
-                    style "mas_os_nav_btn"
-                    text_style "mas_os_nav_btn_text"
-                    xsize 200
-                    action [Function(store.mas_os.tos_begin, True), Show("mas_os_tos")]
+                    textbutton _("Открыть логи"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 280
+                        action MASOSGo("logs")
+
+                    textbutton _("Тест дисклеймера"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 280
+                        action [Function(store.mas_os.tos_begin, True), Show("mas_os_tos")]
+
+                    textbutton _("Титры оригинала"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 280
+                        action MASOSCredits()
 
         frame:
             style "mas_os_panel"

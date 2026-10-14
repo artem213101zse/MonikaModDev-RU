@@ -994,8 +994,6 @@ screen mas_os_gifts():
                     Return("back"),
                 ]
 
-        use mas_os_store_link("gift", "gifts", 420)
-
     if not store.mas_os.wm_embedded():
         key "K_ESCAPE" action [Function(store.mas_os.stop_gift_typing), Return("back")]
         key "K_AC_BACK" action If(

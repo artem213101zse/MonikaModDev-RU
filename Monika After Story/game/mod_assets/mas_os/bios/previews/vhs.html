@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · VHS</title>
+<style>
+  html,body { margin:0; height:100%; background:#050204; color:#ffd6ea; font-family:"VT323", ui-monospace, Consolas, monospace; }
+  .cam {
+    position:fixed; inset:10px; border:2px solid #ff2d6a88; pointer-events:none;
+  }
+  .cam:after {
+    content:""; position:absolute; inset:0;
+    background: repeating-linear-gradient(0deg, #ff2d6a0a 0 2px, transparent 2px 4px);
+  }
+  .hud { position:fixed; top:18px; left:18px; right:18px; display:flex; justify-content:space-between; font-size:18px; }
+  .rec { color:#ff2d6a; }
+  .rec i { display:inline-block; width:10px; height:10px; background:#ff2d6a; border-radius:50%; margin-right:6px; animation:blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity:0; } }
+  .view {
+    position:fixed; left:16px; right:16px; top:56px; bottom:168px;
+    overflow:auto; -webkit-overflow-scrolling:touch;
+  }
+  .ch {
+    width:100%; display:flex; gap:12px; align-items:center; text-align:left;
+    border:0; background:transparent; color:inherit; padding:10px 0; min-height:56px; font:inherit; font-size:20px;
+    border-bottom:1px solid #ff2d6a22;
+  }
+  .tc { color:#39ff14; width:72px; }
+  .go { position:fixed; left:16px; right:16px; bottom:calc(16px + env(safe-area-inset-bottom));
+    min-height:56px; border:0; background:#ff2d6a; color:#fff; font-size:22px; letter-spacing:.2em; }
+  .sheet {
+    position:fixed; left:12px; right:12px; bottom:84px; background:#12040add; padding:12px;
+    display:none; border:1px solid #ff2d6a55;
+  }
+  .sheet.on { display:block; }
+  .sheet .row { display:flex; flex-wrap:wrap; gap:8px; }
+  .sheet button { flex:1 1 40%; min-height:44px; border:1px solid #ff2d6a; background:transparent; color:#ffd6ea; }
+  .log { font-size:14px; color:#39ff14; margin-top:8px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<div class="cam"></div>
+<div class="hud"><span class="rec"><i></i>REC</span><span id="clock">00:00:00</span><span>SP</span></div>
+<div class="view" id="view"></div>
+<div class="sheet" id="sheet">
+  <div class="row" id="acts"></div>
+  <div class="log" id="log">TRACK 00 · STANDBY</div>
+</div>
+<button class="go" onclick="run('startGame')">▶ PLAY</button>
+<script>
+var CH = [
+  ['00:00','PLAY MAS','play',[['ROOM','startGame','go'],['SAFE','startSafe']]],
+  ['00:07','ARCHIVES','archives',[['MOE','downloadDdlcMoe','go'],['FILE','pickArchive'],['CHK','checkArchives']]],
+  ['00:15','CONTENT','content',[['ZIP','pickSubmodZip','go'],['LIB','listSubmods']]],
+  ['00:22','SAVES','saves',[['IN','pickSavesZip','go'],['OUT','exportSaves']]],
+  ['00:31','MONIKA','recovery',[['SCAN','recoverMonikaScan','go'],['HOME','recoverMonikaHome']]],
+  ['00:40','FILES','files',[['DOCS','openDocuments','go'],['GIFT','pickGift'],['BGM','pickMusic']]],
+  ['00:48','ENGINE','engine',[['UCI','testStockfish','go'],['GO','stockfishGo']]],
+  ['00:55','SYSTEM','system',[['TRACE','showTraceback','go'],['APK','checkUpdate']]]
+];
+var v=document.getElementById('view');
+CH.forEach(function(c,i){
+  var b=document.createElement('button'); b.className='ch';
+  b.innerHTML='<span class="tc">'+c[0]+'</span><span>'+c[1]+'</span>';
+  b.onclick=function(){ open(i); };
+  v.appendChild(b);
+});
+function open(i){
+  var c=CH[i], s=document.getElementById('sheet'), a=document.getElementById('acts');
+  s.className='sheet on'; a.innerHTML='';
+  c[3].forEach(function(x){
+    var b=document.createElement('button'); b.textContent=x[0];
+    b.onclick=function(){ run(x[1]); }; a.appendChild(b);
+  });
+  run('cue '+c[0]+' '+c[1]);
+}
+function run(x){ document.getElementById('log').textContent='→ '+x; }
+setInterval(function(){
+  var d=new Date(), p=function(n){return ('0'+n).slice(-2)};
+  document.getElementById('clock').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+},1000);
+</script>
+</body>
+</html>

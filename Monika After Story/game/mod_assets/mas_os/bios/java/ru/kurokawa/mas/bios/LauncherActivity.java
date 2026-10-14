@@ -77,7 +77,8 @@ public class LauncherActivity extends Activity {
     private volatile String updateApkDigest;
     private volatile String updateApkShaUrl;
     private volatile long updateAssetSize = -1L;
-    private volatile boolean updateNeeded = true;
+    private volatile boolean updateNeeded = false;
+    private volatile boolean updateChecked = false;
 
     private boolean downloadRunning = false;
     private volatile boolean downloadCancel = false;
@@ -242,6 +243,9 @@ public class LauncherActivity extends Activity {
         if (resultCode != RESULT_OK || data == null || data.getData() == null) {
             appendStatus("\nотмена");
             logLine("picker cancel");
+            if (requestCode == REQ_PICK_RPA && !downloadRunning) {
+                pushDlState("idle");
+            }
             return;
         }
         if (requestCode == REQ_PICK_IMAGE) {
@@ -846,19 +850,26 @@ public class LauncherActivity extends Activity {
     private void resolvePaths() {
         File documents = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
         sideloadDir = new File(documents, "Monika_after_story");
-        File mas = new File(sideloadDir, "_mas");
+        File mas = new File(sideloadDir, "mas_bios");
         archivesDir = new File(mas, "archives");
         incomingDir = archivesDir;
         transferDir = new File(sideloadDir, "Transfer");
         gameOverlayDir = new File(sideloadDir, "game");
-        logFile = new File(new File(mas, "log"), "launcher.log");
+        logFile = new File(new File(sideloadDir, "log"), "launcher.log");
     }
 
     private File masDir() {
         if (sideloadDir == null) {
             resolvePaths();
         }
-        return new File(sideloadDir, "_mas");
+        return new File(sideloadDir, "mas_bios");
+    }
+
+    private File masOsDir() {
+        if (sideloadDir == null) {
+            resolvePaths();
+        }
+        return new File(sideloadDir, "mas_os");
     }
 
     private File flagsDir() {
@@ -890,6 +901,11 @@ public class LauncherActivity extends Activity {
 
     private void migrateOldLayout() {
         File mas = masDir();
+        File legacyMas = new File(sideloadDir, "_mas");
+        if (legacyMas.isDirectory() && !sameFile(legacyMas, mas)) {
+            moveDirContents(legacyMas, mas);
+            deleteIfEmpty(legacyMas);
+        }
         File arch = archivesDir;
         File sm = new File(mas, "submods");
         moveDirContents(new File(sideloadDir, "incoming"), arch);
@@ -898,30 +914,156 @@ public class LauncherActivity extends Activity {
             moveDirContents(oldArch, arch);
         }
         moveDirContents(new File(sideloadDir, "backups"), backupsDir());
-        moveDirContents(new File(sideloadDir, "log"), new File(mas, "log"));
+        File rootLog = new File(sideloadDir, "log");
+        moveDirContents(new File(mas, "log"), rootLog);
+        moveDirContents(new File(legacyMas, "log"), rootLog);
         moveDirContents(new File(sideloadDir, "flags"), flagsDir());
         moveDirContents(new File(sideloadDir, "submods_installed"), new File(sm, "installed"));
         moveDirContents(new File(sideloadDir, "submod_vanilla"), new File(sm, "vanilla"));
         moveDirContents(new File(sideloadDir, "submod_payloads"), new File(sm, "payloads"));
         moveDirContents(new File(sideloadDir, "submod_backups"), new File(sm, "backups"));
         moveDirContents(new File(sideloadDir, "Transfer"), arch);
-        File logd = new File(mas, "log");
-        moveOneFile(new File(sideloadDir, "launcher.log"), new File(logd, "launcher.log"));
-        moveOneFile(new File(sideloadDir, "traceback.txt"), new File(logd, "traceback.txt"));
+        moveOneFile(new File(sideloadDir, "launcher.log"), new File(rootLog, "launcher.log"));
+        moveOneFile(new File(sideloadDir, "traceback.txt"), new File(rootLog, "traceback.txt"));
         moveOneFile(new File(sideloadDir, ".mas_force_monika_home"),
                 new File(flagsDir(), ".mas_force_monika_home"));
         moveOneFile(new File(sideloadDir, "mas_os_safe_mode"),
                 new File(flagsDir(), "mas_os_safe_mode"));
+        ensureMasOsTree();
+        sortMasOsDumps();
         deleteIfEmpty(new File(sideloadDir, "incoming"));
         deleteIfEmpty(oldArch);
         deleteIfEmpty(new File(sideloadDir, "backups"));
-        deleteIfEmpty(new File(sideloadDir, "log"));
         deleteIfEmpty(new File(sideloadDir, "flags"));
         deleteIfEmpty(new File(sideloadDir, "submods_installed"));
         deleteIfEmpty(new File(sideloadDir, "submod_vanilla"));
         deleteIfEmpty(new File(sideloadDir, "submod_payloads"));
         deleteIfEmpty(new File(sideloadDir, "submod_backups"));
         deleteIfEmpty(new File(sideloadDir, "Transfer"));
+        deleteIfEmpty(legacyMas);
+    }
+
+    private File masOsSub(String name) {
+        return new File(masOsDir(), name);
+    }
+
+    private void ensureMasOsTree() {
+        File root = masOsDir();
+        if (!root.isDirectory() && !root.mkdirs()) {
+            return;
+        }
+        touchNomedia(root);
+        String[] kids = new String[] {"обои", "шрифты", "текстбоксы", "неопределено"};
+        for (int i = 0; i < kids.length; i++) {
+            File d = masOsSub(kids[i]);
+            if (!d.isDirectory()) {
+                d.mkdirs();
+            }
+            touchNomedia(d);
+        }
+        writeMasOsReadme(root);
+    }
+
+    private void writeMasOsReadme(File dir) {
+        if (dir == null || !dir.isDirectory()) {
+            return;
+        }
+        File readme = new File(dir, "README.txt");
+        if (readme.isFile()) {
+            return;
+        }
+        String body = "MAS OS — пользовательские файлы оболочки\n"
+                + "Сюда копируйте обои, шрифты и текстбоксы.\n"
+                + "  обои/         png, jpg, jpeg\n"
+                + "  шрифты/       ttf, otf\n"
+                + "  текстбоксы/   png\n"
+                + "Файл, брошенный прямо сюда, игра разложит сама.\n"
+                + "Непонятные файлы попадут в «неопределено».\n";
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(readme);
+            out.write(body.getBytes("UTF-8"));
+        } catch (Exception ignored) {
+        } finally {
+            closeQuietly(out);
+        }
+    }
+
+    private File classifyMasOsFile(String name) {
+        if (name == null) {
+            return masOsSub("неопределено");
+        }
+        String low = name.toLowerCase(Locale.US);
+        int dot = low.lastIndexOf('.');
+        String ext = dot >= 0 ? low.substring(dot) : "";
+        String stem = dot >= 0 ? low.substring(0, dot) : low;
+        if (".ttf".equals(ext) || ".otf".equals(ext) || ".ttc".equals(ext)) {
+            return masOsSub("шрифты");
+        }
+        if (".png".equals(ext) || ".jpg".equals(ext) || ".jpeg".equals(ext)
+                || ".webp".equals(ext) || ".bmp".equals(ext) || ".gif".equals(ext)) {
+            if (stem.startsWith("textbox") || stem.startsWith("tb_")
+                    || stem.startsWith("namebox") || stem.startsWith("gui_textbox")) {
+                return masOsSub("текстбоксы");
+            }
+            return masOsSub("обои");
+        }
+        return masOsSub("неопределено");
+    }
+
+    private boolean isMasOsKnownDir(String name) {
+        if (name == null) {
+            return false;
+        }
+        return "обои".equals(name) || "шрифты".equals(name)
+                || "текстбоксы".equals(name) || "неопределено".equals(name);
+    }
+
+    private void sortMasOsDumps() {
+        File root = masOsDir();
+        if (root == null || !root.isDirectory()) {
+            return;
+        }
+        ensureMasOsTree();
+        File[] kids = root.listFiles();
+        if (kids == null) {
+            return;
+        }
+        for (int i = 0; i < kids.length; i++) {
+            File kid = kids[i];
+            if (kid == null) {
+                continue;
+            }
+            String n = kid.getName();
+            if (".nomedia".equals(n) || "README.txt".equals(n)
+                    || "README_MAS_OS.txt".equals(n)) {
+                continue;
+            }
+            if (kid.isDirectory()) {
+                String low = n.toLowerCase(Locale.US);
+                File dest = null;
+                if ("wallpapers".equals(low) || "wallpaper".equals(low)) {
+                    dest = masOsSub("обои");
+                } else if ("fonts".equals(low) || "font".equals(low)) {
+                    dest = masOsSub("шрифты");
+                } else if ("textboxes".equals(low) || "textbox".equals(low)) {
+                    dest = masOsSub("текстбоксы");
+                } else if ("unknown".equals(low) || "unknown_content".equals(low)) {
+                    dest = masOsSub("неопределено");
+                } else if (!isMasOsKnownDir(n)) {
+                    dest = new File(masOsSub("неопределено"), n);
+                }
+                if (dest != null) {
+                    moveDirContents(kid, dest);
+                    deleteIfEmpty(kid);
+                }
+                continue;
+            }
+            if (kid.isFile()) {
+                File destDir = classifyMasOsFile(n);
+                moveOneFile(kid, new File(destDir, n));
+            }
+        }
     }
 
     private void moveDirContents(File from, File to) {
@@ -1015,7 +1157,7 @@ public class LauncherActivity extends Activity {
         File mas = masDir();
         JSONObject blob = new JSONObject();
         try {
-            blob.put("layout", 2);
+            blob.put("layout", 3);
             blob.put("root", sideloadDir.getAbsolutePath());
             blob.put("saves", savesDir().getAbsolutePath());
             blob.put("characters", new File(sideloadDir, "characters").getAbsolutePath());
@@ -1023,10 +1165,15 @@ public class LauncherActivity extends Activity {
             blob.put("chess_games", new File(sideloadDir, "chess_games").getAbsolutePath());
             blob.put("piano_songs", new File(sideloadDir, "piano_songs").getAbsolutePath());
             blob.put("game", gameOverlayDir.getAbsolutePath());
+            blob.put("log", new File(sideloadDir, "log").getAbsolutePath());
+            blob.put("mas_os", masOsDir().getAbsolutePath());
+            blob.put("wallpapers", masOsSub("обои").getAbsolutePath());
+            blob.put("fonts", masOsSub("шрифты").getAbsolutePath());
+            blob.put("textboxes", masOsSub("текстбоксы").getAbsolutePath());
+            blob.put("unknown", masOsSub("неопределено").getAbsolutePath());
             blob.put("system", mas.getAbsolutePath());
             blob.put("archives", archivesDir.getAbsolutePath());
             blob.put("backups", backupsDir().getAbsolutePath());
-            blob.put("log", new File(mas, "log").getAbsolutePath());
             blob.put("flags", flagsDir().getAbsolutePath());
             blob.put("submods", new File(mas, "submods").getAbsolutePath());
         } catch (Exception e) {
@@ -1200,6 +1347,12 @@ public class LauncherActivity extends Activity {
                 new File(sideloadDir, "custom_bgm"),
                 new File(sideloadDir, "chess_games"),
                 new File(sideloadDir, "piano_songs"),
+                new File(sideloadDir, "log"),
+                masOsDir(),
+                masOsSub("обои"),
+                masOsSub("шрифты"),
+                masOsSub("текстбоксы"),
+                masOsSub("неопределено"),
                 masDir()
         };
     }
@@ -1342,6 +1495,16 @@ public class LauncherActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void shareExport(final String name) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    shareBackupFile(name);
+                }
+            });
+        }
+
+        @JavascriptInterface
         public void checkUpdate() {
             runOnUiThread(new Runnable() {
                 @Override
@@ -1416,9 +1579,21 @@ public class LauncherActivity extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    writeFlag("skip_submods");
-                    writeSafeModeFlag();
+                    if (!safeModeOn()) {
+                        freezeUserContent();
+                        writeStickySafe();
+                    }
                     startGame();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void toggleSafeMode() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    toggleSafeModeNow();
                 }
             });
         }
@@ -1485,6 +1660,9 @@ public class LauncherActivity extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    if (refuseIfSafe("музыку")) {
+                        return;
+                    }
                     pickDestKind = "music";
                     pickAnyFile();
                 }
@@ -1514,7 +1692,7 @@ public class LauncherActivity extends Activity {
         @JavascriptInterface
         public void setBiosView(final String name) {
             String view = "classic";
-            if ("island".equals(name) || "deck".equals(name) || "masl".equals(name)) {
+            if ("island".equals(name) || "deck".equals(name) || "masl".equals(name) || "ideal3".equals(name)) {
                 view = name;
             }
             getSharedPreferences("mas_bios", MODE_PRIVATE)
@@ -1524,11 +1702,69 @@ public class LauncherActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void setBiosPref(final String key, final String value) {
+            if (key == null) {
+                return;
+            }
+            String k = key;
+            String v = value == null ? "" : value;
+            if ("theme".equals(k)) {
+                if (!"light".equals(v)) {
+                    v = "dark";
+                }
+            } else if ("anim".equals(k)) {
+                if (!"off".equals(v)) {
+                    v = "on";
+                }
+            } else if ("rail".equals(k)) {
+                if (!"slim".equals(v)) {
+                    v = "open";
+                }
+            } else if ("log".equals(k)) {
+                if (!"open".equals(v)) {
+                    v = "slim";
+                }
+            } else {
+                return;
+            }
+            getSharedPreferences("mas_bios", MODE_PRIVATE)
+                    .edit()
+                    .putString(k, v)
+                    .apply();
+        }
+
+        @JavascriptInterface
         public void listUrlHistory() {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     evalJs("biosUrlHistory", loadUrlHistory().toString());
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void pasteClipboard() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    String text = "";
+                    try {
+                        android.content.ClipboardManager cm =
+                                (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                        if (cm != null && cm.hasPrimaryClip()) {
+                            ClipData clip = cm.getPrimaryClip();
+                            if (clip != null && clip.getItemCount() > 0) {
+                                CharSequence raw = clip.getItemAt(0).coerceToText(LauncherActivity.this);
+                                if (raw != null) {
+                                    text = raw.toString();
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        logLine("clipboard " + messageOf(e));
+                    }
+                    evalJs("biosPaste", text);
                 }
             });
         }
@@ -1587,6 +1823,26 @@ public class LauncherActivity extends Activity {
                     appendStatus("\n" + SubmodInstaller.listReport(sideloadDir));
                     evalJs("biosSubmods", SubmodInstaller.listJson(sideloadDir));
                     pushStatusToPage();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void listExports() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    pushExportsToPage();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void peekCharacters() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    peekCharactersNow();
                 }
             });
         }
@@ -1753,6 +2009,26 @@ public class LauncherActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void saveJournal(final String text) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    saveJournalNow(text);
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void shareJournal(final String text) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    shareJournalNow(text);
+                }
+            });
+        }
+
+        @JavascriptInterface
         public void downloadArchives() {
             runOnUiThread(new Runnable() {
                 @Override
@@ -1799,6 +2075,27 @@ public class LauncherActivity extends Activity {
                 @Override
                 public void run() {
                     LauncherActivity.this.pickArchive();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void deleteArchives() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            deleteGameArchives();
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    pushStatusToPage();
+                                }
+                            });
+                        }
+                    }).start();
                 }
             });
         }
@@ -2101,6 +2398,20 @@ public class LauncherActivity extends Activity {
             @Override
             public void run() {
                 evalJs("biosDlState", state);
+            }
+        });
+    }
+
+    private void finishArchiveJob() {
+        downloadRunning = false;
+        downloadPaused = false;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                boolean ok = archivesReady();
+                evalJs("biosDlState", "idle");
+                pushWebProgress(ok ? "готово" : "", ok ? 100 : -1);
+                pushStatusToPage();
             }
         });
     }
@@ -2477,6 +2788,7 @@ public class LauncherActivity extends Activity {
             zos.finish();
             appendStatus("\nЭкспорт " + zip.getAbsolutePath() + ", файлов: " + count);
             logLine("export " + zip.getAbsolutePath() + " files " + count);
+            pushExportsToPage();
         } catch (Exception e) {
             appendStatus("\nЭкспорт не удался: " + messageOf(e));
             logLine("export failed " + messageOf(e));
@@ -2538,6 +2850,9 @@ public class LauncherActivity extends Activity {
     }
 
     private void pickImage() {
+        if (refuseIfSafe("обои")) {
+            return;
+        }
         if (sideloadDir == null) {
             resolvePaths();
         }
@@ -2558,6 +2873,9 @@ public class LauncherActivity extends Activity {
     }
 
     private void pickSubmodArchive() {
+        if (refuseIfSafe("пакет")) {
+            return;
+        }
         if (!canUseDocuments()) {
             appendStatus("\nНет доступа ко всем файлам.");
             pushStatusToPage();
@@ -2623,6 +2941,9 @@ public class LauncherActivity extends Activity {
     }
 
     private void downloadSubmodFromUrl(String raw) {
+        if (refuseIfSafe("пакет")) {
+            return;
+        }
         if (!canUseDocuments()) {
             appendStatus("\nНет доступа ко всем файлам.");
             pushStatusToPage();
@@ -2654,6 +2975,9 @@ public class LauncherActivity extends Activity {
     }
 
     private void startSubmodDownload(String raw) {
+        if (refuseIfSafe("пакет")) {
+            return;
+        }
         final String url = SubmodInstaller.rewriteGithubUrl(raw);
         if (url.length() == 0 || !(url.startsWith("http://") || url.startsWith("https://"))) {
             appendStatus("\nНужна http(s) ссылка на zip или репозиторий GitHub.");
@@ -2691,6 +3015,7 @@ public class LauncherActivity extends Activity {
                     installSubmodFile(dest);
                 } finally {
                     downloadRunning = false;
+                    pushDlState("idle");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -2703,6 +3028,9 @@ public class LauncherActivity extends Activity {
     }
 
     private void copyPickedSubmod(Uri uri) {
+        if (refuseIfSafe("пакет")) {
+            return;
+        }
         if (incomingDir == null) {
             resolvePaths();
         }
@@ -3038,6 +3366,22 @@ public class LauncherActivity extends Activity {
         if (blow.endsWith(".ogg") || blow.endsWith(".opus") || blow.endsWith(".mp3")) {
             return new File(new File(sideloadDir, "custom_bgm"), base);
         }
+        if (blow.endsWith(".ttf") || blow.endsWith(".otf") || blow.endsWith(".ttc")) {
+            return new File(masOsSub("шрифты"), base);
+        }
+        if (blow.endsWith(".png") || blow.endsWith(".jpg") || blow.endsWith(".jpeg")
+                || blow.endsWith(".webp")) {
+            String stem = blow;
+            int d = stem.lastIndexOf('.');
+            if (d >= 0) {
+                stem = stem.substring(0, d);
+            }
+            if (stem.startsWith("textbox") || stem.startsWith("tb_")
+                    || stem.startsWith("namebox")) {
+                return new File(masOsSub("текстбоксы"), base);
+            }
+            return new File(masOsSub("обои"), base);
+        }
         return null;
     }
 
@@ -3057,13 +3401,41 @@ public class LauncherActivity extends Activity {
     private String biosViewName() {
         try {
             SharedPreferences prefs = getSharedPreferences("mas_bios", MODE_PRIVATE);
-            String view = prefs.getString("view", "classic");
-            if ("island".equals(view) || "deck".equals(view) || "masl".equals(view)) {
+            String view = prefs.getString("view", "ideal3");
+            if ("island".equals(view) || "deck".equals(view) || "masl".equals(view) || "ideal3".equals(view)) {
                 return view;
             }
         } catch (Exception ignored) {
         }
-        return "classic";
+        return "ideal3";
+    }
+
+    private void pushPrefsToPage() {
+        try {
+            SharedPreferences prefs = getSharedPreferences("mas_bios", MODE_PRIVATE);
+            String theme = prefs.getString("theme", "dark");
+            if (!"light".equals(theme)) {
+                theme = "dark";
+            }
+            String anim = prefs.getString("anim", "on");
+            if (!"off".equals(anim)) {
+                anim = "on";
+            }
+            String rail = prefs.getString("rail", "");
+            if (!"slim".equals(rail) && !"open".equals(rail)) {
+                rail = "auto";
+            }
+            String log = prefs.getString("log", "slim");
+            if (!"open".equals(log)) {
+                log = "slim";
+            }
+            String js = "if(window.biosSetPrefs){biosSetPrefs({theme:" + jsString(theme)
+                    + ",anim:" + jsString(anim)
+                    + ",rail:" + jsString(rail)
+                    + ",log:" + jsString(log) + "});}";
+            evalRaw(js);
+        } catch (Exception ignored) {
+        }
     }
 
     private void pickAnyFile() {
@@ -3108,6 +3480,22 @@ public class LauncherActivity extends Activity {
         if (low.endsWith(".json")) {
             return new File(new File(sideloadDir, "piano_songs"), name);
         }
+        if (low.endsWith(".ttf") || low.endsWith(".otf") || low.endsWith(".ttc")) {
+            return new File(masOsSub("шрифты"), name);
+        }
+        if (low.endsWith(".png") || low.endsWith(".jpg") || low.endsWith(".jpeg")
+                || low.endsWith(".webp")) {
+            String stem = low;
+            int d = stem.lastIndexOf('.');
+            if (d >= 0) {
+                stem = stem.substring(0, d);
+            }
+            if (stem.startsWith("textbox") || stem.startsWith("tb_")
+                    || stem.startsWith("namebox")) {
+                return new File(masOsSub("текстбоксы"), name);
+            }
+            return new File(masOsSub("обои"), name);
+        }
         if (low.endsWith(".rpa")) {
             return new File(archivesDir, name);
         }
@@ -3132,6 +3520,12 @@ public class LauncherActivity extends Activity {
             name = name.substring(slash + 1);
         }
         File dest = destForPickedName(name);
+        if (destBlockedInSafe(dest)) {
+            appendStatus("\nБезопасный режим: в эту папку класть нельзя. Выключи в BIOS → Ремонт.");
+            logLine("safe-mode refuse dest " + dest.getAbsolutePath());
+            pickDestKind = "auto";
+            return;
+        }
         File parent = dest.getParentFile();
         if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
             appendStatus("\nНе создалась папка " + parent.getAbsolutePath());
@@ -3199,7 +3593,8 @@ public class LauncherActivity extends Activity {
         out.append("\nchess_games: ").append(countFiles(chess));
         out.append("\npiano_songs: ").append(countFiles(piano));
         out.append("\nsaves: ").append(countFiles(saves));
-        out.append("\n_mas/archives: ").append(countFiles(archivesDir));
+        out.append("\nmas_bios/archives: ").append(countFiles(archivesDir));
+        out.append("\nmas_os/обои: ").append(countFiles(masOsSub("обои")));
         out.append("\nобои: ").append(wallpaper.isFile()
                 ? (wallpaper.length() + " байт") : "нет");
         out.append("\n").append(packs);
@@ -3244,6 +3639,9 @@ public class LauncherActivity extends Activity {
     }
 
     private void copyWallpaper(Uri uri) {
+        if (refuseIfSafe("обои")) {
+            return;
+        }
         File dest = new File(sideloadDir, "custom_wallpaper.png");
         try {
             if (dest.getParentFile() != null && !dest.getParentFile().isDirectory()) {
@@ -3385,19 +3783,29 @@ public class LauncherActivity extends Activity {
     }
 
     private void checkUpdateInBackground() {
+        checkUpdateInBackground(false);
+    }
+
+    private void checkUpdateInBackground(boolean quiet) {
         HttpURLConnection conn = null;
         try {
             conn = openGet(RELEASES_URL);
             int code = conn.getResponseCode();
             if (code == 404) {
                 updateApkUrl = null;
-                postStatus("\nРелиза нет.");
-                logLine("release missing");
+                updateNeeded = false;
+                if (!quiet) {
+                    postStatus("\nРелиза нет.");
+                    logLine("release missing");
+                }
+                pushStatusToPage();
                 return;
             }
             if (code != HttpURLConnection.HTTP_OK) {
-                postStatus("\nСервер релизов ответил " + code);
-                logLine("release http " + code);
+                if (!quiet) {
+                    postStatus("\nСервер релизов ответил " + code);
+                    logLine("release http " + code);
+                }
                 return;
             }
             String body = readStream(conn.getInputStream());
@@ -3472,11 +3880,16 @@ public class LauncherActivity extends Activity {
             if (apkName != null) {
                 report.append("\nНайден ").append(apkName);
             }
-            postStatus(report.toString());
-            logLine("release " + tag + " apk " + apkName);
+            if (!quiet) {
+                postStatus(report.toString());
+                logLine("release " + tag + " apk " + apkName);
+            }
+            pushStatusToPage();
         } catch (Exception e) {
-            postStatus("\nПроверка релиза не удалась: " + messageOf(e));
-            logLine("release failed " + messageOf(e));
+            if (!quiet) {
+                postStatus("\nПроверка релиза не удалась: " + messageOf(e));
+                logLine("release failed " + messageOf(e));
+            }
         } finally {
             if (conn != null) {
                 conn.disconnect();
@@ -3542,6 +3955,7 @@ public class LauncherActivity extends Activity {
                     });
                 } finally {
                     downloadRunning = false;
+                    pushDlState("idle");
                 }
             }
         }).start();
@@ -3599,6 +4013,7 @@ public class LauncherActivity extends Activity {
                     });
                 } finally {
                     downloadRunning = false;
+                    pushDlState("idle");
                 }
             }
         }).start();
@@ -3705,10 +4120,21 @@ public class LauncherActivity extends Activity {
     }
 
     private void shareSaves() {
-        if (newestBackupZip() == null) {
-            exportSaves();
+        shareBackupFile(null);
+    }
+
+    private void shareBackupFile(String rawName) {
+        File zip = null;
+        String name = rawName == null ? "" : rawName.trim();
+        if (name.length() > 0) {
+            name = new File(name).getName();
+            if (name.length() > 0 && !name.equals("..") && !name.contains("/") && !name.contains("\\")) {
+                zip = new File(backupsDir(), name);
+            }
         }
-        File zip = newestBackupZip();
+        if (zip == null || !zip.isFile()) {
+            zip = newestBackupZip();
+        }
         if (zip == null || !zip.isFile()) {
             appendStatus("\nПоделиться: нет zip бэкапа.");
             logLine("share no zip");
@@ -3744,7 +4170,7 @@ public class LauncherActivity extends Activity {
             }
         }
         if (zip == null) {
-            appendStatus("\nИмпорт: нет zip в _mas/backups и нет _mas/archives/saves.zip.");
+            appendStatus("\nИмпорт: нет zip в mas_bios/backups и нет mas_bios/archives/saves.zip.");
             logLine("import no zip");
             return;
         }
@@ -4014,9 +4440,52 @@ public class LauncherActivity extends Activity {
             report.append("\nвсё на месте, можно запускать MAS");
         } else {
             report.append("\nне хватает ").append(missing);
-            report.append(". Скачай с ddlc.moe / GitHub или положи .rpa / ddlc-win.zip в _mas/archives");
+            report.append(". Скачай автоматически с ddlc.moe или выбери файл ddlc-win.zip");
         }
         appendStatus(report.toString());
+    }
+
+    private void deleteGameArchives() {
+        if (downloadRunning) {
+            postStatus("\nСначала дождись загрузки или нажми Отмена.");
+            return;
+        }
+        if (sideloadDir == null) {
+            resolvePaths();
+        }
+        if (archivesDir != null) {
+            deleteIfFile(new File(archivesDir, ddlcZipName()));
+            File stash = new File(archivesDir, "ddlc");
+            if (stash.isDirectory()) {
+                deleteTree(stash);
+            }
+            String[] rpas = officialRpaNames();
+            for (int i = 0; i < rpas.length; i++) {
+                if (rpas[i] == null || rpas[i].length() == 0) {
+                    continue;
+                }
+                deleteIfFile(new File(archivesDir, rpas[i]));
+            }
+        }
+        if (gameOverlayDir != null) {
+            String[] trees = new String[] { "images", "bgm", "sfx" };
+            for (int i = 0; i < trees.length; i++) {
+                File dir = new File(gameOverlayDir, trees[i]);
+                if (dir.isDirectory()) {
+                    deleteTree(dir);
+                }
+            }
+            String[] rpas = officialRpaNames();
+            for (int i = 0; i < rpas.length; i++) {
+                if (rpas[i] == null || rpas[i].length() == 0) {
+                    continue;
+                }
+                deleteIfFile(new File(gameOverlayDir, rpas[i]));
+            }
+        }
+        postStatus("\nАрхивы DDLC удалены. Сейвы, подарки и сабмоды на месте. Можно скачать базу заново.");
+        logLine("archives deleted");
+        pushDlState("idle");
     }
 
     private void downloadArchives() {
@@ -4051,6 +4520,7 @@ public class LauncherActivity extends Activity {
         downloadCancel = false;
         downloadPaused = false;
         downloadRunning = true;
+        pushDlState("running");
         appendStatus("\nКачаю архивы DDLC.");
         new Thread(new Runnable() {
             @Override
@@ -4099,13 +4569,7 @@ public class LauncherActivity extends Activity {
                     postStatus("\nархивов готово: " + got);
                     reportArchiveStatus();
                 } finally {
-                    downloadRunning = false;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            pushStatusToPage();
-                        }
-                    });
+                    finishArchiveJob();
                 }
             }
         }).start();
@@ -4134,15 +4598,18 @@ public class LauncherActivity extends Activity {
                 openAllFilesSettings();
             }
             pushStatusToPage();
+            pushDlState("idle");
             return;
         }
         if (archivesDir == null || (!archivesDir.isDirectory() && !archivesDir.mkdirs())) {
             appendStatus("\nНет папки archives.");
+            pushDlState("idle");
             return;
         }
         downloadCancel = false;
         downloadPaused = false;
         downloadRunning = true;
+        pushDlState("running");
         appendStatus("\nКачаю DDLC с ddlc.moe.");
         new Thread(new Runnable() {
             @Override
@@ -4169,13 +4636,7 @@ public class LauncherActivity extends Activity {
                     postStatus("\nDDLC с ddlc.moe: " + messageOf(e));
                     logLine("ddlc.moe failed " + messageOf(e));
                 } finally {
-                    downloadRunning = false;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            pushStatusToPage();
-                        }
-                    });
+                    finishArchiveJob();
                 }
             }
         }).start();
@@ -4556,7 +5017,7 @@ public class LauncherActivity extends Activity {
                 reportArchiveStatus();
             }
         } finally {
-            downloadRunning = false;
+            finishArchiveJob();
         }
     }
 
@@ -4721,11 +5182,11 @@ public class LauncherActivity extends Activity {
         out.append("\nкартинки DDLC: ").append(images ? "да" : "нет (images/bg/bedroom.png)");
         out.append("\nмузыка DDLC: ").append(audio ? "да" : "нет (bgm/1.ogg)");
         File zip = archivesDir == null ? null : new File(archivesDir, ddlcZipName());
-        out.append("\nzip ddlc: ").append(zip != null && zip.isFile() ? "есть в _mas/archives/" : "нет");
+        out.append("\nzip ddlc: ").append(zip != null && zip.isFile() ? "есть в mas_bios/archives/" : "нет");
         if (archivesReady()) {
             out.append("\nархивы готовы, можно запускать MAS");
         } else {
-            out.append("\nархивы не готовы — скачай ddlc.moe или положи zip в _mas/archives");
+            out.append("\nархивы не готовы — скачай ddlc.moe или положи zip в mas_bios/archives");
         }
         return out.toString();
     }
@@ -4841,6 +5302,7 @@ public class LauncherActivity extends Activity {
         }
         if (!archivesDir.isDirectory() && !archivesDir.mkdirs()) {
             appendStatus("\nНет папки archives.");
+            pushDlState("idle");
             return;
         }
         String name = displayName(uri);
@@ -4858,10 +5320,12 @@ public class LauncherActivity extends Activity {
             InputStream in = getContentResolver().openInputStream(uri);
             if (!writeStream(in, dest)) {
                 appendStatus("\nНе удалось скопировать архив.");
+                pushDlState("idle");
                 return;
             }
         } catch (Exception e) {
             appendStatus("\nНе удалось скопировать архив: " + messageOf(e));
+            pushDlState("idle");
             return;
         }
         appendStatus("\nархив скопирован: " + dest.getAbsolutePath());
@@ -4873,12 +5337,7 @@ public class LauncherActivity extends Activity {
                 } else {
                     unpackRpaFile(dest);
                 }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        pushStatusToPage();
-                    }
-                });
+                finishArchiveJob();
             }
         }).start();
     }
@@ -4899,14 +5358,13 @@ public class LauncherActivity extends Activity {
         ensureDocumentsFlag();
         ensureLayout();
         if (!archivesReady()) {
-            pendingOpen = "archives";
             hidingForGame = false;
             ensureBiosUi();
             appendStatus("\nСначала поставь архивы картинок и музыки.");
-            appendStatus("\nСкачай с ddlc.moe / GitHub или положи .rpa / ddlc-win.zip в Documents/Monika_after_story/_mas/archives");
+            appendStatus("\nСкачай автоматически с ddlc.moe или выбери файл ddlc-win.zip.");
             runHealthReport(true);
             if (webView != null && pageReady) {
-                evalJs("biosOpen", "archives");
+                evalJs("biosNeedArchives", "play");
             }
             pushStatusToPage();
             return;
@@ -4916,8 +5374,11 @@ public class LauncherActivity extends Activity {
         stopStockfish();
         try {
             Intent intent = new Intent(this, PythonSDLActivity.class);
+            if (safeModeOn()) {
+                intent.putExtra("presplash", "safe");
+            }
             startActivity(intent);
-            logLine("start PythonSDLActivity");
+            logLine("start PythonSDLActivity presplash=" + (safeModeOn() ? "safe" : "default"));
         } catch (Exception e) {
             appendStatus("\nНе удалось запустить игру: " + messageOf(e));
         }
@@ -5189,7 +5650,7 @@ public class LauncherActivity extends Activity {
         File file = findTraceback();
         if (file == null) {
             String msg = "traceback.txt не найден.\n"
-                    + "Искал в Documents/Monika_after_story/_mas/log и в files приложения.\n"
+                    + "Искал в Documents/Monika_after_story/log и в files приложения.\n"
                     + "После краша Ren'Py файл появится сам — открой эту кнопку снова.";
             evalJs("biosTrace", msg);
             appendStatus("\ntraceback.txt нет");
@@ -5276,6 +5737,61 @@ public class LauncherActivity extends Activity {
             return "не прочитался: " + messageOf(e);
         } finally {
             closeQuietly(in);
+        }
+    }
+
+    private File writeJournalFile(File dest, String text) throws Exception {
+        File parent = dest.getParentFile();
+        if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
+            throw new Exception("не создана папка " + parent.getAbsolutePath());
+        }
+        String body = text == null ? "" : text;
+        if (body.length() == 0) {
+            body = "Журнал пуст.\n";
+        }
+        FileOutputStream out = new FileOutputStream(dest);
+        try {
+            out.write(body.getBytes("UTF-8"));
+        } finally {
+            out.close();
+        }
+        return dest;
+    }
+
+    private void saveJournalNow(String text) {
+        if (sideloadDir == null) {
+            resolvePaths();
+        }
+        if (sideloadDir == null) {
+            appendStatus("\nЖурнал не сохранён: нет папки игры.");
+            return;
+        }
+        try {
+            File dest = writeJournalFile(new File(new File(sideloadDir, "log"), "bios_journal.txt"), text);
+            appendStatus("\nЖурнал сохранён: " + dest.getAbsolutePath());
+            logLine("journal saved " + dest.getAbsolutePath());
+        } catch (Exception e) {
+            appendStatus("\nЖурнал не сохранился: " + messageOf(e));
+            logLine("journal save failed " + messageOf(e));
+        }
+    }
+
+    private void shareJournalNow(String text) {
+        try {
+            File local = writeJournalFile(new File(getFilesDir(), "bios_journal.txt"), text);
+            String authority = getPackageName() + ".fileprovider";
+            Uri uri = FileProvider.getUriForFile(this, authority, local);
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_STREAM, uri);
+            send.putExtra(Intent.EXTRA_SUBJECT, "Журнал MAS BIOS");
+            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(send, "Поделиться журналом"));
+            appendStatus("\nОткрыл отправку журнала.");
+            logLine("journal share");
+        } catch (Exception e) {
+            appendStatus("\nЖурнал не отправился: " + messageOf(e));
+            logLine("journal share failed " + messageOf(e));
         }
     }
 
@@ -5540,6 +6056,7 @@ public class LauncherActivity extends Activity {
                     pageReady = true;
                     flushWebBuffer();
                     evalJs("biosSetView", biosViewName());
+                    pushPrefsToPage();
                     evalJs("biosSubmods", SubmodInstaller.listJson(sideloadDir));
                     if (!pageOpened) {
                         pageOpened = true;
@@ -5548,6 +6065,15 @@ public class LauncherActivity extends Activity {
                         }
                     }
                     pushStatusToPage();
+                    if (!updateChecked) {
+                        updateChecked = true;
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                checkUpdateInBackground(true);
+                            }
+                        }).start();
+                    }
                 }
 
                 @Override
@@ -5672,10 +6198,377 @@ public class LauncherActivity extends Activity {
         }
     }
 
+    private File frozenDir() {
+        return new File(masDir(), "frozen");
+    }
+
+    private boolean safeModeOn() {
+        try {
+            if (new File(getFilesDir(), "mas_os_safe_mode_on").isFile()) {
+                return true;
+            }
+            return flagsDir() != null && new File(flagsDir(), "mas_os_safe_mode_on").isFile();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean refuseIfSafe(String what) {
+        if (!safeModeOn()) {
+            return false;
+        }
+        appendStatus("\nБезопасный режим: " + what + " нельзя. Выключи в BIOS → Ремонт.");
+        logLine("safe-mode refuse " + what);
+        return true;
+    }
+
+    private boolean destBlockedInSafe(File dest) {
+        if (!safeModeOn() || dest == null) {
+            return false;
+        }
+        String path = dest.getAbsolutePath().replace('\\', '/').toLowerCase(Locale.US);
+        if (path.contains("/custom_bgm/") || path.endsWith("/custom_bgm")) {
+            return true;
+        }
+        if (path.contains("/mas_os/")) {
+            return true;
+        }
+        if (path.contains("/custom_wallpaper")) {
+            return true;
+        }
+        if (path.contains("/game/submods") || path.contains("/python-packages")
+                || path.contains("/mod_assets/")) {
+            return true;
+        }
+        return false;
+    }
+
+    private File charactersDir() {
+        if (sideloadDir == null) {
+            resolvePaths();
+        }
+        return new File(sideloadDir, "characters");
+    }
+
+    private boolean skipCharName(String name) {
+        if (name == null || name.length() == 0 || name.startsWith(".")) {
+            return true;
+        }
+        if ("README.txt".equalsIgnoreCase(name) || ".nomedia".equals(name)) {
+            return true;
+        }
+        return false;
+    }
+
+    private long charsMaxMtime() {
+        File dir = charactersDir();
+        if (dir == null || !dir.isDirectory()) {
+            return 0L;
+        }
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return 0L;
+        }
+        long max = 0L;
+        for (int i = 0; i < files.length; i++) {
+            File file = files[i];
+            if (file == null || !file.isFile() || skipCharName(file.getName())) {
+                continue;
+            }
+            long t = file.lastModified();
+            if (t > max) {
+                max = t;
+            }
+        }
+        return max;
+    }
+
+    private int charsFileCount() {
+        File dir = charactersDir();
+        if (dir == null || !dir.isDirectory()) {
+            return 0;
+        }
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return 0;
+        }
+        int n = 0;
+        for (int i = 0; i < files.length; i++) {
+            File file = files[i];
+            if (file == null || !file.isFile() || skipCharName(file.getName())) {
+                continue;
+            }
+            n++;
+        }
+        return n;
+    }
+
+    private long charsSeenStamp() {
+        return getSharedPreferences("mas_bios", MODE_PRIVATE).getLong("chars_seen", 0L);
+    }
+
+    private void stampCharsSeen(long value) {
+        getSharedPreferences("mas_bios", MODE_PRIVATE)
+                .edit()
+                .putLong("chars_seen", value)
+                .apply();
+    }
+
+    private boolean charsAreNew() {
+        long max = charsMaxMtime();
+        long seen = charsSeenStamp();
+        if (seen <= 0L) {
+            stampCharsSeen(Math.max(max, 1L));
+            return false;
+        }
+        return max > seen;
+    }
+
+    private void peekCharactersNow() {
+        File dir = charactersDir();
+        StringBuilder out = new StringBuilder();
+        JSONArray names = new JSONArray();
+        out.append("\n=== characters ===");
+        if (dir == null) {
+            out.append("\nпапка недоступна");
+            appendStatus(out.toString());
+            pushCharactersModal(null, names);
+            return;
+        }
+        out.append("\n").append(dir.getAbsolutePath());
+        File[] files = dir.isDirectory() ? dir.listFiles() : null;
+        int n = 0;
+        long max = 0L;
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                File file = files[i];
+                if (file == null || !file.isFile() || skipCharName(file.getName())) {
+                    continue;
+                }
+                n++;
+                long t = file.lastModified();
+                if (t > max) {
+                    max = t;
+                }
+                String row = file.getName() + "  ·  " + file.length() + " байт";
+                names.put(row);
+                out.append("\n• ").append(file.getName()).append("  ").append(file.length()).append(" байт");
+            }
+        }
+        if (n == 0) {
+            out.append("\nпусто");
+        } else {
+            out.append("\nфайлов: ").append(n);
+        }
+        appendStatus(out.toString());
+        logLine("peek characters n=" + n);
+        stampCharsSeen(Math.max(max, System.currentTimeMillis()));
+        pushCharactersModal(dir, names);
+        pushStatusToPage();
+    }
+
+    private void pushCharactersModal(File dir, JSONArray names) {
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("path", dir == null ? "" : dir.getAbsolutePath());
+            payload.put("files", names == null ? new JSONArray() : names);
+        } catch (Exception e) {
+            logLine("chars json " + messageOf(e));
+        }
+        evalJs("biosChars", payload.toString());
+    }
+
+    private void pushExportsToPage() {
+        JSONArray arr = new JSONArray();
+        try {
+            File dir = backupsDir();
+            File[] files = dir != null && dir.isDirectory() ? dir.listFiles() : null;
+            if (files != null) {
+                java.util.Arrays.sort(files, new java.util.Comparator<File>() {
+                    @Override
+                    public int compare(File a, File b) {
+                        long da = a == null ? 0L : a.lastModified();
+                        long db = b == null ? 0L : b.lastModified();
+                        if (db > da) {
+                            return 1;
+                        }
+                        if (db < da) {
+                            return -1;
+                        }
+                        return 0;
+                    }
+                });
+                SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
+                for (int i = 0; i < files.length; i++) {
+                    File file = files[i];
+                    if (file == null || !file.isFile()) {
+                        continue;
+                    }
+                    String name = file.getName();
+                    if (name == null || !name.toLowerCase(Locale.US).endsWith(".zip")) {
+                        continue;
+                    }
+                    JSONObject row = new JSONObject();
+                    row.put("name", name);
+                    row.put("size", file.length());
+                    row.put("when", fmt.format(new Date(file.lastModified())));
+                    arr.put(row);
+                }
+            }
+        } catch (Exception e) {
+            logLine("list exports failed " + messageOf(e));
+        }
+        evalJs("biosExports", arr.toString());
+    }
+
+    private void writeStickySafe() {
+        writeOneShot(new File(getFilesDir(), "mas_os_safe_mode_on"));
+        writeOneShot(new File(flagsDir(), "mas_os_safe_mode_on"));
+        writeFlag("skip_submods");
+    }
+
+    private void clearStickySafe() {
+        deleteQuiet(new File(getFilesDir(), "mas_os_safe_mode_on"));
+        deleteQuiet(new File(getFilesDir(), "mas_os_safe_mode"));
+        deleteQuiet(new File(flagsDir(), "mas_os_safe_mode_on"));
+        deleteQuiet(new File(flagsDir(), "mas_os_safe_mode"));
+        deleteFlag("skip_submods");
+    }
+
+    private void deleteQuiet(File file) {
+        if (file == null) {
+            return;
+        }
+        try {
+            if (file.exists() && file.delete()) {
+                logLine("cleared " + file.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            logLine("clear failed " + file.getAbsolutePath() + " " + messageOf(e));
+        }
+    }
+
+    private void toggleSafeModeNow() {
+        if (sideloadDir == null) {
+            resolvePaths();
+        }
+        if (!canUseDocuments()) {
+            appendStatus("\nНет доступа к Documents — безопасный режим не записать.");
+            return;
+        }
+        if (safeModeOn()) {
+            thawUserContent();
+            clearStickySafe();
+            appendStatus("\nБезопасный режим выключен. Контент возвращён из mas_bios/frozen.");
+        } else {
+            freezeUserContent();
+            writeStickySafe();
+            appendStatus("\nБезопасный режим включён. Сабмоды, спрайты, обои и музыка заморожены в mas_bios/frozen.");
+            appendStatus("\nИгра стартует стоком. Выключи тумблер здесь, когда починишь.");
+        }
+        pushStatusToPage();
+    }
+
+    private void freezeMove(File live, File parked) {
+        if (live == null || parked == null) {
+            return;
+        }
+        if (live.isFile()) {
+            File parent = parked.getParentFile();
+            if (parent != null && !parent.isDirectory()) {
+                parent.mkdirs();
+            }
+            moveOneFile(live, parked);
+            return;
+        }
+        if (!live.isDirectory()) {
+            return;
+        }
+        moveDirContents(live, parked);
+        deleteIfEmpty(live);
+    }
+
+    private void freezeUserContent() {
+        if (sideloadDir == null) {
+            resolvePaths();
+        }
+        File frozen = frozenDir();
+        if (!frozen.isDirectory() && !frozen.mkdirs()) {
+            appendStatus("\nНе удалось создать mas_bios/frozen.");
+            return;
+        }
+        if (gameOverlayDir != null) {
+            freezeMove(new File(gameOverlayDir, "Submods"), new File(frozen, "game/Submods"));
+            freezeMove(new File(gameOverlayDir, "python-packages"), new File(frozen, "game/python-packages"));
+            freezeMove(new File(gameOverlayDir, "gui"), new File(frozen, "game/gui"));
+            File ma = new File(gameOverlayDir, "mod_assets");
+            if (ma.isDirectory()) {
+                File[] kids = ma.listFiles();
+                if (kids != null) {
+                    for (int i = 0; i < kids.length; i++) {
+                        File kid = kids[i];
+                        if (kid == null) {
+                            continue;
+                        }
+                        if ("monika".equals(kid.getName())) {
+                            continue;
+                        }
+                        freezeMove(kid, new File(new File(frozen, "game/mod_assets"), kid.getName()));
+                    }
+                }
+            }
+        }
+        freezeMove(masOsSub("обои"), new File(new File(frozen, "mas_os"), "обои"));
+        freezeMove(masOsSub("шрифты"), new File(new File(frozen, "mas_os"), "шрифты"));
+        freezeMove(masOsSub("текстбоксы"), new File(new File(frozen, "mas_os"), "текстбоксы"));
+        freezeMove(masOsSub("неопределено"), new File(new File(frozen, "mas_os"), "неопределено"));
+        freezeMove(new File(sideloadDir, "custom_bgm"), new File(frozen, "custom_bgm"));
+        freezeMove(new File(sideloadDir, "custom_wallpaper.png"), new File(frozen, "custom_wallpaper.png"));
+        ensureMasOsTree();
+        logLine("safe freeze into " + frozen.getAbsolutePath());
+    }
+
+    private void thawUserContent() {
+        File frozen = frozenDir();
+        if (frozen == null || !frozen.isDirectory()) {
+            return;
+        }
+        if (gameOverlayDir != null) {
+            moveDirContents(new File(frozen, "game"), gameOverlayDir);
+        }
+        if (masOsDir() != null) {
+            moveDirContents(new File(frozen, "mas_os"), masOsDir());
+        }
+        if (sideloadDir != null) {
+            File bgmPark = new File(frozen, "custom_bgm");
+            if (bgmPark.isDirectory()) {
+                moveDirContents(bgmPark, new File(sideloadDir, "custom_bgm"));
+            } else if (bgmPark.isFile()) {
+                moveOneFile(bgmPark, new File(sideloadDir, "custom_bgm"));
+            }
+            moveOneFile(new File(frozen, "custom_wallpaper.png"),
+                    new File(sideloadDir, "custom_wallpaper.png"));
+        }
+        pruneEmpty(frozen);
+        ensureMasOsTree();
+        logLine("safe thaw from " + frozen.getAbsolutePath());
+    }
+
+    private void pruneEmpty(File dir) {
+        if (dir == null || !dir.isDirectory()) {
+            return;
+        }
+        File[] kids = dir.listFiles();
+        if (kids != null) {
+            for (int i = 0; i < kids.length; i++) {
+                pruneEmpty(kids[i]);
+            }
+        }
+        deleteIfEmpty(dir);
+    }
+
     private void writeSafeModeFlag() {
-        // Ren'Py basedir on Android is getFilesDir(); 0config reads mas_os_safe_mode there.
-        writeOneShot(new File(getFilesDir(), "mas_os_safe_mode"));
-        writeOneShot(new File(flagsDir(), "mas_os_safe_mode"));
+        writeStickySafe();
     }
 
     private void writeOneShot(File file) {
@@ -5803,6 +6696,9 @@ public class LauncherActivity extends Activity {
         boolean skip = flagExists("boot_renpy");
         boolean archivesOk = archivesReady();
         boolean tracebackOk = findTraceback() != null;
+        boolean safeMode = safeModeOn();
+        boolean charsNew = charsAreNew();
+        int charsCount = charsFileCount();
         String js = "if(window.biosSetStatus){biosSetStatus({path:" + jsString(path)
                 + ",version:" + jsString(version)
                 + ",filesOk:" + (filesOk ? "true" : "false")
@@ -5810,6 +6706,10 @@ public class LauncherActivity extends Activity {
                 + ",skipBios:" + (skip ? "true" : "false")
                 + ",archivesOk:" + (archivesOk ? "true" : "false")
                 + ",tracebackOk:" + (tracebackOk ? "true" : "false")
+                + ",updateNeeded:" + (updateNeeded ? "true" : "false")
+                + ",safeMode:" + (safeMode ? "true" : "false")
+                + ",charsNew:" + (charsNew ? "true" : "false")
+                + ",charsCount:" + charsCount
                 + "});}";
         evalRaw(js);
     }

@@ -97,26 +97,6 @@ screen mas_os_settings_win_cat():
             $ icname = cic
             $ hue = chue
 
-    button:
-        xpos 36
-        ypos 16
-        xysize (56, 56)
-        background None
-        hover_sound store.mas_os.os_hover()
-        activate_sound store.mas_os.os_activate()
-        action Function(store.mas_os.set_settings_page, "home")
-
-        if store.mas_os.icon_path("back"):
-            add store.mas_os.fit_image(store.mas_os.icon_path("back"), 28, 28):
-                xalign 0.5
-                yalign 0.5
-        else:
-            text _("‹"):
-                style "mas_os_title"
-                size 32
-                xalign 0.5
-                yalign 0.5
-
     hbox:
         xpos 100
         ypos 22
@@ -201,6 +181,20 @@ screen mas_os_settings_win_cat():
                 else:
                     use mas_os_win_sys(sub)
 
+    button:
+        style "mas_os_win_back"
+        xpos 28
+        ypos 14
+        background Solid(store.mas_os.theme_color("btn"))
+        hover_background Solid(store.mas_os.theme_color("btn_hover"))
+        hover_sound store.mas_os.os_hover()
+        activate_sound store.mas_os.os_activate()
+        action Function(store.mas_os.set_settings_page, "home")
+
+        text _("‹"):
+            style "mas_os_win_back_text"
+            color store.mas_os.theme_color("title")
+
 
 screen mas_os_win_look(sub):
     if sub == "theme":
@@ -282,8 +276,10 @@ screen mas_os_win_look(sub):
             style "mas_os_subtitle"
             size 26
 
-        text _("Картинки из game/mod_assets/mas_os/wallpapers. PNG или JPG."):
+        text _("Картинки из mas_os/обои. PNG или JPG. Каталог читается только по кнопке «Обновить»."):
             style "mas_os_hint"
+
+        use mas_os_ibutton(_("Обновить"), Function(store.mas_os.refresh_user_catalog), "R", "#4A8AAA", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="rescan")
 
         use mas_os_onoff(
             _("Затемнение поверх обоев"),
@@ -317,7 +313,9 @@ screen mas_os_win_look(sub):
                             yalign 0.5
                             xoffset 10
 
-                            if cell[2]:
+                            if cell[3]:
+                                use mas_os_pending_mark(width=240)
+                            elif cell[2]:
                                 add store.mas_os.fit_image(cell[2], 240, 72):
                                     yalign 0.5
                             else:
@@ -970,7 +968,7 @@ screen mas_os_win_sys(sub):
         if renpy.android:
             use mas_os_ibutton(_("BIOS"), Function(store.mas_os.open_bios, "system"), "B", "#7A4A9A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="boot")
 
-        use mas_os_ibutton(_("Сбросить настройки MAS OS"), Show("mas_os_confirm", message=_("Сбросить оформление, звук и поведение оболочки к заводским?\nСкачанные файлы и прочитанные события не трогаем."), yes_action=[Function(store.mas_os.reset_os_settings), Hide("mas_os_confirm")], no_action=Hide("mas_os_confirm")), "R", "#8A3A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="reboot")
+        use mas_os_ibutton(_("Сбросить настройки MAS OS"), Show("mas_os_confirm", message=_("Сбросить оформление, звук и поведение оболочки к заводским?\nСкачанные файлы и прочитанные события не трогаем.\nПосле сброса игра перезапустится, чтобы вернулись прежние шрифты."), yes_action=[Function(store.mas_os.reset_os_settings), Function(store.mas_os.reboot_shell)], no_action=Hide("mas_os_confirm")), "R", "#8A3A4A", bstyle="mas_os_button", tstyle="mas_os_button_text", align_center=False, icon="reboot")
 
         text _("Оболочка не считает посещение комнаты, пока не нажато «Запустить MAS»."):
             style "mas_os_hint"

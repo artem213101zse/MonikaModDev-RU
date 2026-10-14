@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Список</title>
+<script src="tree.js"></script>
+<style>
+  :root { --bg:#14070d; --rail:#0c0508; --pane:#1a0c12; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; --line:#ffffff14; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 80px 1fr; height: 100dvh; }
+  aside {
+    background: var(--rail); display: flex; flex-direction: column; padding: 8px 6px;
+    border-right: 1px solid var(--line);
+  }
+  .rail-btn {
+    border: 0; background: transparent; color: var(--mute); min-height: 64px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; border-radius: 12px; font: inherit; margin-bottom: 4px;
+  }
+  .rail-btn i { font-style: normal; font-size: 16px; }
+  .rail-btn span { font-size: 10px; letter-spacing: .02em; }
+  .rail-btn.on { background: #c94a7a22; color: var(--ink); }
+  .pane { display: flex; flex-direction: column; min-width: 0; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; padding: 12px 14px 8px; }
+  .kicker { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); }
+  h1 { margin: 2px 0 0; font-size: 22px; font-weight: 650; }
+  #clock { opacity: .55; font-variant-numeric: tabular-nums; }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #fff; }
+  .body { flex: 1; overflow: auto; padding: 0 12px 8px; -webkit-overflow-scrolling: touch; }
+  .grp { margin: 10px 0 6px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+  .hint { font-size: 12px; color: var(--mute); margin: 0 0 8px; line-height: 1.35; }
+  .url { width: 100%; min-height: 44px; border: 0; border-radius: 12px; padding: 0 12px; background: #ffffff10; color: #fff; margin-bottom: 8px; font-size: 15px; }
+  .rows { display: flex; flex-direction: column; gap: 4px; }
+  .row {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    text-align: left; border: 0; background: #ffffff0c; color: inherit; min-height: 56px;
+    padding: 8px 12px; border-radius: 12px; font: inherit;
+  }
+  .row b { display: block; font-size: 15px; font-weight: 600; }
+  .row i { display: block; font-style: normal; font-size: 12px; color: var(--mute); }
+  .row em { font-style: normal; color: var(--mute); font-size: 20px; }
+  .row.pri { background: var(--hot); }
+  .row.pri i { color: #ffd6ea; }
+  .row.dang b { color: #ff9aa8; }
+  .packs { margin-top: 8px; }
+  .pack { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+  .pack span { display: block; font-size: 12px; color: var(--mute); }
+  .pack-x { border: 0; background: transparent; color: #ff9aa8; min-height: 40px; }
+  #log {
+    height: 72px; margin: 0; padding: 8px 12px; font-size: 11px; color: var(--mute);
+    background: #0006; overflow: auto; white-space: pre-wrap; border-top: 1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside id="rail"></aside>
+  <section class="pane">
+    <header>
+      <div><div class="kicker">MAS BIOS · список</div><h1 id="title">Игра</h1></div>
+      <div id="clock"></div>
+    </header>
+    <div id="switch"></div>
+    <div class="body" id="body"></div>
+    <pre id="log">все подкатегории сразу · действия строками</pre>
+  </section>
+</div>
+<script>
+(function () {
+  var catId = "play";
+  function render() {
+    var cat = biosCat(catId), i, kid, html = "";
+    document.getElementById("rail").innerHTML = biosRailHtml(catId);
+    document.getElementById("title").textContent = cat.label;
+    for (i = 0; i < cat.kids.length; i++) {
+      kid = cat.kids[i];
+      html += '<div class="grp">' + esc(kid.label) + "</div>";
+      html += '<p class="hint">' + esc(kid.hint) + "</p>";
+      html += biosActsHtml(kid, "rows");
+    }
+    document.getElementById("body").innerHTML = html;
+  }
+  document.getElementById("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cat]");
+    if (!b) return;
+    catId = b.getAttribute("data-cat");
+    render();
+  });
+  biosSwitcher("rail-list.html");
+  biosClock();
+  biosBindActs();
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Колонки</title>
+<script src="tree.js"></script>
+<style>
+  :root { --bg:#0e070b; --rail:#160910; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; --line:#ffffff18; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 96px 1fr; height: 100dvh; }
+  aside { background: var(--rail); padding: 10px 8px; display: flex; flex-direction: column; }
+  .rail-btn {
+    border: 0; background: transparent; color: var(--mute); min-height: 48px;
+    text-align: left; padding: 8px 10px; border-radius: 10px; font: inherit; margin-bottom: 4px; display: block;
+  }
+  .rail-btn i { display: none; }
+  .rail-btn span { font-size: 14px; font-weight: 650; }
+  .rail-btn.on { background: #ffffff12; color: #fff; box-shadow: inset 3px 0 0 var(--hot); }
+  .pane { display: flex; flex-direction: column; min-width: 0; }
+  .top { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px 4px; }
+  .kicker { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+  #clock { opacity: .5; }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #fff; }
+  .split { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; border-top: 1px solid var(--line); }
+  @media (max-width: 640px) {
+    .split { grid-template-columns: 1fr; }
+    .split.drill .mid { display: none; }
+    .split .act { display: none; }
+    .split.drill .act { display: flex; }
+  }
+  .mid, .act { overflow: auto; min-width: 0; }
+  .act { display: flex; flex-direction: column; background: #14090e; border-left: 1px solid var(--line); }
+  .mid button {
+    width: 100%; text-align: left; border: 0; background: transparent; color: inherit;
+    padding: 14px 14px; min-height: 64px; font: inherit; border-bottom: 1px solid var(--line);
+  }
+  .mid button.on { background: #c94a7a22; }
+  .mid b { display: block; font-size: 15px; }
+  .mid i { display: block; font-style: normal; font-size: 12px; color: var(--mute); margin-top: 3px; }
+  .back {
+    display: none; border: 0; background: transparent; color: var(--hot); min-height: 44px;
+    text-align: left; padding: 8px 14px; font: inherit; font-weight: 700;
+  }
+  @media (max-width: 640px) { .split.drill .back { display: block; } }
+  .ah { padding: 12px 14px 0; }
+  .ah h2 { margin: 0; font-size: 18px; }
+  .ah p { margin: 4px 0 10px; color: var(--mute); font-size: 13px; }
+  .abody { padding: 0 12px 12px; }
+  .url { width: 100%; min-height: 44px; border: 0; border-radius: 10px; padding: 0 12px; background: #ffffff10; color: #fff; margin-bottom: 8px; }
+  .rows { display: flex; flex-direction: column; gap: 4px; }
+  .row {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    text-align: left; border: 0; background: #ffffff0c; color: inherit; min-height: 52px;
+    padding: 8px 12px; border-radius: 10px; font: inherit;
+  }
+  .row b { display: block; font-size: 14px; }
+  .row i { display: block; font-style: normal; font-size: 11px; color: var(--mute); }
+  .row em { display: none; }
+  .row.pri { background: var(--hot); }
+  .row.pri i { color: #ffd6ea; }
+  .row.dang b { color: #ff9aa8; }
+  .packs { margin-top: 8px; }
+  .pack { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .pack span { display: block; font-size: 12px; color: var(--mute); }
+  .pack-x { border: 0; background: transparent; color: #ff9aa8; min-height: 36px; }
+  #log { height: 56px; margin: 0; padding: 8px 12px; font-size: 11px; color: var(--mute); background: #0005; overflow: auto; white-space: pre-wrap; }
+  .empty { padding: 24px 16px; color: var(--mute); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside id="rail"></aside>
+  <section class="pane">
+    <div class="top"><div class="kicker">MAS BIOS · колонки</div><div id="clock"></div></div>
+    <div id="switch"></div>
+    <div class="split" id="split">
+      <div class="mid" id="mid"></div>
+      <div class="act" id="act">
+        <button class="back" id="back" type="button">‹ к подкатегориям</button>
+        <div class="ah" id="ah"></div>
+        <div class="abody" id="abody"><div class="empty">выбери подкатегорию слева</div></div>
+      </div>
+    </div>
+    <pre id="log">мастер-деталь · на узком экране подкатегория открывается как страница</pre>
+  </section>
+</div>
+<script>
+(function () {
+  var catId = "play", kidId = null;
+  function render() {
+    var cat = biosCat(catId), i, k, html = "", kid;
+    document.getElementById("rail").innerHTML = biosRailHtml(catId);
+    for (i = 0; i < cat.kids.length; i++) {
+      k = cat.kids[i];
+      html += '<button type="button" class="' + (k.id === kidId ? "on" : "") +
+        '" data-kid="' + k.id + '"><b>' + k.label + "</b><i>" + k.hint + "</i></button>";
+    }
+    document.getElementById("mid").innerHTML = html;
+    if (!kidId) {
+      document.getElementById("split").className = "split";
+      document.getElementById("ah").innerHTML = "";
+      document.getElementById("abody").innerHTML = '<div class="empty">выбери подкатегорию</div>';
+      return;
+    }
+    kid = biosKid(cat, kidId);
+    document.getElementById("split").className = "split drill";
+    document.getElementById("ah").innerHTML = "<h2>" + kid.label + "</h2><p>" + kid.hint + "</p>";
+    document.getElementById("abody").innerHTML = biosActsHtml(kid, "rows");
+  }
+  document.getElementById("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cat]");
+    if (!b) return;
+    catId = b.getAttribute("data-cat");
+    kidId = null;
+    render();
+  });
+  document.getElementById("mid").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-kid]");
+    if (!b) return;
+    kidId = b.getAttribute("data-kid");
+    render();
+  });
+  document.getElementById("back").onclick = function () { kidId = null; render(); };
+  biosSwitcher("rail-split.html");
+  biosClock();
+  biosBindActs();
+  render();
+})();
+</script>
+</body>
+</html>

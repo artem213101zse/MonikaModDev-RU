@@ -1249,7 +1249,7 @@ init 200 python in mas_dockstat:
 
     def _take_monika_note(msg, log=None):
         """
-        Write a line to Documents/_mas/log/take_monika.log (and the mfgen log if given).
+        Write a line to Documents/log/take_monika.log (and the mfgen log if given).
         Documents is what the player can open on Android; basedir/log is easy to miss.
         """
         line = msg
@@ -1922,7 +1922,13 @@ init 200 python in mas_dockstat:
 
 
     def force_monika_home_flag_path():
-        """Documents/_mas/flags/.mas_force_monika_home from BIOS recovery."""
+        """Documents/mas_bios/flags/.mas_force_monika_home from BIOS recovery."""
+        try:
+            flags = store.mas_os.flags_dir()
+            if flags:
+                return os.path.join(flags, ".mas_force_monika_home")
+        except Exception:
+            pass
         try:
             root = store.mas_os.user_data_root()
         except Exception:
@@ -1932,7 +1938,7 @@ init 200 python in mas_dockstat:
                 root = store.renpy.config.basedir
             except Exception:
                 return None
-        return os.path.join(root, "_mas", "flags", ".mas_force_monika_home")
+        return os.path.join(root, "mas_bios", "flags", ".mas_force_monika_home")
 
     def force_monika_home_flag_paths():
         paths = []
@@ -1944,9 +1950,12 @@ init 200 python in mas_dockstat:
         except Exception:
             root = None
         if root:
-            legacy = os.path.join(root, ".mas_force_monika_home")
-            if legacy not in paths:
-                paths.append(legacy)
+            for extra in (
+                os.path.join(root, "_mas", "flags", ".mas_force_monika_home"),
+                os.path.join(root, ".mas_force_monika_home"),
+            ):
+                if extra not in paths:
+                    paths.append(extra)
         return paths
 
     def consume_force_monika_home():

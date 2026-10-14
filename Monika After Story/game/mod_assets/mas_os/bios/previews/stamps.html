@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Марки</title>
+<style>
+  body { margin:0; background:#6b4f32; font-family:"Palatino Linotype", Palatino, Georgia, serif; color:#2a1c14; }
+  .cork {
+    min-height:100dvh; padding:14px 10px 80px;
+    background:
+      radial-gradient(#0002 1px, transparent 1px),
+      repeating-linear-gradient(90deg, #c4a574 0 10px, #b08a58 10px 11px);
+    background-size: 12px 12px, auto;
+  }
+  h1 { margin:4px 8px 12px; font-size:22px; color:#fff8e8; text-shadow:0 1px 0 #0005; font-weight:400; }
+  .wall { position:relative; min-height: 640px; }
+  .p {
+    position:absolute; background:#fffdf6; padding:8px 8px 22px; box-shadow: 3px 5px 0 #0004;
+    border:0; color:inherit; font:inherit; text-align:left;
+  }
+  .p:active { transform: scale(.98); }
+  .p i { display:block; height:54px; margin-bottom:6px; }
+  .p b { display:block; font-size:14px; }
+  .p span { font-size:11px; opacity:.6; }
+  .pin { position:absolute; top:-6px; left:50%; width:12px; height:12px; margin-left:-6px; border-radius:50%; background:#c94a7a; box-shadow:0 2px 0 #5a1020; }
+  .sheet {
+    position:fixed; left:8px; right:8px; bottom:8px; background:#fffdf6; padding:12px;
+    border-radius:8px; box-shadow:0 8px 24px #0006; display:none;
+  }
+  .sheet.on { display:block; }
+  .sheet h2 { margin:0 0 8px; font-size:18px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; }
+  .row button { flex:1 1 40%; min-height:44px; border:1px solid #2a1c14; background:#fff; }
+  .row button.go { background:#c94a7a; color:#fff; border-color:#c94a7a; }
+  .log { font-size:12px; opacity:.55; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="cork">
+  <h1>доска клуба · нажми карточку</h1>
+  <div class="wall" id="wall"></div>
+</div>
+<div class="sheet" id="sheet">
+  <h2 id="t"> </h2>
+  <div class="row" id="acts"></div>
+  <div class="log" id="log"></div>
+</div>
+<script>
+var P = [
+  {x:4,y:8,w:46,rot:-6,bg:'#ffb3c8',t:'Игра',s:'в комнату', acts:[['Старт','startGame','go'],['Safe','startSafe']]},
+  {x:52,y:4,w:44,rot:5,bg:'#7ee0d6',t:'Архивы',s:'ddlc.moe', acts:[['Скачать','downloadDdlcMoe','go'],['Файл','pickArchive']]},
+  {x:8,y:28,w:38,rot:3,bg:'#ffd36b',t:'Zip',s:'контент', acts:[['Поставить','pickSubmodZip','go'],['Паки','listSubmods']]},
+  {x:48,y:30,w:48,rot:-4,bg:'#c9b6ff',t:'Сейвы',s:'память', acts:[['Импорт','pickSavesZip','go'],['Экспорт','exportSaves']]},
+  {x:6,y:52,w:42,rot:7,bg:'#ff8a7a',t:'Моника',s:'рекавери', acts:[['Найти','recoverMonikaScan','go'],['Стол','recoverMonikaHome']]},
+  {x:52,y:54,w:40,rot:-8,bg:'#9ad',t:'Файлы',s:'gift / bgm', acts:[['Docs','openDocuments','go'],['Gift','pickGift']]},
+  {x:18,y:74,w:36,rot:2,bg:'#b5e07e',t:'Шахм.',s:'uci', acts:[['uci','testStockfish','go']]},
+  {x:58,y:76,w:36,rot:6,bg:'#eee',t:'Сист.',s:'лог', acts:[['trace','showTraceback','go'],['apk','checkUpdate']]}
+];
+var wall=document.getElementById('wall');
+P.forEach(function(p,i){
+  var b=document.createElement('button'); b.className='p';
+  b.style.left=p.x+'%'; b.style.top=p.y+'%'; b.style.width=p.w+'%';
+  b.style.transform='rotate('+p.rot+'deg)';
+  b.innerHTML='<span class="pin"></span><i style="background:'+p.bg+'"></i><b>'+p.t+'</b><span>'+p.s+'</span>';
+  b.onclick=function(){ open(i); };
+  wall.appendChild(b);
+});
+function open(i){
+  var p=P[i];
+  document.getElementById('sheet').className='sheet on';
+  document.getElementById('t').textContent=p.t;
+  var a=document.getElementById('acts'); a.innerHTML='';
+  p.acts.forEach(function(x){
+    var b=document.createElement('button'); if(x[2]) b.className='go';
+    b.textContent=x[0]; b.onclick=function(){ document.getElementById('log').textContent='→ '+x[1]; };
+    a.appendChild(b);
+  });
+}
+</script>
+</body>
+</html>

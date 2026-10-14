@@ -113,8 +113,34 @@ def main():
                 ))
 
     copy_android_icons(GAME, rapt)
+    copy_presplash_variants(GAME, rapt)
 
     print("BIOS overlay synced into " + rapt)
+
+
+def copy_presplash_variants(game_dir, rapt):
+    # Default splash stays in app assets (RAPT copy_presplash writes it
+    # after the asset wipe). Variants go to the renpyandroid library so
+    # the wipe does not drop them and they are not a second app-asset copy.
+    app_assets = os.path.join(rapt, "app", "src", "main", "assets")
+    lib_assets = os.path.join(rapt, "renpyandroid", "src", "main", "assets")
+    proto_assets = os.path.join(
+        os.path.dirname(rapt), "prototype", "renpyandroid", "src", "main", "assets"
+    )
+    for name in ("android-presplash.jpg", "android-presplash.png"):
+        src = os.path.join(game_dir, name)
+        if os.path.isfile(src):
+            copy_bytes(src, os.path.join(app_assets, name))
+    for name in ("android-presplash-safe.jpg", "android-presplash-safe.png"):
+        src = os.path.join(game_dir, name)
+        if not os.path.isfile(src):
+            continue
+        copy_bytes(src, os.path.join(lib_assets, name))
+        copy_bytes(src, os.path.join(proto_assets, name))
+        stale = os.path.join(app_assets, name)
+        if os.path.isfile(stale):
+            os.remove(stale)
+            print("removed stale " + stale)
 
 
 def _resize_png(src, dst, size):

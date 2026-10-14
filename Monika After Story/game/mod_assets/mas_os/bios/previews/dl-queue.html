@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Загрузки · Очередь</title>
+<script src="packs.js"></script>
+<style>
+  :root { --bg:#14070d; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; --ok:#7ee0a6; --line:#ffffff14; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app { display: flex; flex-direction: column; height: 100dvh; max-width: 520px; margin: 0 auto; }
+  header { padding: 14px 16px 6px; }
+  .k { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+  h1 { margin: 4px 0 0; font-size: 24px; }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 16px 10px; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #fff; }
+  .hero {
+    margin: 0 14px 12px; padding: 14px; border-radius: 18px; background: #1c1016;
+    min-height: 132px;
+  }
+  .hero.empty { color: var(--mute); display: grid; place-items: center; }
+  .hero b { font-size: 18px; }
+  .hero .m { font-size: 12px; color: var(--mute); margin: 4px 0 12px; }
+  .hbar { height: 10px; background: #0006; border-radius: 99px; overflow: hidden; }
+  .hbar i { display: block; height: 100%; background: var(--hot); }
+  .nums { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--mute); }
+  .acts { display: flex; gap: 8px; margin-top: 12px; }
+  .acts button { flex: 1; min-height: 40px; border: 0; border-radius: 10px; font: inherit; font-weight: 700; }
+  .p { background: var(--hot); color: #fff; }
+  .g { background: #ffffff12; color: var(--ink); }
+  .body { flex: 1; overflow: auto; padding: 0 14px 12px; }
+  .h { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin: 8px 0; }
+  .q {
+    display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+  }
+  .n { width: 24px; height: 24px; border-radius: 50%; background: #ffffff10; display: grid; place-items: center; font-size: 11px; }
+  .q b { display: block; font-size: 14px; }
+  .q span { font-size: 12px; color: var(--mute); }
+  .mini { width: 88px; height: 4px; background: #ffffff14; border-radius: 99px; overflow: hidden; }
+  .mini i { display: block; height: 100%; background: var(--hot); }
+  .q.ready .mini i { background: var(--ok); }
+  .dock { display: flex; gap: 8px; padding: 10px 14px calc(12px + env(safe-area-inset-bottom)); }
+  .dock button { flex: 1; min-height: 44px; border: 0; border-radius: 12px; font: inherit; font-weight: 700; background: #ffffff12; color: inherit; }
+  #log { height: 44px; margin: 0; padding: 6px 14px; font-size: 11px; color: var(--mute); overflow: auto; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="k">очередь</div>
+    <h1>Сейчас качается</h1>
+  </header>
+  <div id="switch">
+    <a class="sw" href="nav.html">хаб</a>
+    <a class="sw" href="dl-cod.html">COD / DF</a>
+    <a class="sw" href="dl-delta.html">ресурсы</a>
+    <a class="sw on" href="dl-queue.html">очередь</a>
+    <a class="sw" href="dl-cards.html">карточки</a>
+    <a class="sw" href="rail-gear.html">шестерёнка</a>
+  </div>
+  <div class="hero" id="hero"></div>
+  <div class="body" id="body"></div>
+  <div class="dock">
+    <button type="button" id="pauseAll">Пауза всем</button>
+    <button type="button" id="goAll">Качать недостающее</button>
+  </div>
+  <pre id="log">один активный файл крупно · остальные в очереди</pre>
+</div>
+<script>
+(function () {
+  function active() {
+    var i, p;
+    for (i = 0; i < biosDlPacks.length; i++) {
+      p = biosDlPacks[i];
+      if (p.status === "downloading") return p;
+    }
+    return null;
+  }
+  function render() {
+    var a = active(), html = "", i, p, n = 1, rest = 0;
+    if (!a) {
+      document.getElementById("hero").className = "hero empty";
+      document.getElementById("hero").innerHTML = biosDlTotals().readyToPlay
+        ? "очередь пуста · база на месте"
+        : "ничего не качается · нажми «Качать недостающее»";
+    } else {
+      document.getElementById("hero").className = "hero";
+      document.getElementById("hero").innerHTML =
+        "<b>" + a.name + "</b><div class=\"m\">" + a.file + " · " + biosDlMb(a.mb) + "</div>" +
+        '<div class="hbar"><i style="width:' + a.pct + '%"></i></div>' +
+        '<div class="nums"><span>' + Math.round(a.pct) + "% · " +
+        (a.speed ? a.speed.toFixed(1) + " МБ/с" : "") + "</span><span>ещё " +
+        Math.max(1, Math.round((100 - a.pct) / 6)) + " с</span></div>" +
+        '<div class="acts"><button class="p" data-id="' + a.id + '">Пауза</button>' +
+        '<button class="g" data-id="' + a.id + '" data-skip="1">Пропустить</button></div>';
+    }
+    html += '<div class="h">Очередь и готовое</div>';
+    for (i = 0; i < biosDlPacks.length; i++) {
+      p = biosDlPacks[i];
+      if (a && p.id === a.id) continue;
+      html += '<div class="q ' + p.status + '" data-id="' + p.id + '"><div class="n">' +
+        (p.status === "ready" ? "✓" : n++) + "</div><div><b>" + p.name + "</b><span>" +
+        biosDlLabels[p.status] + " · " + biosDlMb(p.mb) + "</span></div>" +
+        '<div class="mini"><i style="width:' + p.pct + '%"></i></div></div>';
+      rest++;
+    }
+    document.getElementById("body").innerHTML = html;
+  }
+  document.body.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-id]");
+    var p;
+    if (!b || b.tagName === "A") return;
+    p = biosDlGet(b.getAttribute("data-id"));
+    if (!p) return;
+    if (b.getAttribute("data-skip")) {
+      p.status = "queued";
+      biosDlLog(p.cmd, "пропуск " + p.name);
+    } else {
+      biosDlAct(p.id);
+      biosDlLog(p.cmd, p.name + " → " + p.status);
+    }
+    render();
+  });
+  document.getElementById("pauseAll").onclick = function () {
+    var i, p;
+    for (i = 0; i < biosDlPacks.length; i++) {
+      p = biosDlPacks[i];
+      if (p.status === "downloading" || p.status === "queued") p.status = "paused";
+    }
+    biosDlLog("downloadArchives", "пауза всем");
+    render();
+  };
+  document.getElementById("goAll").onclick = function () {
+    biosDlQueueAllMissing();
+    biosDlLog("downloadArchives", "очередь");
+    render();
+  };
+  biosDlStartTick(render);
+  render();
+})();
+</script>
+</body>
+</html>

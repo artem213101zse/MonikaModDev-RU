@@ -120,12 +120,13 @@ init -5 python in mas_os:
             "submods": submods_dir(),
             "saves": save_dir(),
             "archives": archives_dir(),
+            "mas_os": mas_os_root(),
         }
         path = mapping.get(kind)
         if not path:
             fm_status = "Папка не задана."
             return False
-        if kind in ("characters", "custom_bgm", "chess_games", "piano_songs", "log", "submods", "archives") and not os.path.isdir(path):
+        if kind in ("characters", "custom_bgm", "chess_games", "piano_songs", "log", "submods", "archives", "mas_os") and not os.path.isdir(path):
             try:
                 os.makedirs(path)
             except Exception:
@@ -256,6 +257,7 @@ init -5 python in mas_os:
             ("chess_games", _("chess_games"), "files"),
             ("piano_songs", _("piano_songs"), "files"),
             ("log", _("log"), "logs"),
+            ("mas_os", _("mas_os"), "wallpaper"),
             ("archives", _("архивы"), "files"),
             ("submods", _("Submods"), "submods"),
         )
@@ -269,6 +271,7 @@ init -5 python in mas_os:
             "chess_games": chess_games_dir(),
             "piano_songs": piano_songs_dir(),
             "log": log_dir(),
+            "mas_os": mas_os_root(),
             "archives": archives_dir(),
             "submods": submods_dir(),
         }

@@ -85,6 +85,7 @@ python early:
         based = _mas_os_early_os.path.normpath(renpy.config.basedir)
         srcs = [_mas_os_early_os.path.join(based, "game", "Submods")]
         docs_skip = []
+        docs_sticky = []
         try:
             gamed = _mas_os_early_os.path.normpath(renpy.config.gamedir)
             extra = _mas_os_early_os.path.join(gamed, "Submods")
@@ -97,6 +98,12 @@ python early:
             if overlay not in srcs:
                 srcs.append(overlay)
             docs_skip.append(_mas_os_early_os.path.join(
+                root, "mas_bios", "flags", "skip_submods"
+            ))
+            docs_skip.append(_mas_os_early_os.path.join(
+                root, "mas_bios", "flags", "mas_os_safe_mode"
+            ))
+            docs_skip.append(_mas_os_early_os.path.join(
                 root, "_mas", "flags", "skip_submods"
             ))
             docs_skip.append(_mas_os_early_os.path.join(
@@ -104,6 +111,12 @@ python early:
             ))
             docs_skip.append(_mas_os_early_os.path.join(root, "flags", "skip_submods"))
             docs_skip.append(_mas_os_early_os.path.join(root, "mas_os_safe_mode"))
+            docs_sticky.append(_mas_os_early_os.path.join(
+                root, "mas_bios", "flags", "mas_os_safe_mode_on"
+            ))
+            docs_sticky.append(_mas_os_early_os.path.join(
+                root, "_mas", "flags", "mas_os_safe_mode_on"
+            ))
         return {
             "srcs": srcs,
             "dst": _mas_os_early_os.path.join(based, "Submods_disabled"),
@@ -112,6 +125,7 @@ python early:
             "oneshot": _mas_os_early_os.path.join(based, "mas_os_safe_mode"),
             "sticky": _mas_os_early_os.path.join(based, "mas_os_safe_mode_on"),
             "docs_skip": docs_skip,
+            "docs_sticky": docs_sticky,
         }
 
     def _mas_os_early_park_one(src, dst):
@@ -177,6 +191,9 @@ python early:
             pass
         for root in _mas_os_early_docs_roots():
             paths.append(_mas_os_early_os.path.join(
+                root, "mas_bios", "flags", "submods_off.txt"
+            ))
+            paths.append(_mas_os_early_os.path.join(
                 root, "_mas", "flags", "submods_off.txt"
             ))
         for path in paths:
@@ -224,6 +241,12 @@ python early:
                 return True
         return False
 
+    def _mas_os_early_docs_sticky(p):
+        for path in p.get("docs_sticky") or []:
+            if _mas_os_early_os.path.isfile(path):
+                return True
+        return False
+
     def _mas_os_early_clear_bios_skip(p):
         for path in p.get("docs_skip") or []:
             if _mas_os_early_os.path.isfile(path):
@@ -231,13 +254,21 @@ python early:
                     _mas_os_early_os.remove(path)
                 except Exception:
                     pass
+        oneshot = p.get("oneshot")
+        if oneshot and _mas_os_early_os.path.isfile(oneshot):
+            try:
+                _mas_os_early_os.remove(oneshot)
+            except Exception:
+                pass
 
     def _mas_os_early_boot_guard():
         p = _mas_os_early_paths()
         bios_skip = _mas_os_early_bios_skip(p)
+        docs_sticky = _mas_os_early_docs_sticky(p)
+        sticky = _mas_os_early_os.path.isfile(p["sticky"]) or docs_sticky
         forced = (
             _mas_os_early_os.path.isfile(p["oneshot"])
-            or _mas_os_early_os.path.isfile(p["sticky"])
+            or sticky
             or bios_skip
         )
         crashed = _mas_os_early_os.path.isfile(p["lock"])

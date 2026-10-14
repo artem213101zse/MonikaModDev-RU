@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Палитра</title>
+<style>
+  body { margin:0; background:#111014; color:#f4eef2; font-family: system-ui, sans-serif; }
+  .wrap { max-width:520px; margin:0 auto; min-height:100dvh; padding:22px 14px calc(20px + env(safe-area-inset-bottom)); }
+  .hello { font-size:13px; letter-spacing:.18em; text-transform:uppercase; opacity:.45; }
+  h1 { font-size:32px; font-weight:650; margin:6px 0 16px; letter-spacing:-.04em; }
+  input {
+    width:100%; min-height:52px; border:0; border-radius:16px; padding:0 16px;
+    background:#1c1a20; color:#fff; font-size:16px; outline:none;
+  }
+  input:focus { box-shadow: 0 0 0 2px #c94a7a; }
+  .list { margin-top:14px; display:flex; flex-direction:column; gap:6px; }
+  .hit {
+    width:100%; display:flex; gap:12px; align-items:center; text-align:left;
+    border:0; background:#1c1a20; color:inherit; min-height:56px; padding:10px 12px; border-radius:14px; font:inherit;
+  }
+  .hit:active { background:#2a2230; }
+  .k {
+    width:40px; height:40px; border-radius:12px; background:#c94a7a; display:grid; place-items:center;
+    font-size:12px; font-weight:700;
+  }
+  .hit b { display:block; font-size:15px; }
+  .hit span { display:block; font-size:12px; opacity:.5; }
+  .go {
+    margin-top:16px; width:100%; min-height:54px; border:0; border-radius:16px;
+    background:#c94a7a; color:#fff; font-size:16px; font-weight:700;
+  }
+  .log { margin-top:12px; font-size:12px; opacity:.45; min-height:32px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hello">MAS BIOS</div>
+  <h1>Что нужно?</h1>
+  <input id="q" type="search" enterkeyhint="go" placeholder="игра, zip, сейвы, моника…" autocomplete="off">
+  <div class="list" id="list"></div>
+  <button class="go" onclick="run('startGame')">Запустить MAS</button>
+  <div class="log" id="log">поиск фильтрует список · большой палец снизу</div>
+</div>
+<script>
+var ITEMS = [
+  ['▶','Запустить MAS','комната','startGame','игра play запуск'],
+  ['🛡','Безопасный вход','без сабмодов','startSafe','safe сабмод'],
+  ['💿','Скачать DDLC','ddlc.moe','downloadDdlcMoe','архив rpa картинки музыка'],
+  ['📁','Выбрать архив','zip / rpa с диска','pickArchive','архив файл'],
+  ['📦','Поставить контент','zip сабмод или спрайт','pickSubmodZip','контент zip пак'],
+  ['📚','Библиотека паков','снять последний','uninstallLastSubmod','библиотека удалить'],
+  ['💾','Импорт сейвов','zip с другой сборки','pickSavesZip','сейв persistent'],
+  ['⤴','Экспорт сейвов','_mas/backups','exportSaves','сейв копия'],
+  ['🎁','Положить gift','characters/','pickGift','подарок файл'],
+  ['🎵','Музыка','custom_bgm','pickMusic','музыка bgm'],
+  ['🖼','Обои','custom_wallpaper','pickImage','обои'],
+  ['♥','Найти Монику','рекавери файла','recoverMonikaScan','моника рекавери'],
+  ['⌂','Вернуть за стол','force home','recoverMonikaHome','моника стол'],
+  ['♞','uci Stockfish','движок шахмат','testStockfish','шахматы engine'],
+  ['⬆','Обновление APK','GitHub','checkUpdate','apk обновление'],
+  ['!','Traceback','почему не стартанула','showTraceback','ошибка лог'],
+  ['📂','Открыть Documents','проводник','openDocuments','файлы документы']
+];
+function draw(f){
+  f=(f||'').toLowerCase();
+  var list=document.getElementById('list'); list.innerHTML='';
+  ITEMS.forEach(function(it){
+    if(f && (it[1]+it[2]+it[4]).toLowerCase().indexOf(f)<0) return;
+    var b=document.createElement('button'); b.className='hit';
+    b.innerHTML='<span class="k">'+it[0]+'</span><span><b>'+it[1]+'</b><span>'+it[2]+'</span></span>';
+    b.onclick=function(){ run(it[3]); };
+    list.appendChild(b);
+  });
+}
+function run(c){ document.getElementById('log').textContent='→ '+c; }
+document.getElementById('q').addEventListener('input', function(){ draw(this.value); });
+draw('');
+</script>
+</body>
+</html>

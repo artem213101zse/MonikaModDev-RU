@@ -115,6 +115,7 @@ init -5 python in mas_os:
             if user_data_is_documents():
                 root = user_data_root()
                 if root:
+                    paths.append(os.path.join(root, "mas_bios", "flags", "submods_off.txt"))
                     paths.append(os.path.join(root, "_mas", "flags", "submods_off.txt"))
         except Exception:
             pass
@@ -178,6 +179,12 @@ init -5 python in mas_os:
 
     def request_safe_mode(sticky=False):
         global sm_status, sm_need_reboot
+        try:
+            if store.renpy.android:
+                sm_status = "На телефоне безопасный режим — только BIOS → Ремонт."
+                return None
+        except Exception:
+            pass
         path = safe_flag_path(False)
         try:
             with open(path, "w") as handle:
@@ -197,6 +204,12 @@ init -5 python in mas_os:
 
     def clear_safe_mode():
         global sm_status, sm_need_reboot
+        try:
+            if store.renpy.android:
+                sm_status = "На телефоне безопасный режим снимается в BIOS → Ремонт."
+                return None
+        except Exception:
+            pass
         for sticky in (True, False):
             path = safe_flag_path(sticky)
             if os.path.isfile(path):
@@ -428,7 +441,13 @@ init -5 python in mas_os:
             if user_data_is_documents():
                 root = user_data_root()
                 if root:
-                    return os.path.join(root, "_mas", "submods")
+                    neu = os.path.join(root, "mas_bios", "submods")
+                    if os.path.isdir(neu):
+                        return neu
+                    legacy = os.path.join(root, "_mas", "submods")
+                    if os.path.isdir(legacy):
+                        return legacy
+                    return neu
         except Exception:
             pass
         return _sm_sideload_root()
@@ -1524,6 +1543,9 @@ screen mas_os_submods():
         zorder 200
 
     $ tab = store.mas_os.sm_tab
+    if store.renpy.android and tab == "safe":
+        $ tab = "installed"
+        $ store.mas_os.sm_tab = "installed"
     $ rows = store.mas_os.sm_installed_rows()
     $ cat = store.mas_os.sm_catalog
     $ status = store.mas_os.sm_status
@@ -1572,11 +1594,12 @@ screen mas_os_submods():
                 Function(store.mas_os.fetch_catalog),
             ]
 
-        textbutton _("Безопасный режим"):
-            style "mas_os_cat_btn"
-            xsize 220
-            selected (tab == "safe")
-            action Function(store.mas_os.set_sm_tab, "safe")
+        if not store.renpy.android:
+            textbutton _("Безопасный режим"):
+                style "mas_os_cat_btn"
+                xsize 220
+                selected (tab == "safe")
+                action Function(store.mas_os.set_sm_tab, "safe")
 
     if status:
         text status:
@@ -1910,7 +1933,7 @@ screen mas_os_submods():
                         style "mas_os_hint"
                         xsize 1140
 
-    else:
+    elif not store.renpy.android:
         viewport:
             xpos 48
             ypos list_y
@@ -1923,7 +1946,7 @@ screen mas_os_submods():
                 spacing 12
                 xsize 1140
 
-                text _("Если сабмод валит загрузку, Ren'Py падает до оболочки. Безопасный режим не трогает папки: скрипты Submods просто не грузятся. Выкл на карточке пишет имя в список, папка остаётся. Снимать пак с диска на телефоне — BIOS → Библиотека."):
+                text _("Если сабмод валит загрузку, Ren'Py падает до оболочки. Безопасный режим не трогает папки: скрипты Submods просто не грузятся. Выкл на карточке пишет имя в список, папка остаётся. Снимать пак с диска на телефоне — BIOS → Ремонт."):
                     style "mas_os_body"
                     xsize 1140
 

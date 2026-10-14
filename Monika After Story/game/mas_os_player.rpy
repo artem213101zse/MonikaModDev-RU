@@ -280,6 +280,8 @@ init -5 python in mas_os:
                 path = tracks[0][1]
         if not path:
             return None
+        if user_asset_pending(path):
+            return None
         mode = player_loop_mode()
         loop_one = (mode == "one")
         player_paused = False

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Шестерёнка</title>
+<script src="tree.js"></script>
+<script src="packs.js"></script>
+<style>
+  :root { --bg:#14070d; --rail:#0c0508; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; --ok:#7ee0a6; --line:#ffffff14; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 80px 1fr; height: 100dvh; }
+  aside { background: var(--rail); display: flex; flex-direction: column; padding: 8px 6px; }
+  .rail-btn {
+    border: 0; background: transparent; color: var(--mute); min-height: 58px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; border-radius: 12px; font: inherit; margin-bottom: 4px;
+  }
+  .rail-btn i { font-style: normal; font-size: 15px; }
+  .rail-btn span { font-size: 10px; }
+  .rail-btn.on { background: #c94a7a22; color: var(--ink); }
+  .rail-btn.dot::after {
+    content: ""; width: 6px; height: 6px; background: var(--hot); border-radius: 50%; margin-top: 2px;
+  }
+  .pane { display: flex; flex-direction: column; min-width: 0; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; padding: 12px 14px 6px; }
+  .kicker { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+  h1 { margin: 2px 0 0; font-size: 20px; }
+  .pill {
+    border: 0; background: #1c1016; color: var(--ink); border-radius: 999px; min-height: 36px;
+    padding: 0 10px; font: inherit; font-size: 12px;
+  }
+  .pill.run { outline: 1px solid var(--hot); }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #fff; }
+  .body { flex: 1; overflow: auto; padding: 0 12px 10px; }
+  .grp { margin: 12px 0 6px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+  .split {
+    display: grid; grid-template-columns: 1fr 44px; gap: 4px; margin-bottom: 6px;
+  }
+  .main, .gear {
+    border: 0; background: #ffffff0c; color: inherit; min-height: 52px; font: inherit;
+  }
+  .main { text-align: left; padding: 8px 12px; border-radius: 12px 4px 4px 12px; }
+  .main b { display: block; font-size: 14px; }
+  .main small { display: block; font-size: 11px; color: var(--mute); }
+  .main.pri { background: var(--hot); }
+  .main.pri small { color: #ffd6ea; }
+  .gear { border-radius: 4px 12px 12px 4px; font-size: 16px; color: var(--mute); }
+  .gear:active, .main:active { filter: brightness(1.15); }
+  .menu {
+    display: none; background: #24141c; border-radius: 12px; margin: -2px 0 10px;
+    overflow: hidden; border: 1px solid var(--line);
+  }
+  .menu.on { display: block; }
+  .menu button {
+    width: 100%; text-align: left; border: 0; background: transparent; color: inherit;
+    min-height: 44px; padding: 8px 12px; font: inherit; border-bottom: 1px solid var(--line);
+  }
+  .menu button:last-child { border-bottom: 0; }
+  .dl-item {
+    display: grid; grid-template-columns: 1fr 64px; gap: 8px; align-items: center;
+    background: #ffffff0c; border-radius: 12px; padding: 10px; margin-bottom: 6px;
+  }
+  .dl-item b { display: block; font-size: 14px; }
+  .dl-item span { font-size: 11px; color: var(--mute); }
+  .pbar { height: 4px; background: #0006; border-radius: 99px; margin-top: 6px; overflow: hidden; }
+  .pbar i { display: block; height: 100%; background: var(--hot); }
+  .dl-item.ready .pbar i { background: var(--ok); }
+  .dl-go { border: 0; min-height: 40px; border-radius: 8px; background: #ffffff10; color: inherit; font: inherit; font-size: 12px; }
+  .dl-item.missing .dl-go { background: var(--hot); color: #fff; }
+  #log { height: 64px; margin: 0; padding: 8px 12px; font-size: 11px; color: var(--mute); background: #0005; overflow: auto; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside id="rail"></aside>
+  <section class="pane">
+    <header>
+      <div>
+        <div class="kicker">MAS BIOS · шестерёнка</div>
+        <h1 id="title">Игра</h1>
+      </div>
+      <button class="pill" id="pill" type="button">загрузки</button>
+    </header>
+    <div id="switch">
+      <a class="sw" href="nav.html">хаб</a>
+      <a class="sw" href="rail-list.html">список</a>
+      <a class="sw" href="rail-tiles.html">плитки</a>
+      <a class="sw on" href="rail-gear.html">шестерёнка</a>
+      <a class="sw" href="rail-plus.html">плитки+</a>
+      <a class="sw" href="dl-cod.html">COD</a>
+    </div>
+    <div class="body" id="body"></div>
+    <pre id="log">основная кнопка делает дело · шестерёнка справа открывает параметры</pre>
+  </section>
+</div>
+<script>
+(function () {
+  var catId = "play", openMenu = null, showDl = false;
+  var MENUS = {
+    boot: [
+      { t: "Обычный запуск", s: "Ren'Py → MAS OS", cmd: "startGame" },
+      { t: "Безопасный вход", s: "без сабмодов", cmd: "startSafe" },
+      { t: "Сначала проверить диск", s: "health check, потом старт", cmd: "healthCheck" }
+    ],
+    archives: [
+      { t: "Скачать с ddlc.moe", cmd: "downloadDdlcMoe" },
+      { t: "GitHub RPA", cmd: "downloadArchives" },
+      { t: "Файл с диска", cmd: "pickArchive" },
+      { t: "Только проверить", cmd: "checkArchives" }
+    ],
+    install: [
+      { t: "Ссылка GitHub", cmd: "downloadSubmodUrl" },
+      { t: "Zip с диска", cmd: "pickSubmodZip" },
+      { t: "История ссылок", cmd: "listUrlHistory" }
+    ],
+    saves: [
+      { t: "Импорт zip", cmd: "pickSavesZip" },
+      { t: "Импорт папки", cmd: "pickSavesFolder" },
+      { t: "Экспорт", cmd: "exportSaves" }
+    ],
+    monika: [
+      { t: "Статус файла", cmd: "checkMonikaFile" },
+      { t: "Найти в Documents", cmd: "recoverMonikaScan" },
+      { t: "Вернуть за стол", cmd: "recoverMonikaHome" }
+    ],
+    update: [
+      { t: "Проверить release", cmd: "checkUpdate" },
+      { t: "Скачать APK", cmd: "downloadUpdate" },
+      { t: "Поставить локальный", cmd: "installLocalApk" }
+    ]
+  };
+
+  function rail() {
+    var tot = biosDlTotals(), html = biosRailHtml(catId);
+    html += '<button type="button" class="rail-btn' + (showDl ? " on" : "") +
+      (tot.down ? " dot" : "") + '" data-dl="1"><i>↓</i><span>Качать</span></button>';
+    document.getElementById("rail").innerHTML = html;
+    document.getElementById("pill").textContent = tot.down
+      ? "качается " + tot.down
+      : (tot.readyToPlay ? "база ✓" : "нет базы");
+    document.getElementById("pill").className = "pill" + (tot.down ? " run" : "");
+  }
+
+  function split(label, sub, cmd, menuId, pri) {
+    return '<div class="split"><button class="main' + (pri ? " pri" : "") +
+      '" data-cmd="' + cmd + '" data-t="' + label + '"><b>' + label +
+      "</b><small>" + sub + "</small></button>" +
+      (menuId ? '<button class="gear" type="button" data-menu="' + menuId + '">⚙</button>' : '<span></span>') +
+      "</div>" + (menuId ? '<div class="menu" id="m-' + menuId + '"></div>' : "");
+  }
+
+  function fillMenus() {
+    var id, box, i, it, html;
+    for (id in MENUS) {
+      if (!MENUS.hasOwnProperty(id)) continue;
+      box = document.getElementById("m-" + id);
+      if (!box) continue;
+      html = "";
+      for (i = 0; i < MENUS[id].length; i++) {
+        it = MENUS[id][i];
+        html += '<button type="button" data-cmd="' + it.cmd + '" data-t="' + it.t + '">' +
+          it.t + (it.s ? "<div style=\"font-size:11px;color:var(--mute)\">" + it.s + "</div>" : "") +
+          "</button>";
+      }
+      box.innerHTML = html;
+      box.className = "menu" + (openMenu === id ? " on" : "");
+    }
+  }
+
+  function dlPane() {
+    var i, p, html = '<div class="grp">Пакеты</div>', tot = biosDlTotals();
+    html += '<p style="font-size:13px;color:var(--mute);margin:0 0 10px">' +
+      (tot.readyToPlay ? "обязательное на месте." : "без images.rpa и audio.rpa MAS не стартует.") + "</p>";
+    for (i = 0; i < biosDlPacks.length; i++) {
+      p = biosDlPacks[i];
+      html += '<div class="dl-item ' + p.status + '"><div><b>' + p.name + "</b><span>" +
+        biosDlMb(p.mb) + " · " + biosDlLabels[p.status] +
+        (p.status === "downloading" ? " · " + Math.round(p.pct) + "%" : "") +
+        '</span><div class="pbar"><i style="width:' + p.pct + '%"></i></div></div>' +
+        '<button class="dl-go" data-id="' + p.id + '">' +
+        (p.status === "ready" ? (p.required ? "OK" : "снять") :
+          p.status === "downloading" ? "пауза" : "скачать") + "</button></div>";
+    }
+    return html;
+  }
+
+  function render() {
+    var cat, html = "", i, kid;
+    rail();
+    if (showDl) {
+      document.getElementById("title").textContent = "Загрузки";
+      document.getElementById("body").innerHTML = dlPane();
+      return;
+    }
+    cat = biosCat(catId);
+    document.getElementById("title").textContent = cat.label;
+    for (i = 0; i < cat.kids.length; i++) {
+      kid = cat.kids[i];
+      html += '<div class="grp">' + kid.label + "</div>";
+      if (kid.id === "boot") {
+        html += split("Запустить MAS", "основное действие · ⚙ параметры входа", "startGame", "boot", 1);
+      } else if (kid.id === "archives") {
+        html += split("Скачать недостающее", "архивы DDLC · источник в ⚙", "downloadDdlcMoe", "archives", 1);
+      } else if (kid.id === "install") {
+        html += split("Поставить пакет", "zip или ссылка", "pickSubmodZip", "install", 1);
+      } else if (kid.id === "saves") {
+        html += split("Импорт сейвов", "zip или папка", "pickSavesZip", "saves", 1);
+      } else if (kid.id === "monika") {
+        html += split("Вернуть Монику", "characters/monika", "recoverMonikaHome", "monika", 1);
+      } else if (kid.id === "update") {
+        html += split("Обновить APK", "GitHub Release", "checkUpdate", "update", 1);
+      } else {
+        html += split(kid.acts[0].t, kid.hint, kid.acts[0].cmd, null, kid.acts[0].primary);
+      }
+    }
+    document.getElementById("body").innerHTML = html;
+    fillMenus();
+  }
+
+  document.getElementById("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cat], [data-dl]");
+    if (!b) return;
+    openMenu = null;
+    if (b.getAttribute("data-dl")) {
+      showDl = true;
+    } else {
+      showDl = false;
+      catId = b.getAttribute("data-cat");
+    }
+    render();
+  });
+  document.getElementById("pill").onclick = function () {
+    showDl = true;
+    openMenu = null;
+    render();
+  };
+  document.getElementById("body").addEventListener("click", function (e) {
+    var g = e.target.closest("[data-menu]");
+    var cmd = e.target.closest("[data-cmd]");
+    var pack = e.target.closest("[data-id]");
+    var p, id;
+    if (g) {
+      id = g.getAttribute("data-menu");
+      openMenu = openMenu === id ? null : id;
+      fillMenus();
+      return;
+    }
+    if (pack) {
+      p = biosDlGet(pack.getAttribute("data-id"));
+      biosDlAct(p.id);
+      biosDlLog(p.cmd, p.name + " → " + p.status);
+      render();
+      return;
+    }
+    if (cmd) {
+      biosDlLog(cmd.getAttribute("data-cmd"), cmd.getAttribute("data-t"));
+      openMenu = null;
+      fillMenus();
+    }
+  });
+  biosDlStartTick(function () { if (showDl) render(); else rail(); });
+  render();
+})();
+</script>
+</body>
+</html>

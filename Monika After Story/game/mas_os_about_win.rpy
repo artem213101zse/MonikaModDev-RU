@@ -97,49 +97,61 @@ screen mas_os_about_win():
             background Solid(store.mas_os.theme_color("panel"))
             padding (18, 16)
 
-            vbox:
-                spacing 10
-                xfill True
+            viewport:
+                xysize (384, 398)
+                draggable True
+                mousewheel True
+                scrollbars "vertical"
 
-                text _("Эта оболочка"):
-                    style "mas_os_subtitle"
+                vbox:
+                    spacing 10
+                    xfill True
 
-                text store.mas_os.ABOUT_BLURB:
-                    style "mas_os_hint"
-                    size 14
-                    xsize 380
-                    substitute False
+                    text _("Эта оболочка"):
+                        style "mas_os_subtitle"
 
-                text _("Канал обновлений: [ch]"):
-                    style "mas_os_body"
-                    size 15
+                    text store.mas_os.ABOUT_BLURB:
+                        style "mas_os_hint"
+                        size 14
+                        xsize 360
+                        substitute False
 
-                textbutton _("Проверить обновления"):
-                    style "mas_os_nav_btn"
-                    text_style "mas_os_nav_btn_text"
-                    xsize 360
-                    action [
-                        Function(store.mas_os.set_settings_page, "update"),
-                        MASOSGo("settings"),
-                    ]
+                    text _("Канал обновлений: [ch]"):
+                        style "mas_os_body"
+                        size 15
 
-                textbutton _("Документация"):
-                    style "mas_os_nav_btn"
-                    text_style "mas_os_nav_btn_text"
-                    xsize 360
-                    action MASOSGo("docs")
+                    textbutton _("Проверить обновления"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 340
+                        action [
+                            Function(store.mas_os.set_settings_page, "update"),
+                            MASOSGo("settings"),
+                        ]
 
-                textbutton _("Логи"):
-                    style "mas_os_nav_btn"
-                    text_style "mas_os_nav_btn_text"
-                    xsize 360
-                    action MASOSGo("logs")
+                    textbutton _("Документация"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 340
+                        action MASOSGo("docs")
 
-                textbutton _("Показать дисклеймер"):
-                    style "mas_os_nav_btn"
-                    text_style "mas_os_nav_btn_text"
-                    xsize 360
-                    action [Function(store.mas_os.tos_begin, True), Show("mas_os_tos")]
+                    textbutton _("Логи"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 340
+                        action MASOSGo("logs")
+
+                    textbutton _("Показать дисклеймер"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 340
+                        action [Function(store.mas_os.tos_begin, True), Show("mas_os_tos")]
+
+                    textbutton _("Титры оригинала"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 340
+                        action MASOSCredits()
 
         frame:
             xysize (748, 430)

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Лист</title>
+<script src="tree.js"></script>
+<style>
+  :root { --bg:#10080c; --rail:#160910; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; --line:#ffffff14; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 80px 1fr; height: 100dvh; }
+  aside {
+    background: var(--rail); display: flex; flex-direction: column;
+    padding: 8px 6px calc(10px + env(safe-area-inset-bottom));
+  }
+  .rail-btn {
+    border: 0; background: transparent; color: var(--mute); min-height: 62px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; border-radius: 14px; font: inherit; margin-bottom: 4px;
+  }
+  .rail-btn i { font-style: normal; }
+  .rail-btn span { font-size: 10px; }
+  .rail-btn.on { background: #c94a7a33; color: #fff; }
+  .play {
+    margin-top: auto; width: 100%; min-height: 52px; border: 0; border-radius: 14px;
+    background: var(--hot); color: #fff; font-weight: 800; font-size: 12px; line-height: 1.15;
+  }
+  .pane { display: flex; flex-direction: column; min-width: 0; }
+  header { padding: 14px 16px 4px; }
+  .kicker { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); }
+  h1 { margin: 2px 0 0; font-size: 22px; }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #fff; }
+  .body { flex: 1; overflow: auto; padding: 4px 10px 12px; }
+  .row {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    text-align: left; border: 0; background: transparent; color: inherit; min-height: 64px;
+    padding: 8px 8px; font: inherit; border-bottom: 1px solid var(--line);
+  }
+  .row b { display: block; font-size: 16px; }
+  .row i { display: block; font-style: normal; font-size: 12px; color: var(--mute); margin-top: 2px; }
+  .row em { font-style: normal; color: var(--mute); font-size: 22px; }
+  #log { height: 56px; margin: 0; padding: 8px 12px; font-size: 11px; color: var(--mute); background: #0005; overflow: auto; white-space: pre-wrap; }
+  .dim { position: fixed; inset: 0; background: #0008; display: none; }
+  .dim.on { display: block; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; background: #1c1018;
+    border-radius: 22px 22px 0 0; padding: 8px 14px calc(16px + env(safe-area-inset-bottom));
+    transform: translateY(110%); transition: transform .28s ease; max-height: 72dvh; overflow: auto;
+  }
+  .sheet.on { transform: translateY(0); }
+  .grab { width: 36px; height: 4px; background: #ffffff33; border-radius: 4px; margin: 6px auto 12px; }
+  .sheet h2 { margin: 0 0 4px; font-size: 20px; }
+  .sheet p { margin: 0 0 12px; color: var(--mute); font-size: 13px; }
+  .url { width: 100%; min-height: 44px; border: 0; border-radius: 12px; padding: 0 12px; background: #ffffff10; color: #fff; margin-bottom: 8px; }
+  .btns { display: flex; flex-direction: column; gap: 8px; }
+  .btn {
+    border: 0; background: #ffffff10; color: inherit; min-height: 54px; border-radius: 14px;
+    text-align: left; padding: 10px 14px; font: inherit;
+  }
+  .btn small { display: block; color: var(--mute); font-size: 12px; }
+  .btn.pri { background: var(--hot); }
+  .btn.pri small { color: #ffd6ea; }
+  .btn.dang { background: #3a1218; color: #ffb3c0; }
+  .packs { margin-top: 10px; }
+  .pack { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+  .pack span { display: block; font-size: 12px; color: var(--mute); }
+  .pack-x { border: 0; background: #ffffff10; color: #ff9aa8; min-height: 36px; border-radius: 8px; padding: 0 10px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div id="rail"></div>
+    <button class="play" data-cmd="startGame" data-t="Запустить MAS">PLAY<br>MAS</button>
+  </aside>
+  <section class="pane">
+    <header>
+      <div class="kicker">MAS BIOS · нижний лист</div>
+      <h1 id="title">Игра</h1>
+    </header>
+    <div id="switch"></div>
+    <div class="body" id="body"></div>
+    <pre id="log">подкатегории списком · действия выезжают снизу</pre>
+  </section>
+</div>
+<div class="dim" id="dim"></div>
+<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <h2 id="st"></h2>
+  <p id="sh"></p>
+  <div id="sb"></div>
+</div>
+<script>
+(function () {
+  var catId = "play";
+  function render() {
+    var cat = biosCat(catId), i, k, html = "";
+    document.getElementById("rail").innerHTML = biosRailHtml(catId);
+    document.getElementById("title").textContent = cat.label;
+    for (i = 0; i < cat.kids.length; i++) {
+      k = cat.kids[i];
+      html += '<button type="button" class="row" data-kid="' + k.id + '"><span><b>' +
+        k.label + "</b><i>" + k.hint + "</i></span><em>›</em></button>";
+    }
+    document.getElementById("body").innerHTML = html;
+  }
+  function openKid(id) {
+    var kid = biosKid(biosCat(catId), id);
+    document.getElementById("st").textContent = kid.label;
+    document.getElementById("sh").textContent = kid.hint;
+    document.getElementById("sb").innerHTML = biosActsHtml(kid, "btns");
+    document.getElementById("dim").className = "dim on";
+    document.getElementById("sheet").className = "sheet on";
+  }
+  function close() {
+    document.getElementById("dim").className = "dim";
+    document.getElementById("sheet").className = "sheet";
+  }
+  document.getElementById("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cat]");
+    if (!b) return;
+    catId = b.getAttribute("data-cat");
+    close();
+    render();
+  });
+  document.getElementById("body").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-kid]");
+    if (b) openKid(b.getAttribute("data-kid"));
+  });
+  document.getElementById("dim").onclick = close;
+  biosSwitcher("rail-sheet.html");
+  biosClock();
+  biosBindActs();
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Стек</title>
+<script src="tree.js"></script>
+<style>
+  :root { --bg:#14070d; --rail:#0c0508; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; --line:#ffffff14; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
+  .app { display: grid; grid-template-columns: 76px 1fr; height: 100dvh; }
+  aside { background: var(--rail); padding: 8px 6px; }
+  .rail-btn {
+    border: 0; background: transparent; color: var(--mute); min-height: 68px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; border-radius: 14px; font-family: system-ui, sans-serif; margin-bottom: 4px;
+  }
+  .rail-btn i { font-style: normal; }
+  .rail-btn span { font-size: 10px; }
+  .rail-btn.on { background: var(--hot); color: #fff; }
+  .pane { display: flex; flex-direction: column; min-width: 0; }
+  header { padding: 12px 16px 4px; }
+  .kicker { font-family: system-ui, sans-serif; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px; font-family: system-ui, sans-serif; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #fff; }
+  .pager {
+    display: flex; gap: 6px; padding: 0 12px 10px; overflow-x: auto;
+    font-family: system-ui, sans-serif;
+  }
+  .pg {
+    border: 0; background: #ffffff10; color: var(--ink); min-height: 34px; padding: 0 12px;
+    border-radius: 999px; white-space: nowrap; font: inherit; font-size: 13px;
+  }
+  .pg.on { background: #fff; color: #14070d; }
+  .body { flex: 1; overflow: auto; padding: 4px 16px 12px; }
+  h1 { font-size: 34px; font-weight: 400; margin: 0 0 8px; letter-spacing: -.03em; }
+  .lead { color: var(--mute); font-size: 15px; line-height: 1.4; margin: 0 0 18px; }
+  .url { width: 100%; min-height: 48px; border: 0; border-radius: 14px; padding: 0 14px; background: #ffffff10; color: #fff; margin-bottom: 12px; font-size: 16px; font-family: system-ui, sans-serif; }
+  .hero {
+    width: 100%; min-height: 72px; border: 0; border-radius: 18px; background: var(--hot); color: #fff;
+    font-size: 20px; font-family: inherit; text-align: left; padding: 14px 16px; margin-bottom: 8px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .hero small { font-family: system-ui, sans-serif; font-size: 12px; opacity: .8; }
+  .hero.dang { background: #6a2030; }
+  .mini { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; font-family: system-ui, sans-serif; }
+  .mini-btn {
+    flex: 1 1 40%; min-height: 48px; border: 1px solid var(--line); background: transparent;
+    color: inherit; border-radius: 12px; font: inherit; font-size: 13px;
+  }
+  .mini-btn.dang { border-color: #ff9aa866; color: #ff9aa8; }
+  .packs { margin-top: 16px; font-family: system-ui, sans-serif; }
+  .pack { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .pack span { display: block; font-size: 12px; color: var(--mute); }
+  .pack-x { border: 0; background: transparent; color: #ff9aa8; min-height: 40px; }
+  #log { height: 56px; margin: 0; padding: 8px 12px; font-size: 11px; color: var(--mute); background: #0005; overflow: auto; white-space: pre-wrap; font-family: ui-monospace, Consolas, monospace; }
+  .dlg {
+    position: fixed; inset: 0; background: #0009; display: none; align-items: center; justify-content: center;
+    padding: 20px; font-family: system-ui, sans-serif;
+  }
+  .dlg.on { display: flex; }
+  .box { width: min(340px, 100%); background: #221018; border-radius: 16px; padding: 16px; }
+  .box h3 { margin: 0 0 8px; }
+  .box p { margin: 0 0 14px; color: var(--mute); font-size: 14px; }
+  .box .row { display: flex; gap: 8px; }
+  .box button { flex: 1; min-height: 44px; border: 0; border-radius: 10px; font: inherit; }
+  .no { background: #ffffff14; color: #fff; }
+  .yes { background: var(--hot); color: #fff; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside id="rail"></aside>
+  <section class="pane">
+    <header>
+      <div class="kicker">MAS BIOS · стек</div>
+    </header>
+    <div id="switch"></div>
+    <div class="pager" id="pager"></div>
+    <div class="body" id="body"></div>
+    <pre id="log">одна подкатегория · крупный primary · опасные через диалог</pre>
+  </section>
+</div>
+<div class="dlg" id="dlg">
+  <div class="box">
+    <h3 id="dt">Подтвердить</h3>
+    <p id="dp"></p>
+    <div class="row">
+      <button class="no" id="no" type="button">Отмена</button>
+      <button class="yes" id="yes" type="button">Да</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var catId = "play", kidId = "boot", pending = null;
+  function render() {
+    var cat = biosCat(catId), kid = biosKid(cat, kidId), i, html = "";
+    document.getElementById("rail").innerHTML = biosRailHtml(catId);
+    for (i = 0; i < cat.kids.length; i++) {
+      html += '<button type="button" class="pg' + (cat.kids[i].id === kidId ? " on" : "") +
+        '" data-kid="' + cat.kids[i].id + '">' + cat.kids[i].label + "</button>";
+    }
+    document.getElementById("pager").innerHTML = html;
+    document.getElementById("body").innerHTML = "<h1>" + kid.label + "</h1><p class=\"lead\">" +
+      kid.hint + "</p>" + biosActsHtml(kid, "stack");
+  }
+  document.getElementById("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cat]");
+    if (!b) return;
+    catId = b.getAttribute("data-cat");
+    kidId = biosCat(catId).kids[0].id;
+    render();
+  });
+  document.getElementById("pager").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-kid]");
+    if (!b) return;
+    kidId = b.getAttribute("data-kid");
+    render();
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("[data-cmd]") : null;
+    if (!b || !b.getAttribute("data-danger")) return;
+    e.stopPropagation();
+    pending = { cmd: b.getAttribute("data-cmd"), t: b.getAttribute("data-t") };
+    document.getElementById("dt").textContent = pending.t;
+    document.getElementById("dp").textContent = "Это необратимо в живом BIOS. В эскизе только запись в журнал.";
+    document.getElementById("dlg").className = "dlg on";
+  }, true);
+  document.getElementById("no").onclick = function () {
+    pending = null;
+    document.getElementById("dlg").className = "dlg";
+  };
+  document.getElementById("yes").onclick = function () {
+    if (pending) biosLog(pending.cmd, pending.t);
+    pending = null;
+    document.getElementById("dlg").className = "dlg";
+  };
+  biosSwitcher("rail-stack.html");
+  biosClock();
+  biosBindActs();
+  render();
+})();
+</script>
+</body>
+</html>

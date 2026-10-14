@@ -699,6 +699,9 @@ init -10 python in mas_os:
             path = "gui/textbox_d.png"
         else:
             path = "gui/textbox_d_{0}.png".format(color)
+        user = _user_tb_src(path)
+        if user:
+            return user
         opened = asset_open_path(path)
         if opened:
             return opened
@@ -780,6 +783,12 @@ init -10 python in mas_os:
 
     def _tint_cache_dir():
         roots = []
+        try:
+            live = mas_os_textboxes_dir()
+            if live:
+                roots.append(live)
+        except Exception:
+            pass
         gamed = getattr(store.renpy.config, "gamedir", None)
         saved = getattr(store.renpy.config, "savedir", None)
         if gamed:
@@ -803,6 +812,24 @@ init -10 python in mas_os:
                 continue
         return None
 
+    def _tint_color_key(hex_color):
+        h = unicode(hex_color or "C94A7A").replace("#", "").strip().upper()
+        if not h:
+            h = "C94A7A"
+        return h
+
+    def _tint_color_dir(hex_color):
+        root = _tint_cache_dir()
+        if not root:
+            return None
+        folder = os.path.join(root, _tint_color_key(hex_color))
+        try:
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
+            return folder
+        except Exception:
+            return None
+
     def _tint_via_matrix(src, hex_color, strength):
         tr, tg, tb = _tint_rgb(hex_color)
         mx = store.im.matrix.saturation(0.0) * store.im.matrix.tint(
@@ -819,16 +846,28 @@ init -10 python in mas_os:
         return store.im.Composite((int(w), int(h)), (0, 0), src, (0, 0), overlay)
 
     def _tint_disk_path(rel, hex_color, strength):
-        folder = _tint_cache_dir()
+        folder = _tint_color_dir(hex_color)
         if not folder:
             return None
         src_tag = os.path.basename(unicode(rel).replace("\\", "/")).replace(".", "_")
-        name = "tb_{0}_{1}_{2}.png".format(
-            unicode(hex_color).replace("#", ""),
-            int(float(strength) * 100),
-            src_tag,
-        )
-        return os.path.join(folder, name)
+        strength_tag = int(float(strength) * 100)
+        name = "tb_{0}_{1}.png".format(strength_tag, src_tag)
+        path = os.path.join(folder, name)
+        if os.path.isfile(path):
+            return path
+        root = _tint_cache_dir()
+        if root:
+            old = os.path.join(
+                root,
+                "tb_{0}_{1}_{2}.png".format(
+                    _tint_color_key(hex_color),
+                    strength_tag,
+                    src_tag,
+                ),
+            )
+            if os.path.isfile(old):
+                return old
+        return path
 
     def _tint_needs_disk_bake():
         """True only if a mas_os_tint PNG for the current color is missing."""
@@ -981,16 +1020,9 @@ init -10 python in mas_os:
                     surf.set_at((x, y), (nr, ng, nb, a))
                 x += 1
             y += 1
-        folder = _tint_cache_dir()
-        if folder is None:
+        path = _tint_disk_path(rel, hex_color, s)
+        if not path:
             return None
-        src_tag = os.path.basename(rel.replace("\\", "/")).replace(".", "_")
-        name = "tb_{0}_{1}_{2}.png".format(
-            hex_color.replace("#", ""),
-            int(s * 100),
-            src_tag,
-        )
-        path = os.path.join(folder, name)
         try:
             pygame.image.save(surf, path)
         except Exception:
@@ -1459,12 +1491,12 @@ init -10 python in mas_os:
         strength = tb_strength() / 100.0
         overlay = _tb_overlay_on() and color_game()
 
-        dark_src = asset_open_path("gui/textbox_d.png") or "gui/textbox_d.png"
-        light_src = asset_open_path("gui/textbox.png") or "gui/textbox.png"
-        md_src = asset_open_path("gui/textbox_monika_d.png") or "gui/textbox_monika_d.png"
-        m_src = asset_open_path("gui/textbox_monika.png") or "gui/textbox_monika.png"
-        nb_d_src = asset_open_path("gui/namebox_d.png") or "gui/namebox_d.png"
-        nb_src = asset_open_path("gui/namebox.png") or "gui/namebox.png"
+        dark_src = _user_tb_src("gui/textbox_d.png") or asset_open_path("gui/textbox_d.png") or "gui/textbox_d.png"
+        light_src = _user_tb_src("gui/textbox.png") or asset_open_path("gui/textbox.png") or "gui/textbox.png"
+        md_src = _user_tb_src("gui/textbox_monika_d.png") or asset_open_path("gui/textbox_monika_d.png") or "gui/textbox_monika_d.png"
+        m_src = _user_tb_src("gui/textbox_monika.png") or asset_open_path("gui/textbox_monika.png") or "gui/textbox_monika.png"
+        nb_d_src = _user_tb_src("gui/namebox_d.png") or asset_open_path("gui/namebox_d.png") or "gui/namebox_d.png"
+        nb_src = _user_tb_src("gui/namebox.png") or asset_open_path("gui/namebox.png") or "gui/namebox.png"
 
         if overlay:
             dark = _mask_tint(dark_src, hexc, strength)
@@ -1794,6 +1826,11 @@ init -10 python in mas_os:
         Apply all font slots. CJK fallbacks stay in the FontGroup on PC.
         Android keeps the latin file so HUD metrics match stock MAS.
         """
+        try:
+            if safe_boot_active():
+                return
+        except Exception:
+            pass
         if fonts_are_default():
             return
 
@@ -1878,24 +1915,244 @@ init -10 python in mas_os:
     WP_BUNDLED = ("splash.png", "menu.png")
 
     def wallpaper_dir():
+        try:
+            live = mas_os_wallpapers_dir()
+            if live:
+                return live
+        except Exception:
+            pass
         return os.path.join(writable_gamedir(), "mod_assets", "mas_os", "wallpapers")
 
-    def list_wallpapers():
-        rows = [("solid", "Сплошной цвет", None)]
+    def wallpaper_user_path(name):
+        if not name or name == "solid":
+            return None
+        try:
+            if safe_boot_active():
+                return None
+        except Exception:
+            pass
+        folder = wallpaper_dir()
+        if not folder:
+            return None
+        path = os.path.join(folder, os.path.basename(name))
+        try:
+            if os.path.isfile(path):
+                return path
+        except Exception:
+            pass
+        return None
+
+    def _user_tb_src(rel):
+        try:
+            if safe_boot_active():
+                return None
+        except Exception:
+            pass
+        base = os.path.basename((rel or "").replace("\\", "/"))
+        if not base:
+            return None
+        try:
+            folder = mas_os_textboxes_dir()
+        except Exception:
+            folder = None
+        if not folder:
+            return None
+        path = os.path.join(folder, base)
+        try:
+            if os.path.isfile(path):
+                return path
+        except Exception:
+            pass
+        try:
+            names = os.listdir(folder)
+        except Exception:
+            names = []
+        for name in names:
+            sub = os.path.join(folder, name)
+            try:
+                if not os.path.isdir(sub):
+                    continue
+            except Exception:
+                continue
+            cand = os.path.join(sub, base)
+            try:
+                if os.path.isfile(cand):
+                    return cand
+            except Exception:
+                continue
+        return None
+
+    _wp_list_cache = None
+    _session_new = set()
+
+    def forget_loadable(name):
+        if not name:
+            return
+        try:
+            cache = store.renpy.loader.loadable_cache
+        except Exception:
+            return
+        variants = [name]
+        try:
+            variants.append(name.replace("\\", "/"))
+        except Exception:
+            pass
+        slash = unicode(name).replace("\\", "/")
+        if slash.startswith("/"):
+            variants.append(slash.lstrip("/"))
+        elif slash:
+            variants.append("/" + slash)
+        base = os.path.basename(slash)
+        if base:
+            variants.append(base)
+        for item in variants:
+            try:
+                if item in cache:
+                    del cache[item]
+            except Exception:
+                pass
+
+    def user_asset_ready(path):
+        if not path:
+            return False
+        try:
+            if store.renpy.loadable(path):
+                return True
+        except Exception:
+            pass
+        try:
+            base = os.path.basename(unicode(path).replace("\\", "/"))
+            if base and store.renpy.loadable(base):
+                return True
+        except Exception:
+            pass
+        return False
+
+    def user_asset_pending(path):
+        if not path:
+            return False
+        try:
+            if os.path.isfile(path):
+                return not user_asset_ready(path)
+        except Exception:
+            pass
+        return False
+
+    def mark_session_new(kind, name):
+        global _session_new
+        base = os.path.basename(name or "").lower()
+        if kind and base:
+            _session_new.add((kind, base))
+
+    def is_session_new(kind, name):
+        base = os.path.basename(name or "").lower()
+        return (kind, base) in _session_new
+
+    def item_needs_restart(kind, name, path):
+        if user_asset_pending(path):
+            return True
+        if kind in ("font", "submod") and is_session_new(kind, name):
+            return True
+        return False
+
+    def _forget_user_loadable_tree():
+        folders = []
+        for getter in (
+            wallpaper_dir,
+            mas_os_fonts_dir,
+            mas_os_textboxes_dir,
+            custom_bgm_dir,
+        ):
+            try:
+                path = getter()
+            except Exception:
+                path = None
+            if path:
+                folders.append(path)
+        for folder in folders:
+            try:
+                names = os.listdir(folder)
+            except Exception:
+                continue
+            for name in names:
+                if name in (".", ".."):
+                    continue
+                full = os.path.join(folder, name)
+                forget_loadable(full)
+                forget_loadable(name)
+                try:
+                    if os.path.isdir(full):
+                        nested = os.listdir(full)
+                    else:
+                        nested = []
+                except Exception:
+                    nested = []
+                for child in nested:
+                    child_path = os.path.join(full, child)
+                    forget_loadable(child_path)
+                    forget_loadable(child)
+
+    def refresh_user_catalog():
+        """Scan player folders once, on the Обновить button."""
+        global _wp_list_cache
+        try:
+            _sort_mas_os_dumps()
+        except Exception:
+            pass
+        try:
+            _migrate_textbox_color_folders()
+        except Exception:
+            pass
+        try:
+            _register_user_asset_searchpath()
+        except Exception:
+            pass
+        _forget_user_loadable_tree()
+        try:
+            cache = getattr(store.mas_os, "_fit_cache", None)
+            if cache is not None:
+                cache.clear()
+        except Exception:
+            pass
+        try:
+            store.mas_os._dl_list_cache = {}
+        except Exception:
+            pass
+        _wp_list_cache = None
+        list_wallpapers(force=True)
+        try:
+            player_rescan()
+        except Exception:
+            pass
+        return None
+
+    def list_wallpapers(force=False):
+        global _wp_list_cache
+        if _wp_list_cache is not None and not force:
+            return list(_wp_list_cache)
+        rows = [("solid", "Сплошной цвет", None, False)]
         seen = set(["solid"])
 
-        def _add(name, rel):
+        def _add(name, path, require_asset=False):
             key = (name or "").lower()
             if not name or key in seen:
                 return
-            if not asset_exists(rel):
+            if require_asset and not asset_exists(path):
+                return
+            if (not require_asset) and path and not os.path.isfile(path) and not asset_exists(path):
                 return
             seen.add(key)
             title = os.path.splitext(name)[0].replace("_", " ").replace("-", " ")
-            rows.append((name, title, asset_open_path(rel) or rel))
+            opened = path
+            pending = False
+            if require_asset:
+                opened = asset_open_path(path) or path
+            else:
+                pending = user_asset_pending(path)
+            rows.append((name, title, opened, pending))
 
         for name in WP_BUNDLED:
-            _add(name, WP_REL + "/" + name)
+            _add(name, WP_REL + "/" + name, require_asset=True)
         for folder in (
             os.path.join(root, "mod_assets", "mas_os", "wallpapers")
             for root in asset_dirs()
@@ -1910,8 +2167,25 @@ init -10 python in mas_os:
                 ext = os.path.splitext(name)[1].lower()
                 if ext not in WP_EXTS:
                     continue
-                _add(name, WP_REL + "/" + name)
-        return rows
+                _add(name, WP_REL + "/" + name, require_asset=True)
+        folder = wallpaper_dir()
+        user_ok = True
+        try:
+            user_ok = not safe_boot_active()
+        except Exception:
+            user_ok = True
+        if user_ok and folder and os.path.isdir(folder):
+            try:
+                names = sorted(os.listdir(folder))
+            except Exception:
+                names = []
+            for name in names:
+                ext = os.path.splitext(name)[1].lower()
+                if ext not in WP_EXTS:
+                    continue
+                _add(name, os.path.join(folder, name), require_asset=False)
+        _wp_list_cache = rows
+        return list(rows)
 
     def wallpaper_grid_cells(cols=2):
         items = list_wallpapers()
@@ -1925,8 +2199,9 @@ init -10 python in mas_os:
         wid = getattr(store.persistent, "_mas_os_wallpaper", "splash.png")
         if not wid or wid == "solid":
             return "solid"
-        rel = WP_REL + "/" + wid
-        if asset_exists(rel):
+        if asset_exists(WP_REL + "/" + wid):
+            return wid
+        if wallpaper_user_path(wid):
             return wid
         return "solid"
 
@@ -1934,12 +2209,21 @@ init -10 python in mas_os:
         wid = wallpaper_id()
         if wid == "solid":
             return None
+        user = wallpaper_user_path(wid)
+        if user:
+            return user
         return asset_open_path(WP_REL + "/" + wid)
 
     def wallpaper_disp():
         rel = wallpaper_rel()
         if not rel:
             return store.Solid(theme_color("bg"))
+        if user_asset_pending(rel) or not user_asset_ready(rel):
+            try:
+                if os.path.isfile(rel):
+                    return store.Solid(theme_color("bg"))
+            except Exception:
+                pass
         try:
             iw, ih = store.renpy.image_size(rel)
             if iw and ih:
@@ -1947,10 +2231,20 @@ init -10 python in mas_os:
                 return store.Transform(rel, zoom=z)
         except Exception:
             pass
-        return rel
+        try:
+            if user_asset_ready(rel):
+                return rel
+        except Exception:
+            pass
+        return store.Solid(theme_color("bg"))
 
     def set_wallpaper(wid):
-        store.persistent._mas_os_wallpaper = wid or "solid"
+        wid = wid or "solid"
+        if wid != "solid":
+            path = wallpaper_user_path(wid)
+            if path and user_asset_pending(path):
+                return None
+        store.persistent._mas_os_wallpaper = wid
         try:
             store.renpy.save_persistent()
         except Exception:
@@ -1962,6 +2256,8 @@ init -10 python in mas_os:
 
     def open_wp_preview(wid, path=None):
         global wp_preview_id, wp_preview_path
+        if path and user_asset_pending(path):
+            return None
         wp_preview_id = wid or "solid"
         wp_preview_path = path
         try:
@@ -2527,6 +2823,32 @@ init -10 python in mas_os:
     def game_dir():
         return _norm(renpy.config.basedir)
 
+    def safe_boot_active():
+        """Sticky BIOS safe mode: user content is frozen, game boots stock."""
+        try:
+            based = game_dir()
+            if based and os.path.isfile(os.path.join(based, "mas_os_safe_mode_on")):
+                return True
+            if based and os.path.isfile(os.path.join(based, "game", "mas_os_safe_mode_on")):
+                return True
+        except Exception:
+            pass
+        try:
+            fd = flags_dir()
+            if fd and os.path.isfile(os.path.join(fd, "mas_os_safe_mode_on")):
+                return True
+        except Exception:
+            pass
+        try:
+            root = user_data_root()
+            if root and os.path.isfile(os.path.join(
+                root, "mas_bios", "flags", "mas_os_safe_mode_on"
+            )):
+                return True
+        except Exception:
+            pass
+        return False
+
     def asset_dirs():
         """
         Folders that may contain game assets on disk.
@@ -2685,6 +3007,17 @@ init -10 python in mas_os:
 
     def _font_dirs():
         out = []
+        skip_user = False
+        try:
+            skip_user = safe_boot_active()
+        except Exception:
+            skip_user = False
+        try:
+            live = mas_os_fonts_dir()
+            if (not skip_user) and live and os.path.isdir(live) and live not in out:
+                out.append(live)
+        except Exception:
+            pass
         for root in asset_dirs():
             path = os.path.join(root, "mod_assets", "font")
             if os.path.isdir(path) and path not in out:
@@ -2828,8 +3161,34 @@ init -10 python in mas_os:
                 seen.add(low)
                 fid = "disk_" + re.sub(r"[^a-z0-9]+", "_", os.path.splitext(low)[0])[:40]
                 title = os.path.splitext(name)[0]
-                rows.append((fid, title, "mod_assets/font/" + name))
+                src = os.path.join(folder, name)
+                rel = _stage_user_font(src) or ("mod_assets/font/" + name)
+                rows.append((fid, title, rel))
         return rows
+
+    def _stage_user_font(src_path):
+        """Copy a mas_os font into overlay so load_face() can open a relative path."""
+        if not src_path or not os.path.isfile(src_path):
+            return None
+        base = os.path.basename(src_path)
+        safe = re.sub(r"[^A-Za-z0-9._-]+", "_", base)
+        if not safe.lower().endswith(".ttf") and not safe.lower().endswith(".otf"):
+            safe += ".ttf"
+        dest_rel = "mod_assets/font/" + safe
+        dest = _norm(os.path.join(writable_gamedir(), dest_rel.replace("/", os.sep)))
+        try:
+            parent = os.path.dirname(dest)
+            if parent and not os.path.isdir(parent):
+                os.makedirs(parent)
+            if _norm(src_path) != dest:
+                if (not os.path.isfile(dest)) or (
+                    os.path.getmtime(src_path) > (os.path.getmtime(dest) + 1.0)
+                ):
+                    import shutil
+                    shutil.copy2(src_path, dest)
+        except Exception:
+            pass
+        return ensure_font_usable(dest_rel)
 
     def all_font_packs():
         return list(FONT_PACKS) + extra_font_rows()
@@ -3041,7 +3400,7 @@ init -10 python in mas_os:
                 return path
         except Exception:
             pass
-        return _norm(os.path.join(renpy.config.basedir, "_mas"))
+        return _norm(os.path.join(renpy.config.basedir, "mas_bios"))
 
     def list_dir_names(path, limit=24):
         """
@@ -3226,6 +3585,8 @@ label mas_os_about:
     call screen mas_os_about with mas_os_trans
     if _return == "logs":
         jump mas_os_logs
+    if _return == "credits":
+        jump mas_os_orig_credits
     jump mas_os_home
 
 
@@ -3485,11 +3846,36 @@ screen mas_os_theme_toggle(width=388):
                     action Function(store.mas_os.set_theme, "light")
 
 
-screen mas_os_ibutton(caption, act, glyph, hue, bstyle="mas_os_tile", tstyle="mas_os_tile_text", align_center=True, delay=0, icon=None, badge=False):
+screen mas_os_pending_mark(width=220):
+    hbox:
+        spacing 8
+        yalign 0.5
+        xsize width
+
+        if store.mas_os.icon_path("clock"):
+            add store.mas_os.fit_image(store.mas_os.icon_path("clock"), 22, 22):
+                yalign 0.5
+        else:
+            text "⏱":
+                style "mas_os_hint"
+                size 18
+                yalign 0.5
+
+        text _("перезапустите игру"):
+            style "mas_os_hint"
+            size 13
+            yalign 0.5
+            xsize (width - 36)
+            substitute False
+
+
+screen mas_os_ibutton(caption, act, glyph, hue, bstyle="mas_os_tile", tstyle="mas_os_tile_text", align_center=True, delay=0, icon=None, badge=False, muted=False, btn_w=0):
     $ ipath = store.mas_os.icon_path(icon)
 
     button:
         style bstyle
+        if btn_w:
+            xsize btn_w
         at store.mas_os.t_tile(delay)
         action act
         hover_sound store.mas_os.os_hover()
@@ -3519,6 +3905,9 @@ screen mas_os_ibutton(caption, act, glyph, hue, bstyle="mas_os_tile", tstyle="ma
             text caption:
                 style tstyle
                 yalign 0.5
+
+        if muted:
+            add Solid("#00000099")
 
         if badge:
             frame:
@@ -3587,6 +3976,30 @@ screen mas_os_generating():
     timer 0.50 repeat True action Function(store.mas_os.gen_idle_hide)
 
 
+screen mas_os_safe_watermark():
+    zorder 10000
+    if store.mas_os.safe_boot_active():
+        text _("Безопасный режим\nОтключите его в BIOS → Ремонт.\nИгра запущена чистая."):
+            xalign 1.0
+            yalign 1.0
+            xoffset -28
+            yoffset -18
+            text_align 1.0
+            size 18
+            color "#ffffff52"
+            line_spacing 4
+            outlines []
+            font "gui/font/Aller_Rg.ttf"
+
+
+init 10 python:
+    try:
+        if "mas_os_safe_watermark" not in config.overlay_screens:
+            config.overlay_screens.append("mas_os_safe_watermark")
+    except Exception:
+        pass
+
+
 screen mas_os_home():
     modal True
     zorder 200
@@ -3639,6 +4052,7 @@ screen mas_os_home_cards():
     $ _mus_y = 386 if _aff_on else 280
     $ _mus_h = 136 if _aff_on else 150
     $ _boot_y = 526 if (_aff_on and _mus_on) else 440
+    $ _safe = store.mas_os.safe_boot_active()
 
     use mas_os_bg(show_brand=False)
 
@@ -3768,29 +4182,27 @@ screen mas_os_home_cards():
         use mas_os_ibutton(_("Данные"), Return("data"), "Дн", "#8A6A4A", delay=0.23, icon="data")
         use mas_os_ibutton(_("Настройки"), Return("settings"), "Нс", "#6A6A7A", delay=0.26, icon="settings")
         use mas_os_ibutton(_("Сабмоды"), Return("submods"), "См", "#4A8A6A", delay=0.29, icon="submods")
-        use mas_os_ibutton(_("Склад"), Return("store"), "Ск", "#4A8AAA", delay=0.32, icon="updates")
+        use mas_os_ibutton(_("Склад"), Return("store"), "Ск", "#6E6E6E" if _safe else "#4A8AAA", delay=0.32, icon="updates", muted=_safe)
         use mas_os_ibutton(_("Плеер"), Return("player"), "Au", "#8A6A4A", delay=0.35, icon="sound")
 
-    hbox:
-        xpos 56
-        ypos 640
-        spacing 12
+    $ _dock_n = 5 if renpy.android else 4
+    $ _dock_gap = 16
+    $ _dock_w = int((1184 - _dock_gap * (_dock_n - 1)) / _dock_n)
 
-        use mas_os_ibutton(_("Перезагрузка"), Function(store.mas_os.reboot_shell), "R", "#4A8AAA", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.32, icon="reboot")
+    hbox:
+        xpos 48
+        ypos 640
+        spacing _dock_gap
+
+        use mas_os_ibutton(_("Перезагрузка"), Function(store.mas_os.reboot_shell), "R", "#4A8AAA", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.32, icon="reboot", btn_w=_dock_w)
         if renpy.android:
-            use mas_os_ibutton(_("BIOS"), Function(store.mas_os.open_bios, "play"), "B", "#7A4A9A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.33, icon="boot")
+            use mas_os_ibutton(_("BIOS"), Function(store.mas_os.open_bios, "play"), "B", "#7A4A9A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.33, icon="boot", btn_w=_dock_w)
         if store.mas_os.flag("_mas_os_quit_confirm", True):
-            use mas_os_ibutton(_("Выключение"), Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm")), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.35, icon="shutdown")
+            use mas_os_ibutton(_("Выключение"), Show("mas_os_confirm", message=_("Выключить MAS OS?"), yes_action=Function(store.mas_os.request_quit), no_action=Hide("mas_os_confirm")), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.35, icon="shutdown", btn_w=_dock_w)
         else:
-            use mas_os_ibutton(_("Выключение"), Function(store.mas_os.request_quit), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.35, icon="shutdown")
-
-    hbox:
-        xpos 520
-        ypos 640
-        spacing 12
-
-        use mas_os_ibutton(_("О системе"), Return("about"), "i", "#7A4A9A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.38, icon="about")
-        use mas_os_ibutton(_("Логи"), Return("logs"), "Lg", "#8A6A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.41, icon="logs")
+            use mas_os_ibutton(_("Выключение"), Function(store.mas_os.request_quit), "X", "#8A3A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.35, icon="shutdown", btn_w=_dock_w)
+        use mas_os_ibutton(_("О системе"), Return("about"), "i", "#7A4A9A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.38, icon="about", btn_w=_dock_w)
+        use mas_os_ibutton(_("Логи"), Return("logs"), "Lg", "#8A6A4A", bstyle="mas_os_nav_btn", tstyle="mas_os_nav_btn_text", align_center=True, delay=0.41, icon="logs", btn_w=_dock_w)
 
 
 style mas_os_title is default:
@@ -3943,6 +4355,18 @@ style mas_os_side_btn_text is generic_button_text_dark:
     idle_color "#FFD7EC"
     hover_color "#FFFFFF"
     selected_color "#FFFFFF"
+
+style mas_os_win_back is default:
+    xysize (48, 48)
+    padding (0, 0, 0, 0)
+
+style mas_os_win_back_text is default:
+    font gui.default_font
+    size 34
+    text_align 0.5
+    xalign 0.5
+    yalign 0.5
+    outlines []
 
 style mas_os_nav_btn is default:
     xsize 230

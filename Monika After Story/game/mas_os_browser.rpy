@@ -6,6 +6,8 @@
 # Ширина 790 px, высота любая (лучше 1600–2400), PNG, без прозрачности.
 # Если файла нет — показывается текстовая заглушка. Как сделать свои:
 # см. game/mod_assets/mas_os/browser/КАК_ВСТАВИТЬ_СКРИНЫ.txt
+# Макеты: python tools/gen_browser_shots.py
+# Это не живой WebView. r34m.png — блюр, без контента сайта.
 
 init -5 python in mas_os:
     import random
@@ -234,6 +236,12 @@ init -5 python in mas_os:
             return path
         return None
 
+    def site_icon(site_id):
+        path = "mod_assets/mas_os/browser/ico/{0}.png".format(site_id)
+        if store.renpy.loadable(path):
+            return path
+        return None
+
     def _moni_name():
         return store.m_name or getattr(store.persistent, "_mas_monika_nickname", None) or "Моника"
 
@@ -304,23 +312,38 @@ init -5 python in mas_os:
                 pass
 
     def browser_scroll():
-        global browser_yadj, browser_scroll_id
-        if browser_yadj is None or browser_scroll_id != current_site:
+        global browser_yadj
+        if browser_yadj is None:
             try:
                 browser_yadj = store.ui.adjustment()
             except Exception:
-                browser_yadj = None
-            browser_scroll_id = current_site
+                try:
+                    browser_yadj = store.renpy.display.behavior.Adjustment()
+                except Exception:
+                    browser_yadj = None
         return browser_yadj
 
+    def reset_browser_scroll():
+        # Новый Adjustment не помогает: при обновлении экрана Viewport
+        # копирует value у заменяемого виджета. Крутим тот же объект в ноль.
+        adj = browser_yadj
+        if adj is None:
+            return
+        try:
+            adj.change(0)
+        except Exception:
+            try:
+                adj.value = 0
+            except Exception:
+                pass
+
     def visit_site(site_id):
-        global current_site, browser_yadj, browser_scroll_id
+        global current_site
         site = site_by_id(site_id)
         if site is None:
             return
         current_site = site_id
-        browser_yadj = None
-        browser_scroll_id = None
+        reset_browser_scroll()
         quips = quips_for(site)
         try:
             body = store.renpy.substitute(random.choice(quips))
@@ -414,22 +437,31 @@ screen mas_os_browser():
                     hover_sound store.mas_os.os_hover()
                     activate_sound store.mas_os.os_activate()
 
-                    vbox:
-                        spacing 2
+                    hbox:
+                        spacing 10
                         yalign 0.5
-                        xoffset 14
-                        xsize 280
+                        xoffset 10
+                        xfill True
 
-                        text item["name"]:
-                            style "mas_os_side_btn_text"
-                            size 16
-                            substitute False
+                        if store.mas_os.site_icon(item["id"]):
+                            add store.mas_os.fit_image(store.mas_os.site_icon(item["id"]), 36, 36):
+                                yalign 0.5
 
-                        text item["url"]:
-                            style "mas_os_hint"
-                            size 12
-                            xsize 280
-                            substitute False
+                        vbox:
+                            spacing 2
+                            yalign 0.5
+                            xsize 240
+
+                            text item["name"]:
+                                style "mas_os_side_btn_text"
+                                size 16
+                                substitute False
+
+                            text item["url"]:
+                                style "mas_os_hint"
+                                size 12
+                                xsize 240
+                                substitute False
 
     frame:
         style "mas_os_panel"
@@ -438,38 +470,88 @@ screen mas_os_browser():
         xysize (822, page_h)
         padding (0, 0)
 
-        viewport:
-            xysize (822, page_h)
-            yadjustment store.mas_os.browser_scroll()
-            draggable True
-            mousewheel True
-            scrollbars "vertical"
+        vbox:
+            spacing 0
+            xfill True
 
-            vbox:
-                spacing 12
-                xsize 790
-                null height 8
+            if site:
+                $ _bico = store.mas_os.site_icon(site["id"])
+                frame:
+                    background Solid(store.mas_os.theme_color("panel2"))
+                    xsize 822
+                    ysize 58
+                    padding (16, 8)
 
-                if site is None:
-                    text _("Выбери сайт слева.\n\nМоника пришлёт уведомление справа снизу, как в Windows 10. Это замена реакций на активное окно — на Android система не видит другие приложения."):
-                        style "mas_os_body"
-                        xsize 760
-                        xpos 16
-                else:
-                    if shot:
-                        add store.mas_os.fit_image(shot, 790) xpos 16
-                    else:
-                        text heading:
-                            style "mas_os_subtitle"
-                            xpos 16
+                    hbox:
+                        spacing 12
+                        yalign 0.5
 
-                        text page_body:
+                        if _bico:
+                            add store.mas_os.fit_image(_bico, 36, 36):
+                                yalign 0.5
+                        else:
+                            frame:
+                                xysize (36, 36)
+                                background Solid(store.mas_os.theme_color("accent"))
+                                yalign 0.5
+
+                        vbox:
+                            spacing 0
+                            yalign 0.5
+                            xsize 720
+
+                            text site["name"]:
+                                style "mas_os_subtitle"
+                                size 18
+                                substitute False
+
+                            text site["url"]:
+                                style "mas_os_hint"
+                                size 13
+                                substitute False
+
+            viewport:
+                xysize (822, page_h - (58 if site else 0))
+                yadjustment store.mas_os.browser_scroll()
+                yinitial 0.0
+                draggable True
+                mousewheel True
+                scrollbars "vertical"
+
+                vbox:
+                    spacing 12
+                    xsize 790
+                    null height 8
+
+                    if site is None:
+                        text _("Выбери сайт слева.\n\nМоника пришлёт уведомление справа снизу, как в Windows 10. Это замена реакций на активное окно — на Android система не видит другие приложения."):
                             style "mas_os_body"
-                            size 16
                             xsize 760
                             xpos 16
+                    else:
+                        if shot:
+                            add store.mas_os.fit_image(shot, 790) xpos 16
+                        else:
+                            hbox:
+                                spacing 10
+                                xpos 16
+                                xsize 760
 
-                null height 24
+                                if store.mas_os.site_icon(site["id"]):
+                                    add store.mas_os.fit_image(store.mas_os.site_icon(site["id"]), 28, 28):
+                                        yalign 0.5
+
+                                text heading:
+                                    style "mas_os_subtitle"
+                                    yalign 0.5
+
+                            text page_body:
+                                style "mas_os_body"
+                                size 16
+                                xsize 760
+                                xpos 16
+
+                    null height 24
 
     if not store.mas_os.wm_embedded():
         textbutton _("Назад"):

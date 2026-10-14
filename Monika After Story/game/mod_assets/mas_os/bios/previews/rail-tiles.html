@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Плитки</title>
+<script src="tree.js"></script>
+<style>
+  :root { --bg:#14070d; --rail:#1c0a12; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; --line:#ffffff14; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 108px 1fr; height: 100dvh; }
+  aside {
+    background: var(--rail); display: flex; flex-direction: column;
+    padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  }
+  .rail-btn {
+    border: 0; background: transparent; color: var(--mute); min-height: 52px;
+    text-align: left; padding: 8px 10px; border-radius: 12px; font: inherit; margin-bottom: 4px;
+    display: block;
+  }
+  .rail-btn i { display: none; }
+  .rail-btn span { font-size: 14px; font-weight: 650; }
+  .rail-btn.on { background: var(--hot); color: #fff; }
+  .play {
+    margin-top: auto; width: 100%; min-height: 48px; border: 0; border-radius: 12px;
+    background: #fff; color: #14070d; font-weight: 800; font-size: 13px;
+  }
+  .pane { display: flex; flex-direction: column; min-width: 0; }
+  header { padding: 12px 14px 6px; }
+  .kicker { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); }
+  h1 { margin: 2px 0 0; font-size: 22px; }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #fff; }
+  .chips { display: flex; gap: 6px; padding: 0 12px 10px; overflow-x: auto; }
+  .chip {
+    border: 1px solid var(--line); background: transparent; color: var(--ink);
+    min-height: 36px; padding: 0 12px; border-radius: 999px; white-space: nowrap; font: inherit; font-size: 13px;
+  }
+  .chip.on { background: #fff; color: #14070d; border-color: #fff; }
+  .body { flex: 1; overflow: auto; padding: 0 12px 8px; }
+  .lead { font-size: 13px; color: var(--mute); margin: 0 0 12px; line-height: 1.4; }
+  .url { width: 100%; min-height: 44px; border: 0; border-radius: 12px; padding: 0 12px; background: #ffffff10; color: #fff; margin-bottom: 10px; font-size: 15px; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile {
+    min-height: 88px; border: 0; border-radius: 16px; background: #ffffff0e; color: inherit;
+    text-align: left; padding: 12px; font: inherit; display: flex; flex-direction: column; gap: 6px;
+  }
+  .tile b { font-size: 14px; }
+  .tile span { font-size: 12px; color: var(--mute); }
+  .tile.pri { background: var(--hot); grid-column: 1 / -1; min-height: 72px; }
+  .tile.pri span { color: #ffd6ea; }
+  .tile.dang { outline: 1px solid #ff9aa855; }
+  .packs { margin-top: 12px; }
+  .pack { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .pack span { display: block; font-size: 12px; color: var(--mute); }
+  .pack-x { border: 0; background: #ffffff10; color: #ff9aa8; min-height: 36px; border-radius: 8px; padding: 0 10px; }
+  #log { height: 64px; margin: 0; padding: 8px 12px; font-size: 11px; color: var(--mute); background: #0005; overflow: auto; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div id="rail"></div>
+    <button class="play" data-cmd="startGame" data-t="Запустить MAS">Запустить MAS</button>
+  </aside>
+  <section class="pane">
+    <header>
+      <div class="kicker">MAS BIOS · плитки</div>
+      <h1 id="title">Запуск</h1>
+    </header>
+    <div id="switch"></div>
+    <div class="chips" id="chips"></div>
+    <div class="body" id="body"></div>
+    <pre id="log">чипы подкатегорий · кнопки сеткой · Play всегда слева внизу</pre>
+  </section>
+</div>
+<script>
+(function () {
+  var catId = "play", kidId = "boot";
+  function render() {
+    var cat = biosCat(catId), kid, i, html = "";
+    kid = biosKid(cat, kidId);
+    document.getElementById("rail").innerHTML = biosRailHtml(catId);
+    document.getElementById("title").textContent = kid.label;
+    for (i = 0; i < cat.kids.length; i++) {
+      html += '<button type="button" class="chip' + (cat.kids[i].id === kidId ? " on" : "") +
+        '" data-kid="' + cat.kids[i].id + '">' + cat.kids[i].label + "</button>";
+    }
+    document.getElementById("chips").innerHTML = html;
+    document.getElementById("body").innerHTML = '<p class="lead">' + kid.hint + "</p>" + biosActsHtml(kid, "tiles");
+  }
+  document.getElementById("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cat]");
+    if (!b) return;
+    catId = b.getAttribute("data-cat");
+    kidId = biosCat(catId).kids[0].id;
+    render();
+  });
+  document.getElementById("chips").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-kid]");
+    if (!b) return;
+    kidId = b.getAttribute("data-kid");
+    render();
+  });
+  biosSwitcher("rail-tiles.html");
+  biosClock();
+  biosBindActs();
+  render();
+})();
+</script>
+</body>
+</html>

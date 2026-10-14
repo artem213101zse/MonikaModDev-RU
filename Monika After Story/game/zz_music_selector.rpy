@@ -289,6 +289,11 @@ init -1 python in songs:
             music_list - list of music tuples to append to
         """
         # TODO: make song names / other tags configurable
+        try:
+            if store.mas_os.safe_boot_active():
+                return
+        except Exception:
+            pass
 
         # No custom directory? abort
         if not os.access(custom_music_dir, os.F_OK):

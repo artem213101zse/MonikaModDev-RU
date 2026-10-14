@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Окна</title>
+<script src="tree.js"></script>
+<style>
+  :root { --bg:#12080e; --rail:#0a0407; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; --line:#ffffff14; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 56px 1fr; height: 100dvh; }
+  aside { background: var(--rail); display: flex; flex-direction: column; padding: 10px 6px; }
+  .rail-btn {
+    border: 0; background: transparent; color: var(--mute); width: 44px; height: 44px;
+    border-radius: 12px; margin: 0 auto 8px; font: inherit; display: grid; place-items: center;
+  }
+  .rail-btn span { display: none; }
+  .rail-btn i { font-style: normal; font-size: 16px; }
+  .rail-btn.on { background: var(--hot); color: #fff; }
+  .pane { display: flex; flex-direction: column; min-width: 0; }
+  header { padding: 14px 16px 6px; }
+  .kicker { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); }
+  h1 { margin: 2px 0 0; font-size: 24px; }
+  .sub { color: var(--mute); font-size: 13px; margin-top: 4px; }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #fff; }
+  .body { flex: 1; overflow: auto; padding: 8px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    text-align: left; border: 1px solid var(--line); background: #1c1016; color: inherit;
+    border-radius: 16px; padding: 16px; min-height: 88px; font: inherit;
+  }
+  .card b { display: block; font-size: 18px; margin-bottom: 6px; }
+  .card span { color: var(--mute); font-size: 13px; line-height: 1.35; }
+  .card:active { background: #2a1620; }
+  #log { height: 64px; margin: 0; padding: 8px 12px; font-size: 11px; color: var(--mute); background: #0005; overflow: auto; white-space: pre-wrap; }
+  .dim {
+    position: fixed; inset: 0; background: #000a; display: none; align-items: center; justify-content: center;
+    padding: 18px;
+  }
+  .dim.on { display: flex; }
+  .win {
+    width: min(420px, 100%); background: #221018; border: 1px solid #ffffff22; border-radius: 14px;
+    box-shadow: 0 24px 60px #000a; overflow: hidden;
+  }
+  .bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px; background: #2c1620; border-bottom: 1px solid var(--line);
+  }
+  .bar b { font-size: 14px; }
+  .x { border: 0; background: #ffffff14; color: #fff; width: 36px; height: 36px; border-radius: 8px; }
+  .win-body { padding: 12px; max-height: 62dvh; overflow: auto; }
+  .win-body p { margin: 0 0 10px; color: var(--mute); font-size: 13px; }
+  .url { width: 100%; min-height: 44px; border: 0; border-radius: 10px; padding: 0 12px; background: #ffffff10; color: #fff; margin-bottom: 8px; }
+  .btns { display: flex; flex-direction: column; gap: 6px; }
+  .btn {
+    border: 0; background: #ffffff10; color: inherit; text-align: left; min-height: 52px;
+    border-radius: 12px; padding: 8px 12px; font: inherit;
+  }
+  .btn small { display: block; color: var(--mute); font-size: 12px; }
+  .btn.pri { background: var(--hot); }
+  .btn.pri small { color: #ffd6ea; }
+  .btn.dang { color: #ff9aa8; }
+  .packs { margin-top: 10px; }
+  .pack { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+  .pack span { display: block; font-size: 12px; color: var(--mute); }
+  .pack-x { border: 0; background: transparent; color: #ff9aa8; min-height: 36px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside id="rail"></aside>
+  <section class="pane">
+    <header>
+      <div class="kicker">MAS BIOS · окна</div>
+      <h1 id="title">Игра</h1>
+      <div class="sub" id="sub">нажми карточку — откроется окно с действиями</div>
+    </header>
+    <div id="switch"></div>
+    <div class="body" id="body"></div>
+    <pre id="log">иконки слева · подкатегории карточками · действия в модальном окне</pre>
+  </section>
+</div>
+<div class="dim" id="dim">
+  <div class="win" role="dialog">
+    <div class="bar"><b id="wt">Запуск</b><button class="x" id="close" type="button">✕</button></div>
+    <div class="win-body" id="wb"></div>
+  </div>
+</div>
+<script>
+(function () {
+  var catId = "play";
+  function render() {
+    var cat = biosCat(catId), i, html = "";
+    document.getElementById("rail").innerHTML = biosRailHtml(catId);
+    document.getElementById("title").textContent = cat.label;
+    document.getElementById("sub").textContent = cat.hint;
+    for (i = 0; i < cat.kids.length; i++) html += biosKidCard(cat.kids[i]);
+    document.getElementById("body").innerHTML = html;
+  }
+  function openKid(id) {
+    var kid = biosKid(biosCat(catId), id);
+    document.getElementById("wt").textContent = kid.label;
+    document.getElementById("wb").innerHTML = "<p>" + kid.hint + "</p>" + biosActsHtml(kid, "btns");
+    document.getElementById("dim").className = "dim on";
+  }
+  document.getElementById("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cat]");
+    if (!b) return;
+    catId = b.getAttribute("data-cat");
+    document.getElementById("dim").className = "dim";
+    render();
+  });
+  document.getElementById("body").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-kid]");
+    if (b) openKid(b.getAttribute("data-kid"));
+  });
+  document.getElementById("close").onclick = function () { document.getElementById("dim").className = "dim"; };
+  document.getElementById("dim").addEventListener("click", function (e) {
+    if (e.target.id === "dim") document.getElementById("dim").className = "dim";
+  });
+  biosSwitcher("rail-modal.html");
+  biosClock();
+  biosBindActs({ confirmDanger: true });
+  render();
+})();
+</script>
+</body>
+</html>

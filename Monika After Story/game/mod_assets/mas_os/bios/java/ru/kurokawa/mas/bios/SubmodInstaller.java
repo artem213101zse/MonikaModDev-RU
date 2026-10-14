@@ -27,7 +27,15 @@ public class SubmodInstaller {
     }
 
     public static File masDir(File sideload) {
-        return new File(sideload, "_mas");
+        File neu = new File(sideload, "mas_bios");
+        if (neu.isDirectory()) {
+            return neu;
+        }
+        File legacy = new File(sideload, "_mas");
+        if (legacy.isDirectory()) {
+            return legacy;
+        }
+        return neu;
     }
 
     public static File submodsRoot(File sideload) {

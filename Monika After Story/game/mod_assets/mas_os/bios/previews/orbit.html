@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Орбита</title>
+<style>
+  html,body { margin:0; height:100%; background:#070b16; color:#f4e9ff; font-family: system-ui, sans-serif; overflow:hidden; }
+  .sky {
+    position:fixed; inset:0;
+    background:
+      radial-gradient(1200px 500px at 50% 110%, #c94a7a33, transparent 50%),
+      radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+      radial-gradient(1px 1px at 70% 20%, #fff8, transparent),
+      radial-gradient(1.5px 1.5px at 40% 70%, #7ee0d6, transparent),
+      #070b16;
+  }
+  .clock { position:fixed; top:14px; left:16px; font-variant-numeric: tabular-nums; opacity:.7; font-size:13px; }
+  .hint { position:fixed; top:14px; right:16px; font-size:12px; opacity:.55; }
+  .orbit {
+    position:fixed; left:50%; top:42%; width:min(92vw,420px); height:min(92vw,420px);
+    transform:translate(-50%,-55%);
+  }
+  .sun {
+    position:absolute; left:50%; top:50%; width:96px; height:96px; margin:-48px 0 0 -48px;
+    border:0; border-radius:50%; background: radial-gradient(circle at 30% 30%, #ffe6f3, #c94a7a 55%, #6a2442);
+    color:#fff; font-weight:800; font-size:14px; box-shadow:0 0 40px #c94a7a88;
+  }
+  .moon {
+    position:absolute; width:64px; height:64px; margin:-32px 0 0 -32px; border:0; border-radius:50%;
+    background:#151b2c; color:#ffe6f3; box-shadow: inset 0 0 0 1px #ffffff22, 0 0 16px #7ee0d622;
+    font-size:11px; line-height:1.1;
+  }
+  .moon:active { background:#c94a7a; }
+  .sheet {
+    position:fixed; left:8px; right:8px; bottom:0; max-height:52dvh;
+    background:#12182aee; backdrop-filter:blur(16px);
+    border-radius:22px 22px 0 0; padding:12px 14px calc(16px + env(safe-area-inset-bottom));
+    transform:translateY(110%); transition:.28s;
+  }
+  .sheet.on { transform:none; }
+  .sheet h2 { margin:0 0 6px; font-size:18px; }
+  .sheet p { margin:0 0 10px; font-size:13px; opacity:.7; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; }
+  .row button {
+    flex:1 1 40%; min-height:48px; border:0; border-radius:14px; background:#1e2740; color:#fff; font:inherit;
+  }
+  .row button.go { background:#c94a7a; }
+  .grab { width:40px; height:4px; background:#ffffff33; border-radius:4px; margin:0 auto 10px; }
+  .log { margin-top:10px; font-size:11px; opacity:.65; min-height:28px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<div class="sky"></div>
+<div class="clock" id="clock">--:--</div>
+<div class="hint">нажми спутник</div>
+<div class="orbit" id="orbit">
+  <button class="sun" onclick="openSheet('play')">MAS</button>
+</div>
+<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <h2 id="t">Игра</h2>
+  <p id="d">Python стартует отсюда.</p>
+  <div class="row" id="acts"></div>
+  <div class="log" id="log"></div>
+</div>
+<script>
+var NODES = [
+  {id:'files', name:'Файлы', a:-70, info:'Documents, gift, музыка, обои', acts:[['Все файлы','grantAllFiles'],['Documents','openDocuments','go'],['Gift','pickGift'],['Обои','pickImage']]},
+  {id:'archives', name:'Архивы', a:-30, info:'images.rpa и audio.rpa', acts:[['ddlc.moe','downloadDdlcMoe','go'],['Выбрать','pickArchive'],['Проверить','checkArchives']]},
+  {id:'content', name:'Контент', a:10, info:'zip сам определит тип пака', acts:[['Поставить zip','pickSubmodZip','go'],['История URL','listUrlHistory']]},
+  {id:'library', name:'Паки', a:50, info:'снятие одного не трогает остальные', acts:[['Список','listSubmods'],['Снять последний','uninstallLastSubmod','go']]},
+  {id:'saves', name:'Сейвы', a:90, info:'импорт с другой сборки', acts:[['Zip','pickSavesZip','go'],['Папка','pickSavesFolder'],['Экспорт','exportSaves']]},
+  {id:'recovery', name:'Моника', a:130, info:'вернуть файл и посадить за стол', acts:[['Статус','checkMonikaFile'],['Найти','recoverMonikaScan','go'],['За стол','recoverMonikaHome']]},
+  {id:'engine', name:'Шахм.', a:170, info:'libstockfish.so', acts:[['uci','testStockfish','go'],['ход','stockfishGo']]},
+  {id:'update', name:'APK', a:210, info:'GitHub release порта', acts:[['Проверить','checkUpdate'],['Поставить','downloadUpdate','go']]},
+  {id:'system', name:'Сист.', a:250, info:'traceback и флаги', acts:[['traceback','showTraceback','go'],['сразу MAS','toggleBoot']]}
+];
+var PLAY = {id:'play', name:'Игра', info:'Ren\'Py → MAS OS → комната', acts:[['Запустить','startGame','go'],['Безопасный','startSafe'],['Диск','healthCheck']]};
+function place(){
+  var o=document.getElementById('orbit');
+  var w=o.clientWidth, h=o.clientHeight, cx=w/2, cy=h/2, rx=w*0.38, ry=h*0.38;
+  NODES.forEach(function(n){
+    var b=document.createElement('button');
+    b.className='moon'; b.textContent=n.name;
+    var rad=n.a*Math.PI/180;
+    b.style.left=(cx+Math.cos(rad)*rx)+'px';
+    b.style.top=(cy+Math.sin(rad)*ry)+'px';
+    b.onclick=function(){ openSheet(n.id); };
+    o.appendChild(b);
+  });
+}
+function find(id){ if(id==='play') return PLAY; for(var i=0;i<NODES.length;i++) if(NODES[i].id===id) return NODES[i]; return PLAY; }
+function openSheet(id){
+  var n=find(id);
+  document.getElementById('t').textContent=n.name;
+  document.getElementById('d').textContent=n.info;
+  var row=document.getElementById('acts'); row.innerHTML='';
+  n.acts.forEach(function(a){
+    var b=document.createElement('button');
+    if(a[2]) b.className='go';
+    b.textContent=a[0];
+    b.onclick=function(){ document.getElementById('log').textContent='→ '+a[1]; };
+    row.appendChild(b);
+  });
+  document.getElementById('sheet').className='sheet on';
+}
+document.querySelector('.sky').onclick=function(){ document.getElementById('sheet').className='sheet'; };
+place();
+(function tick(){ var d=new Date(); document.getElementById('clock').textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); })();
+</script>
+</body>
+</html>

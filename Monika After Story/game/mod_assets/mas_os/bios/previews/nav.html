@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · все виды</title>
+<style>
+  :root { --bg:#10080c; --card:#1c1016; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100dvh; color: var(--ink);
+    font-family: system-ui, sans-serif; padding: 22px 16px 48px;
+    background:
+      radial-gradient(800px 360px at 0% 0%, #c94a7a33, transparent 50%),
+      var(--bg);
+  }
+  a { color: inherit; text-decoration: none; }
+  h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: -.03em; }
+  .sub { color: var(--mute); font-size: 14px; line-height: 1.45; margin: 0 0 16px; max-width: 42em; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; position: sticky; top: 0; z-index: 2; padding: 8px 0; background: linear-gradient(var(--bg), var(--bg) 70%, transparent); }
+  .f {
+    border: 1px solid #ffffff18; background: #ffffff08; color: var(--ink);
+    min-height: 34px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 13px;
+  }
+  .f.on { background: var(--hot); border-color: var(--hot); color: #fff; }
+  .grid { display: grid; gap: 12px; }
+  @media (min-width: 720px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1100px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
+  .card {
+    display: block; background: var(--card); border-radius: 18px; overflow: hidden;
+    border: 1px solid #ffffff14;
+  }
+  .card:active { transform: scale(.99); }
+  .card.feat { border-color: #c94a7a88; grid-column: 1 / -1; }
+  @media (min-width: 720px) { .card.feat { grid-column: auto; } }
+  .thumb { height: 72px; }
+  .meta { padding: 12px 14px 14px; }
+  .tag { display: inline-block; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--hot); margin-bottom: 4px; }
+  .meta b { display: block; font-size: 18px; margin-bottom: 4px; }
+  .meta span { color: var(--mute); font-size: 13px; line-height: 1.35; }
+  .t-ideal { background: linear-gradient(90deg, #0c0508 64px, #1a0c12 64px, #1a0c12 70%, #c94a7a 70%); }
+  .t-tall { background: linear-gradient(90deg, #c94a7a 38%, #1a0c12 38% 42%, #ffffff14 42% 55%, #1a0c12 55%); }
+  .t1 { background: linear-gradient(90deg, #0c0508 80px, #1a0c12 80px); }
+  .t2 { background: linear-gradient(90deg, #c94a7a 108px, #1a0c12 108px); }
+  .t3 { background: radial-gradient(circle at 70% 50%, #c94a7a66, #1a0c12 60%); }
+  .t4 { background: linear-gradient(#1a0c12 55%, #c94a7a 100%); }
+  .t5 { background: linear-gradient(90deg, #160910 96px, #1a0c12 96px, #1a0c12 55%, #14090e 55%); }
+  .t6 { background: linear-gradient(#c94a7a 40%, #1a0c12 40%); }
+  .t-zine { background: linear-gradient(135deg, #f3e6d0, #8b1e3f); }
+  .t-orbit { background: radial-gradient(circle at 30% 40%, #ff9ac8, #070b16 55%); }
+  .t-tape { background: linear-gradient(#5a3a24, #c9a227); }
+  .t-flap { background: repeating-linear-gradient(#111, #111 10px, #1c1c1c 10px, #1c1c1c 20px); }
+  .t-letter { background: linear-gradient(#efe6d6, #d9c4a8); }
+  .t-vhs { background: repeating-linear-gradient(0deg, #1a0510 0 2px, #2a0818 2px 4px); }
+  .t-palette { background: linear-gradient(#1a1a1e, #2a2430); }
+  .t-stamps { background: radial-gradient(#c4a574 1px, #b08958 1px); background-size: 8px 8px; }
+  .t-live { background: linear-gradient(135deg, #14070d, #c94a7a); }
+  .t-os { background: linear-gradient(90deg, #1a3a6a, #3a1a4a); }
+  .empty { color: var(--mute); padding: 20px 4px; }
+  .foot { margin-top: 28px; font-size: 13px; color: var(--mute); }
+</style>
+</head>
+<body>
+  <h1>Все виды BIOS</h1>
+  <p class="sub">Выбери макет. Это только HTML в браузере, в APK не попадает. Кнопки пишут в журнал.</p>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"></div>
+  <p class="foot">Источник оболочек: <code>game/mod_assets/mas_os/bios/previews/</code></p>
+<script>
+(function () {
+  var FILTERS = [
+    ["all", "Все"],
+    ["pick", "Идеальный"],
+    ["shell", "Оболочки"],
+    ["dl", "Загрузки"],
+    ["meta", "Метафоры"],
+    ["old", "Старое"]
+  ];
+  var ITEMS = [
+    { g: "pick", href: "rail-ideal.html", thumb: "t-ideal", t: "Идеальный", s: "Шестерёнка + очередь. Слева категории (сворачиваются), центр — плитки, справа всегда журнал. Настройки: тема и «сразу MAS».", feat: 1 },
+    { g: "pick", href: "rail-tall.html", thumb: "t-tall", t: "Колонна", s: "Как идеальный, без подкатегорий. Одна высокая главная плитка, справа стопка узких горизонтальных.", feat: 1 },
+    { g: "pick", href: "rail-ideal3.html", thumb: "t6", t: "Идеальный 3", s: "Несколько главных плиток в сетке. Внутри статус и прогресс, без пустой колонны.", feat: 1 },
+    { g: "shell", href: "rail-list.html", thumb: "t1", t: "Список", s: "Все подкатегории сразу, действия строками." },
+    { g: "shell", href: "rail-tiles.html", thumb: "t2", t: "Плитки", s: "Чипы подкатегорий, кнопки сеткой, Play на рейке." },
+    { g: "shell", href: "rail-gear.html", thumb: "t1", t: "Шестерёнка", s: "Split-кнопка + ⚙. Пятый пункт — загрузки." },
+    { g: "shell", href: "rail-plus.html", thumb: "t2", t: "Плитки+", s: "⚙ в углу плитки и на Play, лист загрузок сверху." },
+    { g: "shell", href: "rail-modal.html", thumb: "t3", t: "Окна", s: "Карточки открывают модальное окно." },
+    { g: "shell", href: "rail-sheet.html", thumb: "t4", t: "Лист", s: "Подкатегории списком, действия снизу." },
+    { g: "shell", href: "rail-split.html", thumb: "t5", t: "Колонки", s: "Мастер-деталь, на телефоне страница с «назад»." },
+    { g: "shell", href: "rail-stack.html", thumb: "t6", t: "Стек", s: "Одна подкатегория, крупный primary, диалог для опасных." },
+    { g: "dl", href: "dl-queue.html", thumb: "t3", t: "Очередь", s: "Один активный файл крупно: скорость, ETA, остальные ждут." },
+    { g: "dl", href: "dl-cod.html", thumb: "t5", t: "COD / Delta Force", s: "Табы, полоска на каждом паке, видно что уже на диске." },
+    { g: "dl", href: "dl-delta.html", thumb: "t4", t: "Ресурсы", s: "База залочена, галочки, SD/HD, одна кнопка «Установить»." },
+    { g: "dl", href: "dl-cards.html", thumb: "t6", t: "Карточки загрузок", s: "Круговой прогресс на паке." },
+    { g: "meta", href: "zine.html", thumb: "t-zine", t: "Zine", s: "Журнал литклуба, вертикальный скролл." },
+    { g: "meta", href: "orbit.html", thumb: "t-orbit", t: "Орбита", s: "Пуск в центре, разделы лунами." },
+    { g: "meta", href: "tape.html", thumb: "t-tape", t: "Кассета", s: "Дека, катушки, огромный PLAY." },
+    { g: "meta", href: "flap.html", thumb: "t-flap", t: "Табло", s: "Табло вылета, статус справа." },
+    { g: "meta", href: "letter.html", thumb: "t-letter", t: "Письма", s: "Стопка писем от Моники." },
+    { g: "meta", href: "vhs.html", thumb: "t-vhs", t: "VHS", s: "Камера, REC, главы вместо меню." },
+    { g: "meta", href: "palette.html", thumb: "t-palette", t: "Палитра", s: "Пустой экран и поиск." },
+    { g: "meta", href: "stamps.html", thumb: "t-stamps", t: "Марки", s: "Пробковая доска и Polaroid." },
+    { g: "old", href: "../index.html", thumb: "t-live", t: "Живой BIOS", s: "То, что сейчас в APK: классика / остров / колода / MASL." },
+    { g: "old", href: "index.html", thumb: "t-os", t: "Клоны ОС", s: "Windows, Gnome, Mac, консоли и прочие старые эскизы." },
+    { g: "old", href: "fresh.html", thumb: "t-zine", t: "Только метафоры", s: "Отдельный хаб журнала, кассеты, писем." }
+  ];
+  var cur = "all";
+  var GNAME = { pick: "рекомендуем", shell: "оболочка", dl: "загрузки", meta: "метафора", old: "прочее" };
+
+  function render() {
+    var i, it, html = "", fhtml = "", on;
+    for (i = 0; i < FILTERS.length; i++) {
+      on = FILTERS[i][0] === cur ? " on" : "";
+      fhtml += '<button type="button" class="f' + on + '" data-g="' + FILTERS[i][0] + '">' + FILTERS[i][1] + "</button>";
+    }
+    document.getElementById("filters").innerHTML = fhtml;
+    for (i = 0; i < ITEMS.length; i++) {
+      it = ITEMS[i];
+      if (cur !== "all" && it.g !== cur) continue;
+      html += '<a class="card' + (it.feat ? " feat" : "") + '" href="' + it.href + '">' +
+        '<div class="thumb ' + it.thumb + '"></div><div class="meta"><div class="tag">' + GNAME[it.g] +
+        "</div><b>" + it.t + "</b><span>" + it.s + "</span></div></a>";
+    }
+    document.getElementById("grid").innerHTML = html || '<div class="empty">пусто</div>';
+  }
+  document.getElementById("filters").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-g]");
+    if (!b) return;
+    cur = b.getAttribute("data-g");
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

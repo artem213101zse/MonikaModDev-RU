@@ -61,13 +61,13 @@ init -5 python in mas_os:
     dl_sel = None
     dl_fs_path = None
     dl_fs_name = ""
+    _dl_list_cache = {}
 
     DL_KINDS = [
         ("wallpaper", "Обои", "wallpaper", (".png", ".jpg", ".jpeg")),
         ("font", "Шрифты", "font", (".ttf", ".otf")),
         ("music", "Музыка", "sound", (".mp3", ".ogg", ".opus")),
         ("submod", "Сабмоды", "submods", (".rpy", ".zip")),
-        ("gift", "Подарки", "gifts", (".gift", ".txt")),
         ("textbox", "Текстбокс", "textbox", (".png",)),
         ("other", "Другое", "save", (".png", ".jpg", ".jpeg", ".ttf", ".otf", ".ogg", ".mp3", ".rpy", ".json", ".zip", ".txt")),
     ]
@@ -81,7 +81,15 @@ init -5 python in mas_os:
 
     def set_dl_kind(kind):
         global dl_kind, dl_sel
-        dl_kind = kind or "wallpaper"
+        kind = kind or "wallpaper"
+        known = False
+        for row in DL_KINDS:
+            if row[0] == kind:
+                known = True
+                break
+        if not known:
+            kind = "wallpaper"
+        dl_kind = kind
         dl_sel = None
 
     def store_ui():
@@ -114,7 +122,44 @@ init -5 python in mas_os:
     def set_dl_sel(item):
         global dl_sel
         dl_sel = item
+        if item and item.get("pending"):
+            return None
+        if item and item.get("kind") == "music" and item.get("path"):
+            try:
+                player_play(item.get("path"))
+            except Exception:
+                pass
         return None
+
+    def dl_drop_rel(kind=None):
+        kind = kind or dl_kind
+        mapping = {
+            "wallpaper": u"mas_os/обои",
+            "font": u"mas_os/шрифты",
+            "textbox": u"mas_os/текстбоксы",
+            "music": "custom_bgm",
+            "submod": "game/Submods",
+            "other": u"mas_os/неопределено",
+        }
+        return mapping.get(kind) or mapping["other"]
+
+    def dl_drop_hint(kind=None):
+        kind = kind or dl_kind
+        rel = dl_drop_rel(kind)
+        where = drop_path_hint(rel)
+        folder = _dl_folder(kind)
+        what = {
+            "wallpaper": u"картинки png/jpg",
+            "font": u"файлы ttf/otf",
+            "textbox": u"картинки png текстбокса",
+            "music": u"ogg, opus или mp3",
+            "submod": u"папки сабмодов",
+            "other": u"файлы",
+        }.get(kind, u"файлы")
+        line = u"Чтобы увидеть здесь — положи {0} в:\n{1}".format(what, where)
+        if folder and os.path.isdir(folder):
+            line = line + u"\nПолный путь: {0}".format(folder.replace("\\", "/"))
+        return line
 
     def dl_is_image_name(name):
         ext = os.path.splitext(name or "")[1].lower()
@@ -144,6 +189,8 @@ init -5 python in mas_os:
         item = item or dl_sel
         if not item:
             return None
+        if item.get("pending"):
+            return None
         if not dl_is_image_name(item.get("name")):
             return None
         dl_sel = item
@@ -166,6 +213,8 @@ init -5 python in mas_os:
         item = item or dl_sel
         if not item or item.get("kind") != "wallpaper":
             return None
+        if item.get("pending"):
+            return None
         set_wallpaper(item.get("name"))
         close_dl_fullscreen()
         close_wp_preview()
@@ -176,6 +225,10 @@ init -5 python in mas_os:
         set_dl_kind(kind)
         dl_from = back or "home"
         stop_dl_typing()
+        try:
+            _sort_mas_os_dumps()
+        except Exception:
+            pass
         return None
 
     def _dl_protected_names(kind):
@@ -222,6 +275,8 @@ init -5 python in mas_os:
                 continue
             files.insert(0, {"kind": kind, "name": base})
             have.add(key)
+            mark_session_new(kind, base)
+        _invalidate_dl_cache(kind)
         store.persistent._mas_os_dl_files = files[:80]
         try:
             store.renpy.save_persistent()
@@ -236,6 +291,7 @@ init -5 python in mas_os:
                 continue
             files.append(rec)
         store.persistent._mas_os_dl_files = files
+        _invalidate_dl_cache(kind)
         try:
             store.renpy.save_persistent()
         except Exception:
@@ -258,8 +314,23 @@ init -5 python in mas_os:
         nrows = max(1, len(items) // cols)
         return cols, nrows, items
 
+    def _invalidate_dl_cache(kind=None):
+        global _dl_list_cache, _wp_list_cache
+        if kind:
+            try:
+                _dl_list_cache.pop(kind, None)
+            except Exception:
+                pass
+            if kind == "wallpaper":
+                _wp_list_cache = None
+        else:
+            _dl_list_cache = {}
+            _wp_list_cache = None
+
     def preview_cover(path, tw=1280, th=720):
         if not path:
+            return store.Solid("#000000")
+        if user_asset_pending(path):
             return store.Solid("#000000")
         try:
             iw, ih = store.renpy.image_size(path)
@@ -273,11 +344,23 @@ init -5 python in mas_os:
         except Exception:
             return path
 
-    def dl_list_files(kind=None):
+    def dl_list_files(kind=None, force=False):
         """
         Player-owned files for this Склад tab. Built-in game assets are skipped.
+        Cached until Обновить or a download/delete.
         """
+        global _dl_list_cache
         kind = kind or dl_kind
+        try:
+            if safe_boot_active():
+                _dl_list_cache[kind] = []
+                return []
+        except Exception:
+            pass
+        if not force:
+            hit = _dl_list_cache.get(kind)
+            if hit is not None:
+                return list(hit)
         folder = _dl_folder(kind)
         found = {}
 
@@ -291,8 +374,6 @@ init -5 python in mas_os:
             if not path or not os.path.exists(path):
                 return
             ext = os.path.splitext(base)[1].lower()
-            if kind == "gift" and ext not in (".gift",):
-                return
             if kind == "music" and ext not in (".mp3", ".ogg", ".opus"):
                 return
             if kind == "wallpaper" and ext not in (".png", ".jpg", ".jpeg"):
@@ -306,6 +387,7 @@ init -5 python in mas_os:
                 "name": base,
                 "path": path,
                 "isdir": os.path.isdir(path),
+                "pending": item_needs_restart(kind, base, path),
             }
 
         scan = kind != "textbox"
@@ -323,7 +405,8 @@ init -5 python in mas_os:
 
         rows = list(found.values())
         rows.sort(key=lambda row: row["name"].lower())
-        return rows
+        _dl_list_cache[kind] = rows
+        return list(rows)
 
     def _after_dl_delete(kind, name):
         if kind == "wallpaper":
@@ -403,13 +486,12 @@ init -5 python in mas_os:
         based = game_dir()
         root = writable_gamedir()
         mapping = {
-            "wallpaper": os.path.join(root, "mod_assets", "mas_os", "wallpapers"),
-            "font": os.path.join(root, "mod_assets", "font"),
+            "wallpaper": mas_os_wallpapers_dir() or os.path.join(based, MAS_OS_DIRNAME, MAS_OS_WALLPAPERS),
+            "font": mas_os_fonts_dir() or os.path.join(based, MAS_OS_DIRNAME, MAS_OS_FONTS),
             "music": custom_bgm_dir() or os.path.join(based, "custom_bgm"),
             "submod": os.path.join(root, "Submods"),
-            "gift": characters_dir() or os.path.join(based, "characters"),
-            "textbox": os.path.join(root, "gui"),
-            "other": os.path.join(root, "mod_assets", "mas_os", "import"),
+            "textbox": mas_os_textboxes_dir() or os.path.join(based, MAS_OS_DIRNAME, MAS_OS_TEXTBOXES),
+            "other": mas_os_unknown_dir() or os.path.join(based, MAS_OS_DIRNAME, MAS_OS_UNKNOWN),
         }
         return mapping.get(kind) or mapping["other"]
 
@@ -1184,11 +1266,13 @@ init -5 python in mas_os:
                 if kind == "submod" or kind == "font":
                     extra = " Перезапусти игру, чтобы подхватилось."
                 elif kind == "music":
-                    extra = " Трек в custom_bgm. Открой плеер или зайди в MAS."
+                    extra = " Трек в custom_bgm. Если не играет — перезапусти игру."
                 elif kind == "wallpaper":
-                    extra = " Обои появятся в настройках оформления."
+                    extra = " Обои в mas_os/обои. Если не открываются — перезапусти игру."
                 elif kind == "textbox":
-                    extra = " Если имя textbox_d_цвет.png — подхватим как цвет бокса позже."
+                    extra = " Текстбокс на диске. Если игра не видит файл — перезапусти."
+                mark_session_new(kind, name)
+                _invalidate_dl_cache(kind)
                 dl_status = "Готово: {0}{1}".format(name, extra)
                 _append_history(kind, name, True, dl_status)
                 if kind in ("music", "gift"):
@@ -1205,6 +1289,12 @@ init -5 python in mas_os:
         global dl_busy, dl_status
         if dl_busy:
             return
+        try:
+            if safe_boot_active():
+                dl_status = "Безопасный режим. Загрузка запрещена."
+                return
+        except Exception:
+            pass
         url = (dl_url or "").strip()
         if not url:
             dl_status = "Сначала вставь ссылку."
@@ -1259,6 +1349,26 @@ label mas_os_store:
     jump mas_os_home
 
 
+screen mas_os_store_safe_block():
+    if store.mas_os.safe_boot_active():
+        button:
+            xfill True
+            yfill True
+            background Solid("#0a0008E8")
+            action NullAction()
+            hover_sound None
+            activate_sound None
+
+            text _("Безопасный режим\nЗагрузка запрещена.\nВыключи его в BIOS → Ремонт."):
+                xalign 0.5
+                yalign 0.5
+                text_align 0.5
+                size 28
+                color "#FFE6F3"
+                line_spacing 10
+                outlines []
+
+
 screen mas_os_store():
     if store.mas_os.store_ui_classic():
         use mas_os_store_classic
@@ -1283,7 +1393,7 @@ screen mas_os_store_classic():
 
     use mas_os_bg
 
-    if busy:
+    if busy or kind == "music":
         timer 0.4 repeat True action Function(renpy.restart_interaction)
 
     text _("Склад") at store.mas_os.t_pop(0.0):
@@ -1371,6 +1481,11 @@ screen mas_os_store_classic():
                 text _("Принимает: {0}. Максимум 96 МБ для сабмодов, 32 МБ для остального.").format(", ".join(row[3])):
                     style "mas_os_hint"
 
+                text store.mas_os.dl_drop_hint():
+                    style "mas_os_hint"
+                    xsize 750
+                    substitute False
+
                 hbox:
                     spacing 8
 
@@ -1421,12 +1536,21 @@ screen mas_os_store_classic():
                                 Function(store.mas_os.stop_dl_typing),
                             ]
 
-                textbutton _("Скачать"):
-                    style "mas_os_nav_btn"
-                    text_style "mas_os_nav_btn_text"
-                    xsize 220
-                    sensitive (not busy)
-                    action Function(store.mas_os.start_download)
+                hbox:
+                    spacing 8
+
+                    textbutton _("Скачать"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 220
+                        sensitive (not busy)
+                        action Function(store.mas_os.start_download)
+
+                    textbutton _("Обновить"):
+                        style "mas_os_nav_btn"
+                        text_style "mas_os_nav_btn_text"
+                        xsize 180
+                        action Function(store.mas_os.refresh_user_catalog)
 
                 if status:
                     text status:
@@ -1464,12 +1588,28 @@ screen mas_os_store_classic():
                                     spacing 8
                                     xsize 726
 
-                                    text item["name"]:
-                                        style "mas_os_body"
-                                        size 16
-                                        yalign 0.5
-                                        xsize 500
-                                        substitute False
+                                    if item.get("pending"):
+                                        use mas_os_pending_mark(width=150)
+
+                                    if item.get("kind") == "music":
+                                        button:
+                                            style "mas_os_nav_btn"
+                                            xsize 430
+                                            ysize 36
+                                            action Function(store.mas_os.set_dl_sel, item)
+
+                                            text item["name"]:
+                                                style "mas_os_nav_btn_text"
+                                                size 16
+                                                yalign 0.5
+                                                substitute False
+                                    else:
+                                        text item["name"]:
+                                            style "mas_os_body"
+                                            size 16
+                                            yalign 0.5
+                                            xsize 430
+                                            substitute False
 
                                     textbutton _("Удалить"):
                                         style "mas_os_nav_btn"
@@ -1508,6 +1648,8 @@ screen mas_os_store_classic():
                                 text "{0}  {1}  —  {2}".format(mark, item.get("kind"), item.get("name")):
                                     style "mas_os_hint"
                                     substitute False
+
+    use mas_os_store_safe_block
 
     if not store.mas_os.wm_embedded():
         textbutton _("Назад"):
@@ -1586,10 +1728,13 @@ screen mas_os_store_win():
     $ _g = store.mas_os.dl_grid_cells(3)
     $ nrows = _g[1]
     $ cells = _g[2]
+    $ drop_hint = store.mas_os.dl_drop_hint()
+    $ music_tab = (kind == "music")
+    $ playing = store.mas_os.player_is_playing()
 
     use mas_os_bg
 
-    if busy:
+    if busy or music_tab:
         timer 0.4 repeat True action Function(renpy.restart_interaction)
 
     text _("Склад"):
@@ -1626,7 +1771,7 @@ screen mas_os_store_win():
 
         for kid, title, icname, exts in store.mas_os.DL_KINDS:
             button:
-                xysize (150, 40)
+                xysize (184, 40)
                 background Solid(store.mas_os.theme_color("btn_sel") if kid == kind else store.mas_os.theme_color("btn"))
                 hover_background Solid(store.mas_os.theme_color("btn_hover"))
                 padding (8, 6)
@@ -1712,9 +1857,16 @@ screen mas_os_store_win():
             textbutton _("Журнал"):
                 style "mas_os_nav_btn"
                 text_style "mas_os_nav_btn_text"
-                xsize 120
+                xsize 110
                 ysize 40
                 action Function(store.mas_os.toggle_dl_hist)
+
+            textbutton _("Обновить"):
+                style "mas_os_nav_btn"
+                text_style "mas_os_nav_btn_text"
+                xsize 140
+                ysize 40
+                action Function(store.mas_os.refresh_user_catalog)
 
     if status:
         text status:
@@ -1775,9 +1927,44 @@ screen mas_os_store_win():
             text _("Загруженное · {0}").format(row[1]):
                 style "mas_os_subtitle"
 
+            text drop_hint:
+                style "mas_os_hint"
+                xsize 740
+                substitute False
+
             if not owned:
-                text _("Пока пусто. Вставь ссылку сверху и скачай."):
+                text _("Пока пусто. Положи файлы в папку выше или скачай по ссылке."):
                     style "mas_os_hint"
+            elif music_tab:
+                for cell in owned:
+                    button:
+                        xsize 740
+                        ysize 44
+                        background Solid(store.mas_os.theme_color("btn_sel") if (sel and sel.get("name") == cell.get("name")) else store.mas_os.theme_color("panel"))
+                        hover_background Solid(store.mas_os.theme_color("btn_hover"))
+                        padding (10, 6)
+                        hover_sound store.mas_os.os_hover()
+                        activate_sound store.mas_os.os_activate()
+                        action Function(store.mas_os.set_dl_sel, cell)
+
+                        hbox:
+                            spacing 10
+                            yalign 0.5
+
+                            if cell.get("pending"):
+                                use mas_os_pending_mark(width=180)
+
+                            text (_("||") if (playing and sel and sel.get("name") == cell.get("name")) else _(">")):
+                                style "mas_os_body"
+                                size 16
+                                yalign 0.5
+
+                            text cell.get("name", ""):
+                                style "mas_os_body"
+                                size 16
+                                xsize (480 if cell.get("pending") else 660)
+                                yalign 0.5
+                                substitute False
             else:
                 grid 3 nrows:
                     spacing 8
@@ -1799,7 +1986,9 @@ screen mas_os_store_win():
                                     xfill True
 
                                     $ _thumb = store.mas_os.dl_display_path(cell) if store.mas_os.dl_is_image_name(cell.get("name")) else None
-                                    if _thumb:
+                                    if cell.get("pending"):
+                                        use mas_os_pending_mark(width=220)
+                                    elif _thumb:
                                         add store.mas_os.fit_image(_thumb, 228, 78):
                                             xalign 0.5
                                     else:
@@ -1840,8 +2029,56 @@ screen mas_os_store_win():
             if not sel:
                 text _("Выбери файл слева."):
                     style "mas_os_hint"
+            elif sel.get("pending"):
+                use mas_os_pending_mark(width=350)
+                text sel.get("name", ""):
+                    style "mas_os_body"
+                    size 16
+                    xsize 350
+                    substitute False
+                text _("Файл уже на диске. Перезапустите игру, чтобы оболочка его открыла."):
+                    style "mas_os_hint"
+                    xsize 350
+                textbutton _("Удалить"):
+                    style "mas_os_nav_btn"
+                    text_style "mas_os_nav_btn_text"
+                    xsize 350
+                    action Show(
+                        "mas_os_confirm",
+                        message=store.mas_os.dl_delete_prompt(sel.get("name")),
+                        yes_action=[
+                            Function(store.mas_os.dl_delete, sel.get("kind"), sel.get("name")),
+                            Function(store.mas_os.set_dl_sel, None),
+                            Hide("mas_os_confirm"),
+                        ],
+                        no_action=Hide("mas_os_confirm"),
+                    )
             else:
-                if sel_path and store.mas_os.dl_is_image_name(sel.get("name")):
+                if sel.get("kind") == "music":
+                    text sel.get("name", ""):
+                        style "mas_os_body"
+                        size 16
+                        xsize 350
+                        substitute False
+
+                    text store.mas_os.player_status_line():
+                        style "mas_os_hint"
+                        size 14
+                        xsize 350
+                        substitute False
+
+                    hbox:
+                        spacing 8
+
+                        use mas_os_player_playpause(size=26)
+
+                        textbutton _("Стоп"):
+                            style "mas_os_nav_btn"
+                            text_style "mas_os_nav_btn_text"
+                            xsize 120
+                            ysize 44
+                            action Function(store.mas_os.player_stop)
+                elif sel_path and store.mas_os.dl_is_image_name(sel.get("name")):
                     button:
                         xsize 360
                         ysize 160
@@ -1851,16 +2088,16 @@ screen mas_os_store_win():
                         add store.mas_os.fit_image(sel_path, 350, 150):
                             xalign 0.5
                             yalign 0.5
+
+                    text _("Нажми картинку — на весь экран."):
+                        style "mas_os_hint"
+                        size 13
                 else:
                     text sel.get("name", ""):
                         style "mas_os_body"
                         size 16
                         xsize 350
                         substitute False
-
-                text _("Нажми картинку — на весь экран."):
-                    style "mas_os_hint"
-                    size 13
 
                 if sel.get("kind") == "wallpaper":
                     textbutton _("Поставить обоями"):
@@ -1890,6 +2127,8 @@ screen mas_os_store_win():
                         ],
                         no_action=Hide("mas_os_confirm"),
                     )
+
+    use mas_os_store_safe_block
 
     if not store.mas_os.wm_embedded():
         textbutton _("Назад"):

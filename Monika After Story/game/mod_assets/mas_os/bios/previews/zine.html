@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Zine</title>
+<style>
+  :root { --paper:#f4ead5; --ink:#1b1210; --red:#9b1c3a; --rule:#1b121033; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #c9b79a; color: var(--ink);
+    font-family: "Iowan Old Style", Palatino, Georgia, serif;
+  }
+  .page {
+    max-width: 520px; margin: 0 auto; min-height: 100dvh;
+    background: var(--paper);
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, #9b1c3a0d 28px);
+    padding: 18px 16px 90px; position: relative;
+  }
+  .page:before {
+    content:""; position:absolute; inset:10px; border:1px solid var(--rule); pointer-events:none;
+  }
+  .mast {
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom: 3px solid var(--ink); padding-bottom: 8px; margin-bottom: 10px;
+  }
+  .mast small { letter-spacing:.18em; text-transform:uppercase; font-size:10px; }
+  .mast b { font-size: 34px; line-height:.85; letter-spacing:-.04em; }
+  .issue { color: var(--red); font-style: italic; font-size: 13px; margin: 8px 0 16px; }
+  article {
+    border-top: 1px solid var(--ink); padding: 14px 0 6px;
+  }
+  article h2 {
+    font-size: 26px; margin: 0 0 4px; line-height: .95;
+  }
+  .kicker { color: var(--red); font-size: 11px; letter-spacing:.14em; text-transform:uppercase; }
+  .cols { font-size: 14px; line-height: 1.4; margin: 8px 0; }
+  .stamp {
+    float: right; width: 72px; height: 72px; margin: 0 0 8px 8px;
+    border: 2px dashed var(--red); color: var(--red); transform: rotate(8deg);
+    display:grid; place-items:center; font-size:11px; text-align:center; font-weight:700;
+  }
+  .acts { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .acts button {
+    border: 1.5px solid var(--ink); background: transparent; color: var(--ink);
+    padding: 10px 12px; min-height: 44px; font: inherit; font-size: 13px;
+  }
+  .acts button.go { background: var(--red); color: #fff8e8; border-color: var(--red); }
+  .acts button:active { background: var(--ink); color: var(--paper); }
+  .log {
+    margin-top: 18px; border: 1px solid var(--ink); padding: 8px 10px;
+    font-family: ui-monospace, Consolas, monospace; font-size: 11px; min-height: 64px;
+    background: #efe3cc; white-space: pre-wrap;
+  }
+  .dock {
+    position: sticky; bottom: 0; margin: 18px -16px -90px; padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--ink); color: var(--paper); display:flex; gap:8px;
+  }
+  .dock button {
+    flex:1; min-height:48px; border:0; background:#ffe6a3; color:var(--ink); font-weight:700; font-size:15px;
+  }
+  .dock button.ghost { background: transparent; color: #ffe6a3; border:1px solid #ffe6a3; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="mast">
+    <div><small>Literature Club</small><br><b>JUST<br>MONIKA</b></div>
+    <small>BIOS · №04</small>
+  </div>
+  <p class="issue">Сегодня в выпуске: запуск, архивы DDLC и возвращение президента домой.</p>
+
+  <article>
+    <div class="kicker">Передовица</div>
+    <h2>Запустить MAS</h2>
+    <div class="stamp">PRESS<br>START</div>
+    <p class="cols">Python ещё спит. С этого абзаца начинается комната. Если сабмоды шалят — соседняя колонка, безопасный вход.</p>
+    <div class="acts">
+      <button class="go" onclick="log('→ startGame')">В комнату</button>
+      <button onclick="log('→ startSafe')">Без сабмодов</button>
+      <button onclick="log('→ healthCheck')">Проверить диск</button>
+    </div>
+  </article>
+
+  <article>
+    <div class="kicker">Культура</div>
+    <h2>Архивы оригинала</h2>
+    <p class="cols">Картинки и музыка не в APK. Официальный zip — с ddlc.moe. Пока нет bedroom.png, игра не стартует.</p>
+    <div class="acts">
+      <button class="go" onclick="log('→ downloadDdlcMoe')">ddlc.moe</button>
+      <button onclick="log('→ pickArchive')">Выбрать zip</button>
+      <button onclick="log('→ checkArchives')">Что уже есть</button>
+    </div>
+  </article>
+
+  <article>
+    <div class="kicker">Вложения</div>
+    <h2>Контент и паки</h2>
+    <p class="cols">Один zip. BIOS сам скажет: сабмод, спрайт или рескин. Ссылки помнит, чтобы не искать снова.</p>
+    <div class="acts">
+      <button class="go" onclick="log('→ pickSubmodZip')">Поставить zip</button>
+      <button onclick="log('→ listSubmods')">Библиотека</button>
+      <button onclick="log('→ clearUrlHistory')">Забыть ссылки</button>
+    </div>
+  </article>
+
+  <article>
+    <div class="kicker">Хроника</div>
+    <h2>Сейвы · файлы · рекавери</h2>
+    <p class="cols">Импорт с другой сборки, подарки в characters/, Моника домой, если файл пропал.</p>
+    <div class="acts">
+      <button class="go" onclick="log('→ pickSavesZip')">Импорт сейвов</button>
+      <button onclick="log('→ exportSaves')">Экспорт</button>
+      <button onclick="log('→ pickGift')">Gift</button>
+      <button onclick="log('→ recoverMonikaHome')">За стол</button>
+    </div>
+  </article>
+
+  <article>
+    <div class="kicker">Техника</div>
+    <h2>Движок и система</h2>
+    <div class="acts">
+      <button onclick="log('→ testStockfish')">uci</button>
+      <button onclick="log('→ checkUpdate')">APK</button>
+      <button onclick="log('→ showTraceback')">traceback</button>
+      <button onclick="log('→ toggleBoot')">сразу MAS</button>
+    </div>
+  </article>
+
+  <div class="log" id="log">типография готова · пальцем по кнопкам</div>
+  <div class="dock">
+    <button onclick="log('→ startGame')">Открыть выпуск</button>
+    <button class="ghost" onclick="document.getElementById('log').textContent='очищено'">Стереть гранки</button>
+  </div>
+</div>
+<script>
+function log(s){ var e=document.getElementById('log'); e.textContent += '\n'+s; e.scrollTop=e.scrollHeight; }
+</script>
+</body>
+</html>

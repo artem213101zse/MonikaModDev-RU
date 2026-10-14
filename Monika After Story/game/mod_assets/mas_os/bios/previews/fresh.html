@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Свежие эскизы BIOS</title>
+<style>
+  :root { --bg:#10080c; --card:#1c1016; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100dvh; background:
+      radial-gradient(900px 400px at 10% -10%, #c94a7a44, transparent 50%),
+      radial-gradient(700px 380px at 110% 10%, #7ee0d633, transparent 45%),
+      var(--bg);
+    color: var(--ink); font-family: Georgia, "Times New Roman", serif;
+    padding: 22px 16px 40px;
+  }
+  a { color: inherit; text-decoration: none; }
+  h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: -.03em; }
+  .sub { color: var(--mute); font-size: 14px; line-height: 1.45; margin: 0 0 22px; max-width: 36em; }
+  .grid { display: grid; gap: 12px; }
+  @media (min-width: 720px) { .grid { grid-template-columns: 1fr 1fr; } }
+  .card {
+    display: block; background: var(--card); border-radius: 18px; overflow: hidden;
+    border: 1px solid #ffffff14; min-height: 132px;
+  }
+  .card:active { transform: scale(.99); }
+  .thumb { height: 88px; }
+  .meta { padding: 12px 14px 14px; }
+  .meta b { display: block; font-size: 18px; margin-bottom: 4px; }
+  .meta span { color: var(--mute); font-size: 13px; line-height: 1.35; }
+  .t-zine { background: linear-gradient(135deg, #f3e6d0, #e7c9a6 40%, #8b1e3f); }
+  .t-orbit { background: radial-gradient(circle at 30% 40%, #ff9ac8, transparent 28%), linear-gradient(#070b16, #15203a); }
+  .t-tape { background: linear-gradient(#5a3a24, #2a1810 55%, #c9a227); }
+  .t-flap { background: repeating-linear-gradient(#111, #111 10px, #1c1c1c 10px, #1c1c1c 20px); }
+  .t-letter { background: linear-gradient(#efe6d6, #d9c4a8); }
+  .t-vhs { background: repeating-linear-gradient(0deg, #1a0510 0 2px, #2a0818 2px 4px); }
+  .t-palette { background: linear-gradient(180deg, #1a1a1e, #2a2430); }
+  .t-stamps { background: radial-gradient(#c4a574 1px, #b08958 1px); background-size: 8px 8px; }
+  .old { margin-top: 28px; font-size: 13px; color: var(--mute); }
+  .old a { color: #7ee0d6; }
+</style>
+</head>
+<body>
+  <h1>Свежие шаблоны</h1>
+  <p class="sub">Не Windows и не колода. Открой любой файл в браузере телефона. Кнопки пишут в журнал, Java нет — это только вид.</p>
+  <div class="grid">
+    <a class="card" href="zine.html"><div class="thumb t-zine"></div><div class="meta"><b>Zine</b><span>Журнал литклуба. Крупная вёрстка, вертикальный скролл, одна тема — одна полоса.</span></div></a>
+    <a class="card" href="orbit.html"><div class="thumb t-orbit"></div><div class="meta"><b>Орбита</b><span>Пуск в центре, разделы как спутники. Палец по кругу, лист снизу.</span></div></a>
+    <a class="card" href="tape.html"><div class="thumb t-tape"></div><div class="meta"><b>Кассета</b><span>Большая кнопка Play, остальное — дорожки микстейпа. Индикаторы загрузки как VU.</span></div></a>
+    <a class="card" href="flap.html"><div class="thumb t-flap"></div><div class="meta"><b>Табло</b><span>Табло вылета. Каждая строка — раздел BIOS, статус справа.</span></div></a>
+    <a class="card" href="letter.html"><div class="thumb t-letter"></div><div class="meta"><b>Письма</b><span>Стопка конвертов от Моники. Листаешь письма, внутри действия.</span></div></a>
+    <a class="card" href="vhs.html"><div class="thumb t-vhs"></div><div class="meta"><b>VHS</b><span>Камера и кассеты. REC, таймкод, главы вместо меню.</span></div></a>
+    <a class="card" href="palette.html"><div class="thumb t-palette"></div><div class="meta"><b>Палитра</b><span>Пустой экран и поиск. Всё — крупные строки. Самый быстрый для одной руки.</span></div></a>
+    <a class="card" href="stamps.html"><div class="thumb t-stamps"></div><div class="meta"><b>Марки</b><span>Пробковая доска и кривые Polaroid. Разный размер карточек, не сетка 2×N.</span></div></a>
+  </div>
+  <p class="old">Все виды одним списком: <a href="nav.html">nav.html</a> · идеальный: <a href="rail-ideal.html">rail-ideal.html</a> · клоны ОС: <a href="index.html">index.html</a></p>
+</body>
+</html>

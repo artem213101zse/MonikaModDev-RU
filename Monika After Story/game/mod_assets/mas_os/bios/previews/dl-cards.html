@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Загрузки · Карточки</title>
+<script src="packs.js"></script>
+<style>
+  :root { --bg:#12080e; --ink:#ffe6f3; --mute:#c989a8; --hot:#c94a7a; --ok:#7ee0a6; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 16px 14px 24px; }
+  .k { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+  h1 { margin: 4px 0 10px; font-size: 24px; }
+  #switch { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+  .sw { font-size: 11px; color: var(--mute); text-decoration: none; padding: 4px 8px; border-radius: 999px; background: #ffffff08; }
+  .sw.on { background: var(--hot); color: #fff; }
+  .sum {
+    background: #1c1016; border-radius: 16px; padding: 12px; margin-bottom: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .sum b { display: block; font-size: 18px; }
+  .sum span { font-size: 12px; color: var(--mute); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .card {
+    background: #1c1016; border-radius: 16px; padding: 12px; border: 0; color: inherit;
+    text-align: left; font: inherit; min-height: 150px;
+  }
+  .ring {
+    width: 54px; height: 54px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 12px; font-weight: 800; margin-bottom: 8px;
+    background: conic-gradient(var(--hot) calc(var(--p) * 1%), #ffffff14 0);
+  }
+  .card.ready .ring { background: conic-gradient(var(--ok) 100%, #ffffff14 0); color: var(--ok); }
+  .card.missing .ring { background: conic-gradient(#ffffff14 0, #ffffff14); color: var(--mute); }
+  .card b { display: block; font-size: 14px; }
+  .card i { display: block; font-style: normal; font-size: 11px; color: var(--mute); margin-top: 4px; }
+  .goall { width: 100%; min-height: 48px; margin-top: 14px; border: 0; border-radius: 14px; background: var(--hot); color: #fff; font-weight: 800; }
+  #log { margin-top: 12px; font-size: 11px; color: var(--mute); white-space: pre-wrap; min-height: 40px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="k">карточки</div>
+  <h1>Пакеты на диске</h1>
+  <div id="switch">
+    <a class="sw" href="nav.html">хаб</a>
+    <a class="sw" href="dl-cod.html">COD / DF</a>
+    <a class="sw" href="dl-delta.html">ресурсы</a>
+    <a class="sw" href="dl-queue.html">очередь</a>
+    <a class="sw on" href="dl-cards.html">карточки</a>
+    <a class="sw" href="rail-gear.html">шестерёнка</a>
+  </div>
+  <div class="sum" id="sum"></div>
+  <div class="grid" id="grid"></div>
+  <button class="goall" id="goall" type="button">Скачать недостающее</button>
+  <pre id="log">круговой прогресс · нажми карточку: скачать / пауза / удалить опциональное</pre>
+</div>
+<script>
+(function () {
+  function render() {
+    var tot = biosDlTotals(), i, p, html = "", ring;
+    document.getElementById("sum").innerHTML = "<div><b>" + tot.needOk + " / " + tot.need +
+      "</b><span>обязательных готово</span></div><div style=\"text-align:right\"><b>" +
+      tot.pct + "%</b><span>всего по объёму</span></div>";
+    for (i = 0; i < biosDlPacks.length; i++) {
+      p = biosDlPacks[i];
+      ring = p.status === "ready" ? "✓" : Math.round(p.pct) + "%";
+      html += '<button class="card ' + p.status + '" data-id="' + p.id +
+        '" style="--p:' + p.pct + '"><div class="ring">' + ring + "</div><b>" +
+        p.name + "</b><i>" + biosDlMb(p.mb) + " · " + biosDlLabels[p.status] + "</i></button>";
+    }
+    document.getElementById("grid").innerHTML = html;
+  }
+  document.getElementById("grid").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-id]");
+    var p;
+    if (!b) return;
+    p = biosDlGet(b.getAttribute("data-id"));
+    biosDlAct(p.id);
+    biosDlLog(p.cmd, p.name + " → " + p.status);
+    render();
+  });
+  document.getElementById("goall").onclick = function () {
+    biosDlQueueAllMissing();
+    biosDlLog("downloadArchives", "недостающее");
+    render();
+  };
+  biosDlStartTick(render);
+  render();
+})();
+</script>
+</body>
+</html>

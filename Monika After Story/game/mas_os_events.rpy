@@ -485,8 +485,8 @@ screen mas_os_events():
     $ empty_read = _("Прочитанных пока нет.\n\nОткрой событие слева и нажми «Прочитать».")
     $ empty_none = _("Ближайших праздников в календаре нет.\n\nЗагляни сюда за неделю до Рождества, дня рождения Моники, Валентина или годовщины.")
     $ ev_body = empty_locked if not ready else (ev["body"] if ev else (empty_none if (not unread_n and not read_n) else empty_unread))
-    $ unread_arrow = _("▼") if unread_open else _("▶")
-    $ read_arrow = _("▼") if read_open else _("▶")
+    $ unread_arrow = _("▲") if unread_open else _("▼")
+    $ read_arrow = _("▲") if read_open else _("▼")
     $ cal_ic = store.mas_os.icon_path("events")
     $ cal_wall = "mod_assets/calendar/calendar_button_normal.png"
     $ cal_img = cal_wall if renpy.loadable(cal_wall) else cal_ic
@@ -535,7 +535,10 @@ screen mas_os_events():
 
                         text unread_arrow:
                             style "mas_os_cat_btn_text"
-                            min_width 18
+                            font "mod_assets/font/mplus-2p-regular.ttf"
+                            size 18
+                            min_width 22
+                            text_align 0.5
 
                         if unread_n:
                             frame:
@@ -597,7 +600,10 @@ screen mas_os_events():
 
                         text read_arrow:
                             style "mas_os_cat_btn_text"
-                            min_width 18
+                            font "mod_assets/font/mplus-2p-regular.ttf"
+                            size 18
+                            min_width 22
+                            text_align 0.5
 
                         text _("Прочитанное ({0})").format(read_n):
                             style "mas_os_cat_btn_text"

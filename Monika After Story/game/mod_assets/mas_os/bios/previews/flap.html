@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BIOS · Табло</title>
+<style>
+  body { margin:0; background:#0b0b0b; color:#eee6c8; font-family:"Share Tech Mono", ui-monospace, Consolas, monospace; }
+  header {
+    padding:14px 14px 8px; display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:2px solid #e6d38a;
+  }
+  header b { letter-spacing:.28em; font-size:13px; color:#e6d38a; }
+  .board { padding:8px 10px 90px; }
+  .row {
+    width:100%; display:grid; grid-template-columns: 52px 1fr 72px 28px;
+    gap:6px; align-items:center; border:0; background:transparent; color:inherit;
+    padding:6px 0; font: inherit; text-align:left; min-height:52px;
+  }
+  .row:active { background:#ffffff08; }
+  .flap {
+    display:inline-block; background:#1a1a1a; border-radius:3px; padding:6px 7px;
+    box-shadow: inset 0 -12px 0 #0006, 0 1px 0 #fff1; font-weight:700; letter-spacing:.04em;
+  }
+  .dest { font-size:16px; }
+  .st { color:#8fd18f; font-size:11px; letter-spacing:.08em; }
+  .st.wait { color:#e6d38a; }
+  .st.bad { color:#e07070; }
+  .note { font-size:11px; opacity:.45; padding:8px 12px; }
+  .dock {
+    position:fixed; left:0; right:0; bottom:0; display:flex; gap:8px;
+    padding:10px 12px calc(12px + env(safe-area-inset-bottom)); background:#111; border-top:1px solid #333;
+  }
+  .dock button { flex:1; min-height:48px; border:0; background:#e6d38a; color:#111; font-weight:800; }
+  .dock button.g { background:#222; color:#e6d38a; }
+  .sheet {
+    display:none; margin:8px 10px; background:#161616; border:1px solid #333; padding:12px;
+  }
+  .sheet.on { display:block; }
+  .sheet h2 { margin:0 0 8px; font-size:16px; color:#e6d38a; letter-spacing:.12em; }
+  .acts { display:flex; flex-wrap:wrap; gap:8px; }
+  .acts button { flex:1 1 40%; min-height:44px; border:0; background:#2a2a2a; color:#eee; }
+  .acts button.go { background:#e6d38a; color:#111; }
+  .log { margin-top:8px; font-size:11px; opacity:.6; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<header>
+  <b>CLUB DEPARTURES</b>
+  <span id="clock">00:00</span>
+</header>
+<p class="note">Рейс = раздел BIOS. Нажми строку.</p>
+<div class="board" id="board"></div>
+<div class="sheet" id="sheet">
+  <h2 id="t">GATE</h2>
+  <div class="acts" id="acts"></div>
+  <div class="log" id="log"></div>
+</div>
+<div class="dock">
+  <button onclick="go('startGame')">BOARD MAS</button>
+  <button class="g" onclick="go('startSafe')">STANDBY</button>
+</div>
+<script>
+var ROWS = [
+  ['01','MAS ROOM','ON TIME','play','Python ещё не запущен',[['LAUNCH','startGame','go'],['SAFE','startSafe'],['DISK','healthCheck']]],
+  ['02','DDLC PACKS','WAIT','archives','Нужны images + audio',[['MOE','downloadDdlcMoe','go'],['PICK','pickArchive'],['CHK','checkArchives']]],
+  ['03','CONTENT ZIP','GATE 3','content','Сабмод / спрайт / рескин',[['INSTALL','pickSubmodZip','go'],['HIST','listUrlHistory']]],
+  ['04','LIBRARY','GATE 4','library','Снять пак',[['LIST','listSubmods'],['UNDO','uninstallLastSubmod','go']]],
+  ['05','SAVES','ON TIME','saves','Импорт с другой сборки',[['IN','pickSavesZip','go'],['OUT','exportSaves']]],
+  ['06','MONIKA','HOLD','recovery','characters/monika',[['SCAN','recoverMonikaScan','go'],['HOME','recoverMonikaHome']]],
+  ['07','STOCKFISH','ON TIME','engine','libstockfish.so',[['UCI','testStockfish','go'],['GO','stockfishGo']]],
+  ['08','FILES','GATE 8','files','Documents',[['OPEN','openDocuments','go'],['GIFT','pickGift']]],
+  ['09','UPDATE','DELAY','update','GitHub APK',[['CHK','checkUpdate'],['GET','downloadUpdate','go']]],
+  ['10','SYSTEM','GATE 10','system','traceback',[['TRACE','showTraceback','go'],['SKIP','toggleBoot']]]
+];
+var board=document.getElementById('board');
+ROWS.forEach(function(r,i){
+  var b=document.createElement('button'); b.className='row';
+  var st = r[2]==='WAIT'||r[2]==='DELAY'||r[2]==='HOLD' ? 'wait' : 'st';
+  b.innerHTML='<span class="flap">'+r[0]+'</span><span class="dest">'+r[1]+'</span><span class="st '+st+'">'+r[2]+'</span><span>›</span>';
+  b.onclick=function(){ open(i); };
+  board.appendChild(b);
+});
+function open(i){
+  var r=ROWS[i];
+  document.getElementById('sheet').className='sheet on';
+  document.getElementById('t').textContent=r[0]+'  '+r[1];
+  var a=document.getElementById('acts'); a.innerHTML='';
+  r[5].forEach(function(x){
+    var b=document.createElement('button'); if(x[2]) b.className='go';
+    b.textContent=x[0]; b.onclick=function(){ go(x[1]); }; a.appendChild(b);
+  });
+  go(r[4]);
+}
+function go(s){ document.getElementById('log').textContent='→ '+s; }
+(function(){ var d=new Date(); document.getElementById('clock').textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); })();
+</script>
+</body>
+</html>
