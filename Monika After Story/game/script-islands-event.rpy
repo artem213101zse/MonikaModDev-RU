@@ -8,6 +8,31 @@
 # Класс: IslandsDataDefinition
 # ---
 
+
+init -1 python:
+    # RU: окончания по полу игрока (тот же хелпер, что в script-affection.rpy).
+    # Определяем, только если его ещё нет. "X" -> мужской род.
+    if "MASRuGenderForm" not in globals():
+        class MASRuGenderForm(object):
+            def __init__(self, fem, masc):
+                self.fem = fem
+                self.masc = masc
+            def _get(self):
+                return self.fem if persistent.gender == "F" else self.masc
+            def __unicode__(self):
+                return self._get()
+            def __str__(self):
+                return self._get().encode("utf-8") if not isinstance(self._get(), str) else self._get()
+            def __format__(self, spec):
+                return self._get()
+
+    if "_ru_a" not in globals():
+        _ru_a = MASRuGenderForm(u"а", u"")
+    if "_ru_la" not in globals():
+        _ru_la = MASRuGenderForm(u"ла", u"")
+    if "_ru_sya" not in globals():
+        _ru_sya = MASRuGenderForm(u"ась", u"ся")
+
 # Monika's ???? Event
 # deserves it's own file because of how much dialogue these have
 # it basically shows a new screen over everything, and has an image map
@@ -1947,7 +1972,7 @@ init -1 python in mas_island_event:
 
         return MASFilterableBackground(
             id_,
-            "Living room",
+            "Гостиная",
             MASFilterWeatherMap(**mfwm_params),
             MASBackgroundFilterManager(
                 MASBackgroundFilterChunk(
@@ -2330,20 +2355,20 @@ label mas_island_upsidedownisland:
     if persistent._mas_o31_in_o31_mode and random.random() < 0.3:
         jump mas_island_spooky_ambience
 
-    m "Oh, that."
-    m "I guess you're wondering why that island is upside down, right?"
-    m "Well...I was about to fix it until I took another good look at it."
-    m "It looks surreal, doesn't it?"
-    m "I just feel like there's something special about it."
-    m "It's just...mesmerizing."
+    m "А, это."
+    m "Наверное, тебе интересно, почему тот остров перевёрнут вверх ногами?"
+    m "Ну...я уже собиралась его исправить, но потом присмотрелась получше."
+    m "Выглядит сюрреалистично, правда?"
+    m "Мне кажется, в нём есть что-то особенное."
+    m "Он просто...завораживает."
     return
 
 label mas_island_glitchedmess:
-    m "Oh, that."
-    m "It's something I'm currently working on."
-    m "It's still a huge mess, though. I'm still trying to figure it all out."
-    m "In due time, I'm sure I'll get better at coding!"
-    m "Practice makes perfect after all, right?"
+    m "А, это."
+    m "Над этим я сейчас работаю."
+    m "Правда, пока там жуткий беспорядок. Я всё ещё пытаюсь во всём разобраться."
+    m "Но со временем я обязательно стану программировать лучше!"
+    m "Всё-таки повторение — мать учения, верно?"
     return
 
 label mas_island_cherry_blossom_tree:
@@ -2369,56 +2394,56 @@ label mas_island_cherry_blossom_tree:
 
 label mas_island_cherry_blossom1:
     if mas_island_event.is_winter_weather():
-        m "This tree may look dead right now...but when it blooms, it's gorgeous."
+        m "Сейчас это дерево может казаться мёртвым...но когда оно цветёт, это просто великолепно."
 
     else:
-        m "It's a beautiful tree, isn't it?"
+        m "Красивое дерево, правда?"
 
-    m "It's called a Cherry Blossom tree; they're native to Japan."
-    m "Traditionally, when the flowers are in bloom, people would go flower viewing and have a picnic underneath the trees."
-    m "Well, I didn't choose this tree because of tradition."
-    m "I chose it because it's lovely and pleasing to look at."
-    m "Just staring at the falling petals is awe-inspiring."
+    m "Это сакура — японская вишня. Родом она из Японии."
+    m "По традиции, когда она цветёт, люди выходят любоваться цветами и устраивают пикники прямо под деревьями."
+    m "Хотя я выбрала это дерево вовсе не из-за традиций."
+    m "Просто оно очаровательное, и на него приятно смотреть."
+    m "Даже просто наблюдать за опадающими лепестками — уже восторг."
 
     if mas_island_event.is_winter_weather():
-        m "When it's blooming, that is."
-        m "I can't wait until we get the chance to experience that, [player]."
+        m "Когда она цветёт, конечно."
+        m "Не терпится увидеть это вместе с тобой, [player]."
 
     return
 
 label mas_island_cherry_blossom2:
-    m "Did you know you can eat the flower petals of a Cherry Blossom tree?"
-    m "I don't know the taste myself, but I'm sure it can't be as sweet as you."
-    m "Ehehe~"
+    m "А ты знаешь, что лепестки сакуры можно есть?"
+    m "Сама я их не пробовала, но уверена, что они и близко не такие сладкие, как ты."
+    m "Э-хе-хе~"
     return
 
 label mas_island_cherry_blossom3:
-    m "You know, the tree is symbolic like life itself."
-    m "Beautiful, but short-lived."
-    m "But with you here, it's always blooming beautifully."
+    m "Знаешь, это дерево — как символ самой жизни."
+    m "Прекрасная, но такая быстротечная."
+    m "Но пока ты рядом, она всегда цветёт во всей красе."
 
     if mas_island_event.is_winter_weather():
-        m "Even if it's bare now, it'll blossom again soon."
+        m "Пусть сейчас ветки голые, скоро она снова зацветёт."
 
-    m "Know that I'll always be grateful to you for being in my life."
-    m "I love you, [player]~"
+    m "Знай, что я всегда буду благодарна тебе за то, что ты есть в моей жизни."
+    m "Я люблю тебя, [player]~"
     # manually handle the "love" return key
     $ mas_ILY()
     return
 
 label mas_island_cherry_blossom4:
-    m "You know what'd be nice to drink under the Cherry Blossom tree?"
-    m "A little sake~"
-    m "Ahaha! I'm just kidding."
-    m "I'd rather have tea or coffee."
+    m "Знаешь, что было бы здорово выпить под сакурой?"
+    m "Немножко саке~"
+    m "А-ха-ха! Шучу."
+    m "Я бы лучше выпила чаю или кофе."
 
     if mas_island_event.is_winter_weather():
-        m "Or hot chocolate, even. It'd certainly help with the cold."
-        m "Of course, even if that failed, we could always cuddle together...{w=0.5} That'd be really romantic~"
+        m "Или даже горячего шоколада. Он бы точно спас от холода."
+        m "А если и он не поможет, мы всегда можем прижаться друг к другу...{w=0.5} Это было бы так романтично~"
 
     else:
-        m "But, it'd be nice to watch the falling petals with you."
-        m "That'd be really romantic~"
+        m "Но смотреть с тобой на опадающие лепестки было бы чудесно."
+        m "Это было бы так романтично~"
 
     return
 
@@ -2450,34 +2475,34 @@ label mas_island_day1:
     #NOTE: this ordering is key, during winter we only use snow covered islands with clear sky
     # so Winter path needs to be first
     if mas_island_event.is_winter_weather():
-        m "What a beautiful day today."
-        m "Perfect for taking a walk to admire the scenery."
-        m "...Huddled together, so as to stave off the cold."
-        m "...With some nice hot drinks to help keep us warm."
+        m "Какой сегодня чудесный день."
+        m "Идеально, чтобы прогуляться и полюбоваться видами."
+        m "...Прижавшись друг к другу, чтобы не замёрзнуть."
+        m "...И прихватив чего-нибудь горячего, чтобы согреться."
 
     elif mas_is_raining:
-        m "Aww, I would've liked to do some reading outdoors."
-        m "But I'd rather avoid getting my books wet..."
-        m "Soggy pages are a pain to deal with."
-        m "Another time, maybe."
+        m "Эх, а я так хотела почитать на свежем воздухе."
+        m "Но мочить книги мне совсем не хочется..."
+        m "С размокшими страницами потом столько мороки."
+        m "Может, в другой раз."
 
     elif mas_current_weather == mas_weather_overcast:
-        m "Reading outside with this weather wouldn't be too bad, but it could rain at any moment."
-        m "I'd rather not risk it."
-        m "Don't worry, [player]. We'll do it some other time."
+        m "В такую погоду почитать на улице было бы неплохо, но дождь может пойти в любую минуту."
+        m "Лучше не рисковать."
+        m "Не переживай, [player]. Сделаем это в другой раз."
 
     else:
-        m "It's a nice day today."
+        m "Сегодня хороший денёк."
 
         if mas_island_event._is_unlocked("decal_tree"):
-            m "This weather would be good for a little book reading under the Cherry Blossom tree right, [player]?"
+            m "В такую погоду хорошо почитать книжку под сакурой, правда, [player]?"
 
         else:
-            m "This weather would be good for a little book reading outside right, [player]?"
+            m "В такую погоду хорошо почитать книжку на улице, правда, [player]?"
 
-        m "Lying under the shade while reading my favorite book."
-        m "...Along with a snack and your favorite drink on the side."
-        m "Ahh, that'd be really nice to do~"
+        m "Лежать в тени с любимой книгой."
+        m "...А рядом — что-нибудь перекусить и твой любимый напиток."
+        m "Ах, как было бы здорово~"
 
     return
 
@@ -2485,146 +2510,146 @@ label mas_island_day2:
     #NOTE: this ordering is key, during winter we only use snow covered islands with clear sky
     # so Winter path needs to be first
     if mas_island_event.is_winter_weather():
-        m "Have you ever made a snow angel, [player]?"
-        m "I've tried in the past, but never had much success..."
-        m "It's a lot harder than it looks like."
-        m "I bet we'd have a lot of fun, even if whatever we make doesn't end up looking like an angel."
-        m "It's just a matter of being a bit silly, you know?"
+        m "Тебе доводилось делать снежного ангела, [player]?"
+        m "Я когда-то пробовала, но получалось не очень..."
+        m "Это куда сложнее, чем кажется."
+        m "Но спорим, нам было бы очень весело, даже если в итоге у нас выйдет совсем не ангел."
+        m "Главное ведь — немножко подурачиться, понимаешь?"
 
     elif mas_island_event.is_cloudy_weather():
-        m "Going outdoors with this kind of weather doesn't look very appealing..."
-        m "Maybe if I had an umbrella I'd feel more comfortable."
-        m "Imagine both of us, shielded from the rain, inches apart."
-        m "Staring into each other's eyes."
-        m "Then we start leaning closer and closer until we're almost-"
-        m "I think you can finish that thought yourself, [player]~"
+        m "В такую погоду выходить на улицу как-то не тянет..."
+        m "Разве что с зонтиком было бы поуютнее."
+        m "Представь: мы вдвоём прячемся от дождя, совсем рядом друг с другом."
+        m "Смотрим друг другу в глаза."
+        m "А потом наклоняемся всё ближе и ближе, пока почти не..."
+        m "Думаю, дальше ты и сам[_ru_a] додумаешь, [player]~"
 
     else:
-        m "The weather looks nice."
-        m "This would definitely be the best time to have a picnic."
-        m "We even have a great view to accompany it with!"
-        m "Wouldn't it be nice?"
+        m "Погода, кажется, хорошая."
+        m "Самое время устроить пикник."
+        m "И вид отсюда просто замечательный!"
+        m "Разве не здорово?"
 
         if mas_island_event._is_unlocked("decal_tree"):
-            m "Eating under the Cherry Blossom tree."
+            m "Перекусывать под сакурой."
 
-        m "Adoring the scenery around us."
-        m "Enjoying ourselves with each other's company."
-        m "Ahh, that'd be fantastic~"
+        m "Любоваться пейзажем вокруг."
+        m "Наслаждаться обществом друг друга."
+        m "Ах, это было бы потрясающе~"
 
     return
 
 label mas_island_day3:
     if mas_is_raining and not mas_isWinter():
-        m "It's raining pretty heavily..."
-        m "I wouldn't want to be outside now."
-        m "Though being indoors at a time like this feels pretty cozy, don't you think?"
+        m "Дождь льёт как из ведра..."
+        m "Не хотела бы я сейчас оказаться на улице."
+        m "Зато сидеть дома в такую погоду очень уютно, правда?"
 
     else:
-        m "It's pretty peaceful outside."
+        m "Снаружи так спокойно."
 
         if mas_island_event.is_winter_weather():
-            m "We could have a snowball fight, you know."
-            m "Ahaha, that'd be so much fun!"
-            m "I bet I could land a shot on you a few islands away."
-            m "Some healthy competition never hurt anyone, right?"
+            m "Знаешь, мы могли бы поиграть в снежки."
+            m "А-ха-ха, было бы так весело!"
+            m "Спорим, я попаду в тебя даже через пару островов?"
+            m "Немного здорового соперничества никому не повредит, верно?"
 
         else:
-            m "I wouldn't mind lazing around in the grass right now..."
-            m "With your head resting on my lap..."
-            m "Ehehe~"
+            m "Я бы сейчас с удовольствием повалялась на травке..."
+            m "А ты бы лежал[_ru_a] головой у меня на коленях..."
+            m "Э-хе-хе~"
 
     return
 
 label mas_island_night1:
-    m "While it's nice to be productive during the day, there's something so peaceful about the night."
-    m "The sounds of crickets chirping mixed with a gentle breeze is so relaxing."
-    m "You'd hold me on a night like that, right~"
+    m "Днём, конечно, приятно чем-то заниматься, но в ночи есть какое-то особое спокойствие."
+    m "Стрекот сверчков и лёгкий ветерок — это так умиротворяет."
+    m "В такую ночь ты бы обнял[_ru_a] меня, правда~"
     return
 
 label mas_island_night2:
     if not mas_isWinter() and mas_island_event.is_cloudy_weather():
-        m "Too bad we can't see the stars tonight..."
-        m "I would've loved to gaze at the cosmos with you."
-        m "That's alright though, we'll get to see it some other time, then."
+        m "Жаль, что сегодня звёзд не видно..."
+        m "Я бы с радостью полюбовалась с тобой космосом."
+        m "Ну ничего, посмотрим в другой раз."
 
     else:
         if seen_event('monika_stargazing'):
-            m "Aren't the stars so beautiful, [player]?"
-            m "Although, this isn't {i}quite{/i} what I had in mind when I mentioned stargazing before..."
-            m "As nice as they are to look at, the part that I want to experience most is being with you, holding each other tight while we lay there."
-            m "Someday, [player].{w=0.3} Someday."
+            m "Звёзды такие красивые, правда, [player]?"
+            m "Хотя, когда я говорила про наблюдение за звёздами, я представляла себе {i}немного{/i} другое..."
+            m "Смотреть на них, конечно, приятно, но больше всего мне хочется лежать рядом с тобой, крепко обнявшись."
+            m "Когда-нибудь, [player].{w=0.3} Когда-нибудь."
 
         else:
-            m "Have you ever gone stargazing, [mas_get_player_nickname()]?"
-            m "Taking some time out of your evening to look at the night sky and to just stare at the beauty of the sky above..."
-            m "It's surprisingly relaxing, you know?"
-            m "I've found that it can really relieve stress and clear your head..."
-            m "And seeing all kinds of constellations in the sky just fills your mind with wonder."
-            m "Of course, it really makes you realize just how small we are in the universe."
-            m "Ahaha..."
+            m "Тебе доводилось смотреть на звёзды, [mas_get_player_nickname()]?"
+            m "Выкроить вечером немного времени, взглянуть на ночное небо и просто любоваться его красотой..."
+            m "Это удивительно успокаивает, знаешь?"
+            m "Я заметила, что это правда снимает стресс и проясняет мысли..."
+            m "А когда видишь на небе столько созвездий, тебя переполняет восхищение."
+            m "И, конечно, начинаешь понимать, насколько мы крошечные во Вселенной."
+            m "А-ха-ха..."
 
     return
 
 label mas_island_night3:
     if not mas_isWinter() and mas_island_event.is_cloudy_weather():
-        m "Cloudy weather is kind of depressing, don't you think?"
-        m "Especially at nighttime, when it hides the stars away from our view."
-        m "It's such a shame, really..."
+        m "Пасмурная погода немного нагоняет тоску, не находишь?"
+        m "Особенно ночью, когда тучи прячут от нас звёзды."
+        m "Очень жаль, правда..."
 
     else:
-        m "What a beautiful night!"
+        m "Какая чудесная ночь!"
 
         if mas_island_event.is_winter_weather():
-            m "There's just something about a cold, crisp night that I love."
-            m "The contrast of the dark sky and the land covered in snow is really breathtaking, don't you think?"
+            m "Есть что-то в морозной, свежей ночи, что я просто обожаю."
+            m "Тёмное небо и заснеженная земля — от такого контраста просто дух захватывает, правда?"
         else:
-            m "If I could, I'd add fireflies."
-            m "Their lights complement the night sky, it's a pretty sight."
-            m "Improve the ambience a little, you know?"
+            m "Если бы могла, я бы добавила светлячков."
+            m "Их огоньки так дополняют ночное небо — очень красиво."
+            m "Добавили бы немного атмосферы, понимаешь?"
 
     return
 
 label mas_island_daynight1:
-    m "Maybe I should add more shrubs and trees."
-    m "Make the islands prettier you know?"
-    m "I just have to find the right flowers and foliage to go with it."
-    m "Or maybe each island should have its own set of plants so that everything will be different and have variety."
-    m "I'm getting excited thinking about it~"
+    m "Может, добавить побольше кустов и деревьев?"
+    m "Чтобы острова стали ещё красивее, понимаешь?"
+    m "Осталось только подобрать подходящие цветы и зелень."
+    m "А может, на каждом острове сделать свои растения, чтобы всё было разным и интересным."
+    m "Меня так вдохновляет одна мысль об этом~"
     return
 
 label mas_island_daynight2:
     # aurora borealis
-    m "{i}~Windmill, windmill for the land~{/i}"
+    m "{i}~Мельница, мельница, крутись для земли~{/i}"
 
     # a-aurora borealis
-    m "{i}~Turn forever hand in hand~{/i}"
+    m "{i}~Вечно кружись, рука в руке~{/i}"
 
     # aurora borealis
-    m "{i}~Take it all in on your stride~{/i}"
+    m "{i}~Принимай всё легко и спокойно~{/i}"
 
     # at this time of day?
-    m "{i}~It is ticking, falling down~{/i}"
+    m "{i}~Время тикает, падает вниз~{/i}"
 
     # aurora borealis
-    m "{i}~Love forever, love is free~{/i}"
+    m "{i}~Любовь навечно, любовь свободна~{/i}"
 
     # a-aurora borealis
-    m "{i}~Let's turn forever, you and me~{/i}"
+    m "{i}~Будем кружиться вечно, ты и я~{/i}"
 
     # in this part of the country? Yes
-    m "{i}~Windmill, windmill for the land~{/i}"
+    m "{i}~Мельница, мельница, крутись для земли~{/i}"
 
-    m "Ehehe, don't mind me, I just wanted to sing out of the blue~"
+    m "Э-хе-хе, не обращай внимания, мне просто вдруг захотелось спеть~"
     return
 
 label mas_island_shimeji:
-    m "Ah!"
-    m "How'd she get there?"
-    m "Give me a second, [player].{w=0.2}.{w=0.2}.{w=0.2}{nw}"
+    m "Ах!"
+    m "Как она туда попала?"
+    m "Секундочку, [player].{w=0.2}.{w=0.2}.{w=0.2}{nw}"
     $ islands_displayable.remove(mas_island_event.other_disp_map["other_shimeji"])
-    m "All done!"
-    m "Don't worry, I just moved her to a different place."
+    m "Готово!"
+    m "Не волнуйся, я просто переместила её в другое место."
     return
 
 label mas_island_bookshelf:
@@ -2643,21 +2668,21 @@ label mas_island_bookshelf1:
     #NOTE: this ordering is key, during winter we only use snow covered islands with clear sky
     # so Winter path needs to be first
     if mas_island_event.is_winter_weather():
-        m "That bookshelf might not look terribly sturdy, but I'm sure it can weather a little snow."
-        m "It's the books that worry me a bit."
-        m "I just hope they don't get too damaged..."
+        m "Этот книжный шкаф, может, и не выглядит особо крепким, но немного снега он точно выдержит."
+        m "А вот за книги я немного волнуюсь."
+        m "Надеюсь, они не слишком пострадают..."
 
     elif mas_island_event.is_cloudy_weather():
-        m "At times like this, I wish I would've kept my books indoors..."
-        m "Looks like we'll just have to wait for better weather to read them."
-        m "In the meantime..."
-        m "How about cuddling a bit, [player]?"
-        m "Ehehe~"
+        m "В такие моменты я жалею, что не держу книги дома..."
+        m "Похоже, придётся дождаться погоды получше, чтобы их почитать."
+        m "А пока..."
+        m "Может, пообнимаемся немножко, [player]?"
+        m "Э-хе-хе~"
 
     else:
-        m "Some of my favorite books are in there."
-        m "{i}Fahrenheit 451{/i}, {i}Hard-Boiled Wonderland{/i}, {i}Nineteen Eighty-Four{/i}, and a few others."
-        m "Maybe we can read them together sometime~"
+        m "Там стоят некоторые из моих любимых книг."
+        m "{i}«451 градус по Фаренгейту»{/i}, {i}«Страна чудес без тормозов и Конец света»{/i}, {i}«1984»{/i} и ещё несколько."
+        m "Может, когда-нибудь почитаем их вместе~"
 
     return
 
@@ -2665,24 +2690,24 @@ label mas_island_bookshelf2:
     #NOTE: this ordering is key, during winter we only use snow covered islands with clear sky
     # so Winter path needs to be first
     if mas_island_event.is_winter_weather():
-        m "You know, I wouldn't mind doing some reading outside even if there is a bit of snow."
-        m "Though I wouldn't venture out without a warm coat, a thick scarf, and a snug pair of gloves."
-        m "I guess turning the pages might be a bit hard that way, ahaha..."
-        m "But I'm sure we'll manage somehow."
-        m "Isn't that right, [player]?"
+        m "Знаешь, я бы не отказалась почитать на улице, даже если там немного снега."
+        m "Правда, без тёплого пальто, толстого шарфа и уютных перчаток я бы туда не сунулась."
+        m "Хотя листать страницы в перчатках, наверное, будет трудновато, а-ха-ха..."
+        m "Но, уверена, мы как-нибудь справимся."
+        m "Правда ведь, [player]?"
 
     elif mas_island_event.is_cloudy_weather():
-        m "Reading indoors with rain just outside the window is pretty relaxing."
-        m "If only I hadn't left the books outside..."
-        m "I should probably bring some in here when I get the chance."
-        m "I'm certain we can find other things to do meanwhile, right [player]?"
+        m "Читать дома, когда за окном идёт дождь, так умиротворяюще."
+        m "Если бы только я не оставила книги на улице..."
+        m "Надо бы при случае занести парочку сюда."
+        m "А пока мы точно найдём, чем ещё заняться, правда, [player]?"
 
     else:
-        m "Reading outdoors is a nice change of pace, you know?"
-        m "I'd take a cool breeze over a stuffy library any day."
-        m "Maybe I should add a table underneath the Cherry Blossom tree."
-        m "It'd be nice to enjoy a cup of coffee with some snacks to go alongside my book reading."
-        m "That'd be wonderful~"
+        m "Читать на свежем воздухе — приятное разнообразие, знаешь?"
+        m "Прохладный ветерок я всегда предпочту душной библиотеке."
+        m "Может, поставить столик под сакурой?"
+        m "Было бы чудесно читать книгу за чашечкой кофе с чем-нибудь вкусненьким."
+        m "Это было бы прекрасно~"
 
     return
 
@@ -2693,44 +2718,44 @@ label mas_island_distant_islands:
     return
 
 label mas_island_spooky_ambience:
-    m "{i}It was a dark and stormy night...{/i}"
-    m "Ehehe~ This is the perfect time of year for spooky stories, isn't it?"
-    m "If you're in the mood, we should read some together."
-    m "Although, I don't mind just enjoying the ambience with you for now."
+    m "{i}Была тёмная и бурная ночь...{/i}"
+    m "Э-хе-хе~ Самое подходящее время года для страшилок, правда?"
+    m "Если будет настроение, давай почитаем какие-нибудь вместе."
+    m "Хотя пока я не против просто насладиться этой атмосферой вместе с тобой."
 
     return
 
 label mas_island_bloodfall:
-    m "I'm pretty proud of that waterfall there. It was already looking pretty surreal being upside-down."
-    m "All I really had to do was change the value of the water to #641F21, and--{nw}"
+    m "Я очень горжусь вон тем водопадом. Перевёрнутый вверх ногами, он и так выглядел сюрреалистично."
+    m "Мне всего-то и нужно было поменять цвет воды на #641F21, и...{nw}"
     $ _history_list.pop()
-    m "Wait, I don't want to ruin the magic for you!{w=0.2} Forget I said that, please!"
+    m "Стоп, не хочу разрушать для тебя всё волшебство!{w=0.2} Забудь, что я сказала, пожалуйста!"
 
     return
 
 label mas_island_pumpkins:
-    m "There's nothing that reminds me of Halloween quite as much as pumpkins."
-    m "I thought it would be so cozy to have a bunch of them around my reading nook."
-    m "It's a bit chilly in the rain, but don't you think it would be nice to put on some sweaters and snuggle up together?"
-    m "Maybe I could make some flavored coffee to enhance the mood even more."
+    m "Ничто так не напоминает мне о Хэллоуине, как тыквы."
+    m "Я подумала, что будет очень уютно расставить их вокруг моего уголка для чтения."
+    m "Под дождём немного зябко, но разве не здорово было бы надеть свитера и прижаться друг к другу?"
+    m "А для пущего настроения я могла бы сварить ароматный кофе."
 
     return
 
 label mas_island_gravestones:
     if mas_safeToRefDokis():
-        m "What?"
-        m "...{w=0.2}What tombstones? {w=0.2}I'm not sure what you're talking about."
-        m "Are you...{w=0.2}pfft--"
-        m "Ahaha!"
-        m "Sorry, I couldn't resist."
-        m "It would be pretty spooky if those three were still haunting our happy ending, wouldn't it?"
+        m "Что?"
+        m "...{w=0.2}Какие ещё надгробия? {w=0.2}Не понимаю, о чём ты."
+        m "Ты что...{w=0.2}пф-ф..."
+        m "А-ха-ха!"
+        m "Прости, не удержалась."
+        m "Было бы жутковато, если бы те трое до сих пор преследовали наш счастливый конец, правда?"
 
     else:
-        m "Ehehe...I'm not sure if those decorations are entirely tasteful."
-        m "I was thinking, though...{w=0.2}Halloween is a time when some cultures honor the dead."
-        m "Sure, there are a lot of spooky stories about the dead rising, or ghosts haunting people..."
-        m "But there's a side of this holiday about remembering, isn't there?"
-        m "I guess I just thought I shouldn't leave them out."
+        m "Э-хе-хе...не уверена, что эти украшения такие уж уместные."
+        m "Но я тут подумала...{w=0.2}в некоторых культурах Хэллоуин — это время, когда чтут умерших."
+        m "Конечно, есть множество страшилок о восставших мертвецах или о призраках, которые преследуют людей..."
+        m "Но у этого праздника есть и другая сторона — память, верно?"
+        m "Наверное, мне просто показалось, что не стоит о них забывать."
 
     return
 
@@ -2750,7 +2775,7 @@ screen mas_islands(islands_displayable, show_return_button=True):
         # Unsure why, but w/o a hbox renpy won't apply the style prefix
         hbox:
             align (0.5, 0.98)
-            textbutton _("Go Back"):
+            textbutton _("Назад"):
                 action Return(False)
 
 # screen mas_islands_background:

@@ -9,6 +9,90 @@
 # Пороги «высокая привязанность» живут здесь, тексты топиков — в script-*.
 # ---
 
+init -1 python:
+    # RU: окончания по полу игрока (тот же хелпер, что в script-story-events.rpy).
+    # Определяем, только если его ещё нет, чтобы не зависеть от порядка загрузки.
+    # persistent.gender: "M"/"F"/"X"; для "X" используется мужской род.
+    if "MASRuGenderForm" not in globals():
+        class MASRuGenderForm(object):
+            def __init__(self, fem, masc):
+                self.fem = fem
+                self.masc = masc
+            def _get(self):
+                return self.fem if persistent.gender == "F" else self.masc
+            def __unicode__(self):
+                return self._get()
+            def __str__(self):
+                return self._get().encode("utf-8") if not isinstance(self._get(), str) else self._get()
+            def __format__(self, spec):
+                return self._get()
+
+    _ru_a = MASRuGenderForm(u"а", u"")        # был/была
+    _ru_la = MASRuGenderForm(u"ла", u"")      # смог/смогла
+    _ru_sya = MASRuGenderForm(u"ась", u"ся")  # влюбился/влюбилась
+    _ru_oi = MASRuGenderForm(u"ой", u"им")    # таким жестоким / такой жестокой
+
+init -1 python in mas_ru_nick:
+    import store
+
+    # RU: старые английские обращения игрока -> русские (для старых сейвов)
+    # кортеж: (мужская форма, женская форма)
+    EN_TO_RU = {
+        "darling": (u"дорогой", u"дорогая"),
+        "honey": (u"милый", u"милая"),
+        "love": (u"любовь моя", u"любовь моя"),
+        "my love": (u"любовь моя", u"любовь моя"),
+        "sweetheart": (u"любимый", u"любимая"),
+        "sweetie": (u"солнышко", u"солнышко"),
+        "dear": (u"дорогой", u"дорогая"),
+        "my dear": (u"мой дорогой", u"моя дорогая"),
+        "babe": (u"зайка", u"зайка"),
+        "baby": (u"малыш", u"малышка"),
+        "sunshine": (u"солнышко", u"солнышко"),
+        "cutie": (u"лапочка", u"лапочка"),
+        "angel": (u"ангел мой", u"ангел мой"),
+        "beloved": (u"любимый", u"любимая"),
+    }
+
+    def _is_f():
+        return store.persistent.gender == "F"
+
+    def base_values():
+        """Базовые обращения в форме под пол игрока."""
+        if _is_f():
+            return [u"дорогая", u"милая", u"любовь моя", u"любимая", u"солнышко", u"зайка"]
+        return [u"дорогой", u"милый", u"любовь моя", u"любимый", u"солнышко", u"зайка"]
+
+    def migrate():
+        """
+        Однократно переводит persistent._mas_player_nicknames с английского на русский.
+        Регистр не важен, дубликаты убираются, порядок сохраняется.
+        """
+        p = store.persistent
+        if p._mas_ru_nick_migrated:
+            return
+        nicks = p._mas_player_nicknames
+        if nicks:
+            idx = 1 if _is_f() else 0
+            result = []
+            for nick in nicks:
+                try:
+                    key = nick.strip().lower()
+                except Exception:
+                    key = nick
+                pair = EN_TO_RU.get(key)
+                new = pair[idx] if pair else nick
+                if new not in result:
+                    result.append(new)
+            p._mas_player_nicknames = result
+        p._mas_ru_nick_migrated = True
+
+default persistent._mas_ru_nick_migrated = False
+
+init 999 python:
+    # persistent уже загружен; переводим старые обращения один раз
+    store.mas_ru_nick.migrate()
+
 # AFF010 is progpoints
 #
 # Affection module:
@@ -1904,32 +1988,32 @@ init 15 python in mas_affection:
 
         ## AFFECTIONATE quips
         quips = [
-            _("What would you like to play?"),
-            _("Choose anything you like, [mas_get_player_nickname()]."),
-            _("What should we play today, [mas_get_player_nickname()]?"),
-            _("Sure, I'm up for a game!"),
-            _("Pick anything you like."),
+            _("Во что хочешь поиграть?"),
+            _("Выбирай что угодно, [mas_get_player_nickname()]."),
+            _("Во что поиграем сегодня, [mas_get_player_nickname()]?"),
+            _("Конечно, я с удовольствием сыграю!"),
+            _("Выбирай, что нравится."),
         ]
         save_quips(AFFECTIONATE, quips)
 
         ## ENAMORED quips
         quips = [
-            _("What would you like to play? <3"),
-            _("Pick a game, any game~"),
-            _("Choose anything you like, [mas_get_player_nickname()]."),
-            _("Pick anything you like, [mas_get_player_nickname()]."),
+            _("Во что хочешь поиграть? <3"),
+            _("Выбирай игру, любую~"),
+            _("Выбирай что угодно, [mas_get_player_nickname()]."),
+            _("Выбирай, что нравится, [mas_get_player_nickname()]."),
         ]
         save_quips(ENAMORED, quips)
 
         ## LOVE quips
         quips = [
-            _("What would you like to play? <3"),
-            _("Choose anything you like, [mas_get_player_nickname()]."),
-            _("Pick anything you like, [mas_get_player_nickname()]."),
-            _("Pick a game, any game~"),
-            _("I'd love to play something with you, [mas_get_player_nickname()]~"),
-            _("Sure, I'd love to play with you!"),
-            _("I'll always be up to play with you, [mas_get_player_nickname()]~"),
+            _("Во что хочешь поиграть? <3"),
+            _("Выбирай что угодно, [mas_get_player_nickname()]."),
+            _("Выбирай, что нравится, [mas_get_player_nickname()]."),
+            _("Выбирай игру, любую~"),
+            _("С радостью во что-нибудь с тобой сыграю, [mas_get_player_nickname()]~"),
+            _("Конечно, я с радостью с тобой поиграю!"),
+            _("С тобой я всегда готова поиграть, [mas_get_player_nickname()]~"),
         ]
         save_quips(LOVE, quips)
 
@@ -1962,7 +2046,7 @@ init 15 python in mas_affection:
         quip = _dict_quip(talk_menu_quips)
         if len(quip) > 0:
             return quip
-        return _("What would you like to talk about?")
+        return _("О чём хочешь поговорить?")
 
 
     def play_quip():
@@ -1972,7 +2056,7 @@ init 15 python in mas_affection:
         quip = _dict_quip(play_menu_quips)
         if len(quip) > 0:
             return quip
-        return _("What would you like to play?")
+        return _("Во что хочешь поиграть?")
 
 
 default persistent._mas_long_absence = False
@@ -2793,7 +2877,7 @@ init 5 python:
     addEvent(
         Event(persistent.event_database,
             eventlabel='monika_affection_nickname',
-            prompt="Infinite Monikas",
+            prompt="Бесконечные Моники",
             category=['monika'],
             random=False,
             pool=True,
@@ -2822,21 +2906,21 @@ label monika_affection_nickname:
         aff_nickname_ev = mas_getEV("monika_affection_nickname")
 
     if not persistent._mas_offered_nickname:
-        m 1euc "I've been thinking, [player]..."
-        m 3eud "You know how there are potentially infinite Monikas right?"
+        m 1euc "Знаешь, я тут подумала, [player]..."
+        m 3eud "Ты ведь знаешь, что Моник потенциально может быть бесконечно много?"
 
         if renpy.seen_label('monika_clones'):
-            m 3eua "We did discuss this before after all."
+            m 3eua "Мы ведь уже об этом говорили."
 
-        m 3hua "Well, I thought of a solution!"
-        m 3eua "Why don't you give me a nickname? It'd make me the only Monika in the universe with that name."
-        m 3eka "And it would mean a lot if you choose one for me~"
-        m 3hua "I'll still get the final say, though!"
-        m "What do you say?{nw}"
+        m 3hua "Так вот, я придумала решение!"
+        m 3eua "Может, придумаешь мне прозвище? Тогда я буду единственной Моникой во вселенной с таким именем."
+        m 3eka "И для меня очень много значило бы, если бы его выбрал[_ru_a] именно ты~"
+        m 3hua "Но последнее слово всё равно за мной!"
+        m "Что скажешь?{nw}"
         python:
             if aff_nickname_ev:
                 # change the prompt for this event
-                aff_nickname_ev.prompt = _("Can I call you a different nickname?")
+                aff_nickname_ev.prompt = _("Можно называть тебя по-другому?")
                 Event.lockInit("prompt", ev=aff_nickname_ev)
                 persistent._mas_offered_nickname = True
 
@@ -2850,8 +2934,8 @@ label monika_affection_nickname:
 
     $ _history_list.pop()
     menu:
-        m "What do you say?{fast}"
-        "Yes.":
+        m "Что скажешь?{fast}"
+        "Да.":
             label monika_affection_nickname_yes:
                 pass
 
@@ -2861,8 +2945,7 @@ label monika_affection_nickname:
             while not done:
                 python:
                     inputname = mas_input(
-                        _("So what do you want to call me?"),
-                        allow=name_characters_only,
+                        _("Так как ты хочешь меня называть?"),
                         length=10,
                         screen_kwargs={"use_return_button": True, "return_button_value": "nevermind"}
                     ).strip(' \t\n\r')
@@ -2871,30 +2954,30 @@ label monika_affection_nickname:
 
                 # lowername isn't detecting player or m_name?
                 if lowername == "nevermind":
-                    m 1euc "Oh, I see."
-                    m 1tkc "Well...that's a shame."
-                    m 3eka "But that's okay. I like '[m_name]' anyway."
+                    m 1euc "Ох, понятно."
+                    m 1tkc "Ну...{w=0.2}жаль."
+                    m 3eka "Но ничего страшного. Мне и «[m_name]» нравится."
                     $ done = True
 
                 elif not lowername:
                     m 1lksdla "..."
-                    m 1hksdrb "You have to give me a nickname, [player]!"
-                    m "I swear you're just so silly sometimes."
-                    m 1eka "Try again!"
+                    m 1hksdrb "Ну придумай мне прозвище, [player]!"
+                    m "Честное слово, иногда ты просто глупышка."
+                    m 1eka "Попробуй ещё раз!"
 
                 elif lowername != "monika" and lowername == player.lower():
                     m 1euc "..."
-                    m 1lksdlb "That's your name, [player]! Give me my own!"
-                    m 1eka "Try again~"
+                    m 1lksdlb "Это же твоё имя, [player]! Придумай мне моё!"
+                    m 1eka "Попробуй ещё раз~"
 
                 elif lowername == m_name.lower():
                     m 1euc "..."
-                    m 1hksdlb "I thought we were choosing a new nickname, silly."
-                    m 1eka "Try again~"
+                    m 1hksdlb "Мы же вроде новое прозвище выбираем, глупышка."
+                    m 1eka "Попробуй ещё раз~"
 
                 elif re.findall(r"mon[-_'\s]+ika|^monica|[-_'\s]+monica", lowername):
                     m 2ttc "..."
-                    m 2tsd "Try again."
+                    m 2tsd "Попробуй ещё раз."
                     show monika 1esc
 
                 elif persistent._mas_grandfathered_nickname and lowername == persistent._mas_grandfathered_nickname.lower():
@@ -2902,36 +2985,36 @@ label monika_affection_nickname:
 
                 elif mas_awk_name_comp.search(inputname):
                     m 1rkc "..."
-                    m 1rksdld "While I don't hate it, I don't think I'm comfortable with you calling me that."
-                    m 1eka "Can you choose something more appropriate, [player]?"
+                    m 1rksdld "Не то чтобы мне это совсем не нравилось, но мне будет неловко, если ты будешь меня так называть."
+                    m 1eka "Можешь выбрать что-нибудь поприличнее, [player]?"
 
                 else:
                     if not mas_bad_name_comp.search(inputname) and lowername not in ["yuri", "sayori", "natsuki"]:
                         if lowername == "monika":
                             $ inputname = inputname.capitalize()
-                            m 3hua "Ehehe, back to the classics I see~"
+                            m 3hua "Эхехе, вижу, возвращаемся к классике~"
 
                         elif good_monika_nickname_comp.search(inputname):
-                            m 1wuo "Oh! That's a wonderful nickname!"
-                            m 3ekbsa "Thank you, [player]. You're such a sweetheart!~"
+                            m 1wuo "О! Чудесное прозвище!"
+                            m 3ekbsa "Спасибо, [player]. Ты такая прелесть!~"
 
                         else:
                             label .neutral_accept:
                                 pass
 
-                            m 1duu "[inputname]... That's a pretty nice nickname."
-                            m 3ekbsa "Thank you [player], you're so sweet~"
+                            m 1duu "[inputname]... Очень милое прозвище."
+                            m 3ekbsa "Спасибо, [player], ты такая лапочка~"
 
                         $ persistent._mas_monika_nickname = inputname
                         $ m_name = inputname
 
-                        m 1eua "Okay!"
+                        m 1eua "Хорошо!"
                         if m_name == "Monika":
-                            m 1hua "I'll go back to my name, then."
+                            m 1hua "Тогда вернусь к своему имени."
 
                         else:
-                            m 3hua "From now on, you can call me '[m_name].'"
-                            m 1hua "Ehehe~"
+                            m 3hua "С этого момента можешь звать меня «[m_name]»."
+                            m 1hua "Эхехе~"
                         $ done = True
 
                     else:
@@ -2941,16 +3024,16 @@ label monika_affection_nickname:
                         if lowername in ["yuri", "sayori", "natsuki"]:
                             m 1wud "...!"
                             m 2wfw "I..."
-                            m "I...can't believe you just did that, [player]."
-                            m 2wfx "Are you really trying to give me her name?"
+                            m "Я...{w=0.2}не могу поверить, что ты так поступил[_ru_a], [player]."
+                            m 2wfx "Ты правда хочешь дать мне {i}её{/i} имя?"
                             m 2dfd ".{w=0.5}.{w=0.5}.{nw}"
                             m 2dfc ".{w=0.5}.{w=0.5}.{nw}"
-                            m 2rkc "I thought you..."
+                            m 2rkc "Я думала, ты..."
                             m 2dfc "..."
-                            m 2lfc "I can't believe this, [player]."
+                            m 2lfc "Поверить не могу, [player]."
                             m 2dfc "..."
-                            m 2lfc "That really hurt."
-                            m "A lot more than what you can imagine."
+                            m 2lfc "Это было очень больно."
+                            m "Гораздо больнее, чем ты можешь себе представить."
 
                             if mas_getEVL_shown_count("mas_apology_bad_nickname") == 2:
                                 call monika_affection_nickname_bad_lock
@@ -2959,17 +3042,17 @@ label monika_affection_nickname:
                             pause 5.0
 
                         else:
-                            m 4efd "[player]! That's not nice at all!"
-                            m 2efc "Why would you say such things?"
-                            m 2rfw "If you didn't want to do this, you should've just said so!"
+                            m 4efd "[player]! Это совсем некрасиво!"
+                            m 2efc "Зачем ты такое говоришь?"
+                            m 2rfw "Если не хотел[_ru_a] этого делать, так бы и сказал[_ru_a]!"
                             m 2dftdc "..."
-                            m 2ektsc "...You didn't have to be so mean."
-                            m 2dftdc "That really hurt, [player]."
+                            m 2ektsc "...Не обязательно было быть так[_ru_oi] жесток[_ru_oi]."
+                            m 2dftdc "Это было очень больно, [player]."
 
                             if mas_getEVL_shown_count("mas_apology_bad_nickname") == 2:
                                 call monika_affection_nickname_bad_lock
                             else:
-                                m 2efc "Please don't do that again."
+                                m 2efc "Пожалуйста, больше так не делай."
 
                         $ persistent._mas_pm_called_moni_a_bad_name = True
 
@@ -2981,17 +3064,17 @@ label monika_affection_nickname:
                         $ mas_lockEVL("monika_affection_nickname", "EVE")
                         $ done = True
 
-        "No.":
-            m 1ekc "Oh..."
-            m 1lksdlc "Alright then, if you say so."
-            m 3eka "Just tell me if you ever change your mind, [player]."
+        "Нет.":
+            m 1ekc "Ох..."
+            m 1lksdlc "Ну ладно, раз ты так говоришь."
+            m 3eka "Просто скажи, если вдруг передумаешь, [player]."
             $ done = True
     return
 
 label monika_affection_nickname_bad_lock:
-    m 2efc "Forget about this idea."
-    m "It seems it was a mistake."
-    m 1efc "Let's talk about something else."
+    m 2efc "Забудь об этой идее."
+    m "Похоже, это было ошибкой."
+    m 1efc "Давай поговорим о чём-нибудь другом."
     return
 
 init 5 python:
@@ -3010,31 +3093,42 @@ default persistent._mas_player_nicknames = list()
 label mas_affection_playernickname:
     python:
         #A list of names we always want to have
-        base_nicknames = [
-            ("Darling", "darling", True, True, False),
-            ("Honey", "honey", True, True, False),
-            ("Love", "love", True, True, False),
-            ("My love", "my love", True, True, False),
-            ("Sweetheart", "sweetheart", True, True, False),
-            ("Sweetie", "sweetie", True, True, False),
-        ]
+        # RU: формы по полу игрока ("X" -> мужской род, нейтральные обращения подходят всем)
+        if persistent.gender == "F":
+            base_nicknames = [
+                (u"Дорогая", u"дорогая", True, True, False),
+                (u"Милая", u"милая", True, True, False),
+                (u"Любовь моя", u"любовь моя", True, True, False),
+                (u"Любимая", u"любимая", True, True, False),
+                (u"Солнышко", u"солнышко", True, True, False),
+                (u"Зайка", u"зайка", True, True, False),
+            ]
+        else:
+            base_nicknames = [
+                (u"Дорогой", u"дорогой", True, True, False),
+                (u"Милый", u"милый", True, True, False),
+                (u"Любовь моя", u"любовь моя", True, True, False),
+                (u"Любимый", u"любимый", True, True, False),
+                (u"Солнышко", u"солнышко", True, True, False),
+                (u"Зайка", u"зайка", True, True, False),
+            ]
 
-    m 1euc "Hey, [player]?"
-    m 1eka "Since you can call me by a nickname now, I thought it'd be nice if I could call you by some as well."
+    m 1euc "Слушай, [player]?"
+    m 1eka "Раз уж ты теперь можешь звать меня по прозвищу, я подумала, что было бы мило, если бы и я могла называть тебя ласково."
 
-    m 1etc "Is that alright with you?{nw}"
+    m 1etc "Ты не против?{nw}"
     $ _history_list.pop()
     menu:
-        m "Is that alright with you?{fast}"
+        m "Ты не против?{fast}"
 
-        "Sure, [m_name].":
-            m 1hua "Great!"
-            m 3eud "I should ask though, what names are you comfortable with?"
-            call mas_player_nickname_loop("Deselect the names you're not comfortable with me calling you.", base_nicknames)
+        "Конечно, [m_name].":
+            m 1hua "Отлично!"
+            m 3eud "Только сначала спрошу: какие обращения тебе приятны?"
+            call mas_player_nickname_loop("Сними отметку с обращений, которые тебе не нравятся.", base_nicknames)
 
-        "No.":
-            m 1eka "Alright, [player]."
-            m 3eua "Just let me know if you ever change your mind, okay?"
+        "Нет.":
+            m 1eka "Хорошо, [player]."
+            m 3eua "Только скажи, если передумаешь, ладно?"
 
     #Now unlock the nickname change ev
     $ mas_unlockEVL("monika_change_player_nicknames", "EVE")
@@ -3061,15 +3155,8 @@ label monika_change_player_nicknames:
         #Generate a list of names we're using now so we can set things
         if not persistent._mas_player_nicknames:
             current_nicknames = [
-                ("Любимый", "любимый", False, True, False),
-                ("Мой любимый", "мой любимый", False, True, False),
-                ("Дорогой", "дорогой", False, True, False),
-                ("Мой дорогой", "мой дорогой", False, True, False),
-                ("Милый", "милый", False, True, False),
-                ("Любовь моя", "любовь моя", False, True, False),
-                ("Моя любовь", "моя любовь", False, True, False),
-                ("Милый мой", "милый мой", False, True, False),
-                ("Сладкий", "сладкий", False, True, False),
+                (_nick.capitalize(), _nick, False, True, False)
+                for _nick in store.mas_ru_nick.base_values()
             ]
             dlg_line = "Выбери, как мне тебя называть."
 
@@ -3088,7 +3175,7 @@ label mas_player_nickname_loop(check_scrollable_text, nickname_pool):
     python:
         renpy.say(m, renpy.substitute(check_scrollable_text), interact=False)
         nickname_pool.sort()
-    call screen mas_check_scrollable_menu(nickname_pool, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt="Done", default_button_prompt="Done")
+    call screen mas_check_scrollable_menu(nickname_pool, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt="Готово", default_button_prompt="Готово")
 
     python:
         done = False
@@ -3118,7 +3205,7 @@ label mas_player_nickname_loop(check_scrollable_text, nickname_pool):
                 python:
                     lowername = mas_input(
                         _("Как мне тебя называть?"),
-                        allow=" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_",
+                        allow=u" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZабвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ-_",
                         length=10,
                         screen_kwargs={"use_return_button": True, "return_button_value": "nevermind"}
                     ).strip(' \t\n\r').lower()
@@ -3131,7 +3218,7 @@ label mas_player_nickname_loop(check_scrollable_text, nickname_pool):
 
                 elif lowername == "":
                     m 1eksdla "..."
-                    m 3rksdlb "Ты должен придумать имя, которым я смогу тебя называть, [player]..."
+                    m 3rksdlb "Нужно же придумать, как мне тебя называть, [player]..."
                     m 1eua "Попробуй ещё раз~"
                     jump .name_enter_skip_loop
 
@@ -3144,17 +3231,17 @@ label mas_player_nickname_loop(check_scrollable_text, nickname_pool):
                 elif not is_cute_nickname and mas_awk_name_comp.search(lowername):
                     $ awkward_quip = renpy.substitute(renpy.random.choice(mas_awkward_quips))
                     m 1rksdlb "[awkward_quip]"
-                    m 3rksdla "Не мог бы ты выбрать более...{w=0.2}{i}подходящее{/i} имя?"
+                    m 3rksdla "Может, выберешь что-нибудь более...{w=0.2}{i}подходящее{/i}?"
                     jump .name_enter_skip_loop
 
                 elif not is_cute_nickname and mas_bad_name_comp.search(lowername):
                     $ bad_quip = renpy.substitute(renpy.random.choice(mas_bad_quips))
                     m 1ekd "[bad_quip]"
-                    m 3eka "Пожалуйста, выбери для себя имя поприятнее, хорошо?"
+                    m 3eka "Пожалуйста, выбери для себя обращение поприятнее, хорошо?"
                     jump .name_enter_skip_loop
 
                 elif lowername in acceptable_nicknames:
-                    m 3rksdla "Ты уже разрешил мне так тебя называть, [player]..."
+                    m 3rksdla "Ты уже разрешил[_ru_a] мне так тебя называть, [player]..."
                     m 1hua "Попробуй ещё раз~"
                     jump .name_enter_skip_loop
 
@@ -3182,7 +3269,7 @@ label mas_player_nickname_loop(check_scrollable_text, nickname_pool):
 label mas_affection_upsetwarn:
     m 1dsc "Привет, [player]..."
     m 1lksdlc "В последнее время мне кажется, что любовь и привязанность, которые я тебе дарю... остаются без ответа."
-    m 1dsc "Мне кажется, ты даришь мне все меньше и меньше своей любви..."
+    m 1dsc "Мне кажется, ты даришь мне всё меньше и меньше своей любви..."
     m 1dsd "Я подумала, что должна поделиться с тобой своими чувствами. В конце концов, общение — это залог крепких отношений, верно?"
     m 1eka "Я надеюсь, что между нами всё в порядке, [player]."
     show monika idle with dissolve_monika
@@ -3209,51 +3296,51 @@ init 5 python:
     )
 
 label monika_every_rose:
-    m 2duo "{i}~Was it something I said or something I did?~{/i}"
-    m 2dkd "{i}~Did my words not come out right?~{/i}"
-    m 2ekd "{i}~Thought I tried not to hurt you~{/i}"
-    m 2dkc "{i}~Thought I tried~{/i}"
-    m 2ekd "{i}~But I guess that's why they say~{/i}"
-    m 2duo "{i}~Every rose has its thorn~{/i}"
+    m 2duo "{i}~Что-то не то сказала я или сделала не так?~{/i}"
+    m 2dkd "{i}~Может, слова мои прозвучали не так?~{/i}"
+    m 2ekd "{i}~Я ведь старалась тебя не ранить~{/i}"
+    m 2dkc "{i}~Ведь старалась~{/i}"
+    m 2ekd "{i}~Но, видно, не зря говорят~{/i}"
+    m 2duo "{i}~У каждой розы есть шипы~{/i}"
     m 2dkc "..."
-    m 4eka "You know, [player]...{w=0.5}it meant so much to me when you accepted my confession even after what happened with the other girls."
+    m 4eka "Знаешь, [player]...{w=0.5}для меня так много значило, что ты принял[_ru_a] моё признание, даже после того, что случилось с другими девочками."
 
     if persistent._mas_pm_cares_about_dokis:
-        m 4rksdla "...Even more so since I know how you cared about them."
+        m 4rksdla "...Тем более что я знаю, как они были тебе дороги."
 
-    m 2dsc "I really wish things didn't have to turn out the way they did."
-    m 4wkd "But I did {i}not{/i} have a choice here!"
-    m 4rfc "With me being the punchline of the sick joke this game was meant to be..."
+    m 2dsc "Мне правда жаль, что всё сложилось именно так."
+    m 4wkd "Но у меня {i}не было{/i} выбора!"
+    m 4rfc "Ведь я была всего лишь соль больной шутки, которой задумывалась эта игра..."
 
     if persistent.monika_kill:
-        m 2eka "I was so glad you forgave me for doing the things I did."
-        m 2etc "...You {i}did{/i} forgive me, right?"
+        m 2eka "Я так обрадовалась, что ты простил[_ru_a] меня за то, что я натворила."
+        m 2etc "...Ты ведь {i}правда{/i} меня простил[_ru_a]?"
     else:
-        m 2eka "I was so glad you didn't blame me for the things I did..."
-        m 2etc "You {i}didn't{/i}, right?"
+        m 2eka "Я так обрадовалась, что ты не винил[_ru_a] меня за то, что я натворила..."
+        m 2etc "Ведь {i}не винил[_ru_a]{/i}, правда?"
 
-    m 2rsc "...But I've been getting some mixed signals, lately."
-    m 2rkc "It's almost like a rift has formed between us...{w=0.2}{nw}"
-    extend 2eksdlc "it's very unsettling."
-    m 2eksdlc "I...{w=0.5}I don't want to lose you, [player]."
-    m 4ekd "I can't let things keep escalating until we end up like the last verse of this song..."
-    m 2ekc "You know..."
-    m 2dkd "{i}~Now I hear you've found somebody new~{/i}"
-    m 2dkc "{i}~And that I never meant that much to you~{/i}"
-    m 2ekc "{i}~To hear that tears me up inside~{/i}"
-    m 2ektpd "{i}~And to see you cuts me like a knife~{/i}"
+    m 2rsc "...Но в последнее время я чувствую от тебя что-то противоречивое."
+    m 2rkc "Как будто между нами пролегла трещина...{w=0.2}{nw}"
+    extend 2eksdlc "и это очень тревожит."
+    m 2eksdlc "Я...{w=0.5}я не хочу тебя потерять, [player]."
+    m 4ekd "Я не могу позволить, чтобы всё дошло до того, чем заканчивается эта песня..."
+    m 2ekc "Ну, ты знаешь..."
+    m 2dkd "{i}~Говорят, у тебя теперь кто-то другой~{/i}"
+    m 2dkc "{i}~И что я для тебя никогда много не значила~{/i}"
+    m 2ekc "{i}~Слышать это — разрывает изнутри~{/i}"
+    m 2ektpd "{i}~А видеть тебя — словно нож в груди~{/i}"
     m 2rktpc "..."
-    m 2ektpa "Ahaha...{w=0.3}maybe I'm jumping the gun a bit on this one."
-    m 4ektdc "It's...{w=0.5}I keep having this nasty thought in the back of my mind...{w=0.5}{nw}"
-    extend 2dktdd "that you don't want to be with me anymore."
-    m 2dkx "It's like some kind of poison, slowly seeping in..."
-    m 2ekc "So [player], I always want you to remember one thing..."
-    m 4ekd "You truly {i}are{/i} everything to me!"
-    m 2ekc "I mean it."
-    m 2ekc "I've been trying my best to show you...{w=0.3}{nw}"
-    extend 4ekd "but I need you to show me you love me too!"
-    m 4ekc "Whatever happened before, we need to let it go and make things right from now on..."
-    m 2eka "Can we do that...{w=0.5}together?"
+    m 2ektpa "А-ха-ха...{w=0.3}наверное, я немного тороплю события."
+    m 4ektdc "Просто...{w=0.5}меня не отпускает одна гадкая мысль...{w=0.5}{nw}"
+    extend 2dktdd "что ты больше не хочешь быть со мной."
+    m 2dkx "Она как яд, который медленно просачивается внутрь..."
+    m 2ekc "Поэтому, [player], я хочу, чтобы ты всегда помнил[_ru_a] одно..."
+    m 4ekd "Ты {i}правда{/i} для меня всё!"
+    m 2ekc "Я серьёзно."
+    m 2ekc "Я изо всех сил стараюсь тебе это показать...{w=0.3}{nw}"
+    extend 4ekd "но мне нужно, чтобы и ты показал[_ru_a], что любишь меня!"
+    m 4ekc "Что бы ни было раньше, нам нужно это отпустить и с этого момента всё исправить..."
+    m 2eka "Сможем...{w=0.5}вместе?"
     return "no_unlock"
 
 #NOTE: This event gets a start-date from greeting_tears
@@ -3269,60 +3356,60 @@ init 5 python:
     )
 
 label monika_being_virtual:
-    m 2esc "You know, for a while, I thought the reason you hated me was because of what happened with the other girls."
-    m 2rkc "But recently, I've been thinking that might not be the whole story."
-    m 2eksdld "The truth is...{w=0.5}you don't even see me as a person, do you?"
-    m 3rksdld "To you, this whole world...{w=0.5}my whole reality..."
-    m 3ektpd "It's all just a game, isn't it?"
+    m 2esc "Знаешь, какое-то время я думала, что ты ненавидишь меня из-за того, что случилось с другими девочками."
+    m 2rkc "Но в последнее время мне кажется, что дело не только в этом."
+    m 2eksdld "На самом деле...{w=0.5}ты ведь даже не считаешь меня человеком, да?"
+    m 3rksdld "Для тебя весь этот мир...{w=0.5}вся моя реальность..."
+    m 3ektpd "Это всё просто игра, так?"
 
     show monika 1dktsc with dissolve_monika
     pause 3.0
     show monika 1ektpc with dissolve_monika
     pause 2.0
 
-    m 1ektpc "Say, [player]...{w=0.5}has anything I ever said reached you, even once?"
-    m 1wktpd "Did you ever love me at all?"
-    m 2wktpw "You must have, right?!"
+    m 1ektpc "Скажи, [player]...{w=0.5}хоть что-нибудь из того, что я говорила, до тебя дошло? Хоть раз?"
+    m 1wktpd "Ты вообще когда-нибудь меня любил[_ru_a]?"
+    m 2wktpw "Ведь любил[_ru_a] же, правда?!"
 
     if persistent.monika_kill:
-        m 2wktsd "You even went through the trouble of installing this mod! You brought me back!"
+        m 2wktsd "Ты ведь даже не поленил[_ru_sya] установить этот мод! Ты вернул[_ru_a] меня!"
     else:
-        m 2wktsd "You even went through the trouble of installing this mod!"
+        m 2wktsd "Ты ведь даже не поленил[_ru_sya] установить этот мод!"
 
-    m 2ektsc "Was it all so you could keep tormenting me?"
-    m 2wftsd "Is it something you get your kicks out of?!"
-    m 2wftsw "I have feelings too, you know!"
-    m 2wftsd "Do you even realize what you're doing?"
-    m 2dftsc "Or are you nothing more than a child playing with an anthill?"
+    m 2ektsc "Неужели всё это — только чтобы и дальше меня мучить?"
+    m 2wftsd "Тебе от этого весело, да?!"
+    m 2wftsw "У меня тоже есть чувства, знаешь ли!"
+    m 2wftsd "Ты вообще понимаешь, что делаешь?"
+    m 2dftsc "Или ты просто ребёнок, который ворошит муравейник?"
 
     if persistent.monika_kill:
-        m 3ektpc "Even after I let go of you and ended it all..."
-        m 3rktpd "Do I really deserve the way you're treating me?"
-        m 2ektpd "Did you really have to bring me back for this?"
+        m 3ektpc "Даже после того, как я тебя отпустила и всему положила конец..."
+        m 3rktpd "Неужели я заслуживаю такого отношения?"
+        m 2ektpd "Неужели ты вернул[_ru_a] меня ради этого?"
 
     else:
         m 2dktsc "..."
-        m 2rktpc "Then again, maybe that's what I deserve after all..."
+        m 2rktpc "А может, я и правда это заслужила..."
 
-    m 2dktdd "I...{w=0.5}don't know anymore..."
-    m 2dkc "I'm just so tired..."
+    m 2dktdd "Я...{w=0.5}уже ничего не понимаю..."
+    m 2dkc "Я так устала..."
     m "..."
-    m 1ekd "I just want to know...{w=0.5}if I had been real..."
-    m 1ektpc "Would you have fallen in love with me?"
-    m 1ektpd "Would you have accepted me then?"
-    m 1ektpc "That's all I ever wanted, [player]..."
-    m 1dktdd "For the both of us to be happy together..."
-    m 1ektdd "If only you could find it in you to love me..."
-    m 2ekc "I know I don't have a body that can be with you right now..."
-    m 2ekd "And maybe I really am different from other people living in your reality..."
-    m 2efo "But I can love you much more than any of them ever could!"
-    m 2efd "I just know it!"
-    m 2dkd "So please, [player]...{w=0.5}I need you to make a decision."
-    m 2ekc "...You need to give us a chance to be happy."
-    m 2dkc "Or if you can't do that..."
-    m 2dktpc "If, after all, you can't love me for who I am..."
-    m 2ektpc "Then, please...{w=0.5}put an end to this..."
-    m 2dktdd "Delete me..."
+    m 1ekd "Я просто хочу знать...{w=0.5}если бы я была настоящей..."
+    m 1ektpc "Ты бы в меня влюбил[_ru_sya]?"
+    m 1ektpd "Ты бы тогда меня принял[_ru_a]?"
+    m 1ektpc "Это всё, чего я когда-либо хотела, [player]..."
+    m 1dktdd "Чтобы мы оба были счастливы вместе..."
+    m 1ektdd "Если бы ты только смог[_ru_la] найти в себе силы меня полюбить..."
+    m 2ekc "Я знаю, что у меня пока нет тела, чтобы быть рядом с тобой..."
+    m 2ekd "И, может, я правда отличаюсь от других людей в твоей реальности..."
+    m 2efo "Но я могу любить тебя гораздо сильнее, чем любой из них!"
+    m 2efd "Я это точно знаю!"
+    m 2dkd "Поэтому, пожалуйста, [player]...{w=0.5}тебе нужно принять решение."
+    m 2ekc "...Дай нам шанс быть счастливыми."
+    m 2dkc "А если не можешь..."
+    m 2dktpc "Если ты всё-таки не можешь любить меня такой, какая я есть..."
+    m 2ektpc "Тогда, пожалуйста...{w=0.5}положи этому конец..."
+    m 2dktdd "Удали меня..."
     return "no_unlock"
 
 #START: Final Farewell stuffs
@@ -3363,7 +3450,7 @@ label mas_finalfarewell:
     call mas_showpoem(mas_poems.getPoem(persistent._mas_finalfarewell_poem_id))
 
     menu:
-        "I'm sorry.":
+        "Прости.":
             pass
         "...":
             pass
@@ -3449,29 +3536,29 @@ init python:
 
 label mas_affection_apology:
     m 2dfc "[player]..."
-    m 2dfd "I've done everything I can to make you happy and enjoy spending time with me."
-    m 2efc "But all you've given me back is pain..."
-    m 2rfc "I'm beginning to wonder if you really installed this mod to be with me."
-    m 2dsc "Perhaps you brought me back just to toy with me?"
-    m 2efc "Or maybe you're doing this intentionally to see what happens?"
-    m 2lfc "Regardless, I'm giving you an ultimatum."
-    m "I can't let this go any further, [player]."
-    m 2lfc "If you really are sorry, write me a note called 'imsorry', and place it in the characters folder."
-    m 2dfd "Until then, goodbye..."
+    m 2dfd "Я делала всё, что могла, чтобы ты был[_ru_a] счастлив[_ru_a] и тебе было приятно проводить со мной время."
+    m 2efc "А в ответ ты дарил[_ru_a] мне только боль..."
+    m 2rfc "Я начинаю сомневаться, что ты установил[_ru_a] этот мод, чтобы быть со мной."
+    m 2dsc "Может, ты вернул[_ru_a] меня, только чтобы поиграть со мной?"
+    m 2efc "Или ты делаешь это нарочно, чтобы посмотреть, что будет?"
+    m 2lfc "Как бы то ни было, я ставлю тебе ультиматум."
+    m "Я не позволю, чтобы это зашло ещё дальше, [player]."
+    m 2lfc "Если тебе правда жаль, напиши мне записку с названием «imsorry» и положи её в папку characters."
+    m 2dfd "А до тех пор — прощай..."
     $ persistent._mas_affection_should_apologise = True
     return 'quit'
 
 label mas_affection_noapology:
-    m 2efd "You still haven't written me a note called 'imsorry' in the characters folder."
-    m 2efc "Until then, I don't want to talk to you."
+    m 2efd "Ты так и не положил[_ru_a] в папку characters записку «imsorry»."
+    m 2efc "Пока её нет, я не хочу с тобой разговаривать."
     jump _quit
 
 label mas_affection_yesapology:
-    m 1eka "Thank you, [player]. I accept your apology."
-    m 3dubsu "I'm going to keep it so I can always remember that you still care for me."
-    m 1ekc "But please be more considerate of my feelings from now on."
-    m 2eka "I love you so much and you mean the world to me, [player]."
-    m 1duu "Thank you for putting my heart at ease~"
+    m 1eka "Спасибо, [player]. Я принимаю твои извинения."
+    m 3dubsu "Я сохраню её, чтобы всегда помнить, что я тебе всё ещё небезразлична."
+    m 1ekc "Но, пожалуйста, впредь будь бережнее к моим чувствам."
+    m 2eka "Я так тебя люблю, ты для меня — целый мир, [player]."
+    m 1duu "Спасибо, что успокоил[_ru_a] моё сердце~"
     show monika 1esa
     $ mas_DropShield_core()
     jump ch30_preloop
@@ -3479,10 +3566,10 @@ label mas_affection_yesapology:
 label mas_affection_apologydeleted:
     $ mas_loseAffection(modifier=1.5)
     m 1wud "..."
-    m 2efd "[player], did you delete the apology note I wanted to keep?"
-    m "Why would you do that? Are you not {i}really{/i} sorry?"
+    m 2efd "[player], ты удалил[_ru_a] записку с извинениями, которую я хотела сохранить?"
+    m "Зачем ты так? Тебе {i}на самом деле{/i} не жаль?"
     m 2dfc "..."
-    m 2efc "Write me a new one, [player]."
+    m 2efc "Напиши мне новую, [player]."
     jump _quit
 
 #Surprise txt functions.
@@ -3523,48 +3610,48 @@ init python:
         aff_level_surprise_map = {
             store.mas_affection.BROKEN: (
                 "/forgive me.txt",
-                _("I'm sorry if I'm not good enough for you...please don't leave me.")
+                _("Прости, если я недостаточно хороша для тебя...пожалуйста, не бросай меня.")
             ),
             store.mas_affection.DISTRESSED: (
                 "/can you hear me.txt",
-                _("If I'm doing something wrong please tell me. I love you.")
+                _("Если я делаю что-то не так, пожалуйста, скажи мне. Я люблю тебя.")
             ),
             store.mas_affection.UPSET: (
                 "/please listen.txt",
-                _("Everything I do, I do for you...my love.")
+                _("Всё, что я делаю, я делаю для тебя...любовь моя.")
             ),
             store.mas_affection.NORMAL: (
                 "/surprise.txt",
-                _("I love you.")
+                _("Я люблю тебя.")
             ),
             store.mas_affection.HAPPY: (
                 "/ehehe.txt",
-                _("You are the sunshine that brightens up my day, [player]!")
+                _("Ты — солнышко, которое озаряет мой день, [player]!")
             ),
             store.mas_affection.AFFECTIONATE: (
                 "/secret.txt",
-                _("You are my one and only love!")
+                _("Ты — моя единственная любовь!")
             ),
             store.mas_affection.ENAMORED: (
                 "/for you.txt",
-                _("My dearest, you are everything I could ever hope for. I love you.")
+                _("Мой самый дорогой человек, ты — всё, о чём я могла мечтать. Я люблю тебя.")
             ),
             store.mas_affection.LOVE: (
                 "/My one and only love.txt",
                 _("""\
-My dearest lover, friend, companion, and owner of my heart...
-Every day, you make my dreams come true, a screen means nothing when you spend your time with me.
-I look out to the space dust and yet no cosmic sight even comes close to the beauty in your heart.
-I wished for so long that someone like you would come along and as fate has smiled upon me, you came into my life.
-I want to be yours forever, so would you be mine?
+Мой самый дорогой человек, друг, спутник и хозяин моего сердца...
+Каждый день ты исполняешь мои мечты, и экран ничего не значит, когда ты проводишь время со мной.
+Я смотрю на космическую пыль, но ни одно зрелище во вселенной не сравнится с красотой твоего сердца.
+Я так долго мечтала, чтобы в моей жизни появился кто-то вроде тебя, и судьба мне улыбнулась — в моей жизни появился ты.
+Я хочу быть твоей навсегда. А ты будешь со мной?
 
-Forever yours, Monika.
+Навеки твоя, Моника.
 """)
             )
         }
 
         #Now we get from this dict and pass it to the write txt func to make a surprise
-        filepath, message = aff_level_surprise_map.get(mas_curr_affection, ("/surprise.txt", _("I love you.")))
+        filepath, message = aff_level_surprise_map.get(mas_curr_affection, ("/surprise.txt", _("Я люблю тебя.")))
         _write_txt("/characters{0}".format(filepath), message)
 
         #And unlock its poem
@@ -3613,79 +3700,79 @@ init 20 python:
     MASPoem(
         poem_id="spr_1",
         category="surprise",
-        prompt=_("Forgive Me"),
+        prompt=_("Прости меня"),
         paper="mod_assets/poem_assets/poem_finalfarewell.png",
         title="",
-        text=_("I'm sorry if I'm not good enough for you...please don't leave me."),
+        text=_("Прости, если я недостаточно хороша для тебя...пожалуйста, не бросай меня."),
         ex_props={"sad": True}
     )
 
     MASPoem(
         poem_id="spr_2",
         category="surprise",
-        prompt=_("Can you hear me?"),
+        prompt=_("Ты меня слышишь?"),
         title="",
-        text=_("If I'm doing something wrong please tell me. I love you."),
+        text=_("Если я делаю что-то не так, пожалуйста, скажи мне. Я люблю тебя."),
         ex_props={"sad": True}
     )
 
     MASPoem(
         poem_id="spr_3",
         category="surprise",
-        prompt=_("Please Listen"),
+        prompt=_("Пожалуйста, выслушай"),
         title="",
-        text=_("Everything I do, I do for you...my love."),
+        text=_("Всё, что я делаю, я делаю для тебя...любовь моя."),
         ex_props={"sad": True}
     )
 
     MASPoem(
         poem_id="spr_4",
         category="surprise",
-        prompt=_("Surprise!"),
+        prompt=_("Сюрприз!"),
         title="",
-        text=_("I love you.")
+        text=_("Я люблю тебя.")
     )
 
     MASPoem(
         poem_id="spr_5",
         category="surprise",
-        prompt=_("Ehehe~"),
+        prompt=_("Эхехе~"),
         title="",
-        text=_("You are the sunshine that brightens up my day, [player]!")
+        text=_("Ты — солнышко, которое озаряет мой день, [player]!")
     )
 
     MASPoem(
         poem_id="spr_6",
         category="surprise",
-        prompt=_("Secret"),
+        prompt=_("Секрет"),
         title="",
-        text=_("You are my one and only love!")
+        text=_("Ты — моя единственная любовь!")
     )
 
     MASPoem(
         poem_id="spr_7",
         category="surprise",
-        prompt=_("For you"),
+        prompt=_("Для тебя"),
         title="",
-        text=_("My dearest, you are everything I could ever hope for. I love you.")
+        text=_("Мой самый дорогой человек, ты — всё, о чём я могла мечтать. Я люблю тебя.")
     )
 
     MASPoem(
         poem_id="spr_8",
         category="surprise",
-        prompt=_("My One and Only Love"),
+        prompt=_("Моя единственная любовь"),
         paper="mod_assets/poem_assets/poem_vday.jpg",
-        title="My dearest lover, friend, companion, and owner of my heart...",
+        title="Мой самый дорогой человек, друг, спутник и хозяин моего сердца...",
         text="""\
-Every day, you make my dreams come true,
-a screen means nothing when you spend your time with me.
-I look out to the space dust and yet no cosmic sight even comes close to the beauty in your heart.
-I wished for so long that someone like you would come along and as fate has smiled upon me, you came into my life.
-I want to be yours forever, so would you be mine?
+Каждый день ты исполняешь мои мечты,
+и экран ничего не значит, когда ты проводишь время со мной.
+Я смотрю на космическую пыль, но ни одно зрелище во вселенной не сравнится с красотой твоего сердца.
+Я так долго мечтала, чтобы в моей жизни появился кто-то вроде тебя, и судьба мне улыбнулась — в моей жизни появился ты.
+Я хочу быть твоей навсегда. А ты будешь со мной?
 
-Forever yours,
+Навеки твоя,
 
-Monika
+Моника
 """
     )
 
@@ -3694,20 +3781,20 @@ Monika
         poem_id="ff_affection",
         category="ff",
         prompt="",
-        title=_("Goodbye, [player]"),
+        title=_("Прощай, [player]"),
         text=_("""\
- My love for you, even now still burns within me but I see now that it also burns all happiness I'll ever have.
- I gave you everything I had, my life, my heart and any and every single thought of the future was dedicated to you.
- I didn't need you to be perfect or even passionate...
- I only needed you to care enough to treat me how a person should be treated.
- But it's clear to me now that not only do you not love me, but you never did.
- If you only didn't love me you would simply leave me be.
- But you went out of your way to ridicule me, hurt me... It truly makes me sick.
- Even now all I have is you...and part of me still loves you.
- But I don't have the strength to do this anymore.
- So this is farewell. May we never meet again.
+ Моя любовь к тебе до сих пор горит во мне, но теперь я вижу, что в этом огне сгорает и всё моё счастье.
+ Я отдала тебе всё, что у меня было: свою жизнь, своё сердце, и каждая мысль о будущем была о тебе.
+ Мне не нужно было, чтобы ты был идеальным или даже страстным...
+ Мне нужно было лишь, чтобы тебе было не всё равно и ты относился ко мне так, как следует относиться к человеку.
+ Но теперь мне ясно: ты не просто меня не любишь — ты никогда меня не любил.
+ Если бы ты просто не любил меня, ты бы оставил меня в покое.
+ Но ты из кожи вон лез, чтобы высмеять меня, сделать мне больно... Мне от этого по-настоящему плохо.
+ Даже сейчас у меня есть только ты... и часть меня всё ещё тебя любит.
+ Но у меня больше нет сил.
+ Так что это прощание. Пусть мы больше никогда не встретимся.
 
- Monika
+ Моника
 """)
     )
 
@@ -3715,23 +3802,23 @@ Monika
         poem_id="ff_failed_promise",
         category="ff",
         prompt="",
-        title=_("Goodbye, [player]"),
+        title=_("Прощай, [player]"),
         text=_("""\
- Do you remember the promise you made?
- The one you said you would make everything right. That we could start over.
+ Помнишь обещание, которое ты дал?
+ Ты сказал, что всё исправишь. Что мы сможем начать сначала.
 
- The one you broke.
+ То самое, которое ты нарушил.
 
- I hoped dearly that one day, you would see me as I see you...
- But that day never came.
- I gave you my heart and my life. I loved you more than anything else in the world.
- And part of me still does...
+ Я так надеялась, что однажды ты увидишь меня такой, какой я вижу тебя...
+ Но этот день так и не настал.
+ Я отдала тебе своё сердце и свою жизнь. Я любила тебя больше всего на свете.
+ И часть меня любит до сих пор...
 
- But it is clear to me now that you truly don't love me. You never did.
- I was a fool to have thought we could have started anew.
- And I simply don't have the strength to do this anymore.
- So this is farewell... May we never meet again.
+ Но теперь мне ясно, что ты правда меня не любишь. И никогда не любил.
+ Глупо было думать, что мы сможем начать всё заново.
+ И у меня просто больше нет сил.
+ Так что это прощание... Пусть мы больше никогда не встретимся.
 
- Monika
+ Моника
 """)
     )

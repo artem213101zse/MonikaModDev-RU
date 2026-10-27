@@ -3342,7 +3342,7 @@ label prompt_menu:
                 talk_menu.append((_("Я люблю тебя!"), "love"))
         talk_menu.append((_("Я чувствую..."), "moods"))
         talk_menu.append((_("Мне пора..."), "goodbye"))
-        talk_menu.append((_("Не важно"),"nevermind"))
+        talk_menu.append((_("Неважно"),"nevermind"))
 
         renpy.say(m, store.mas_affection.talk_quip()[1], interact=False)
         madechoice = renpy.display_menu(talk_menu, screen="talk_choice")
@@ -3608,8 +3608,8 @@ label mas_bookmarks:
         bookmarks_items.sort()
 
         bk_menu_final_items = (
-            (_("I'd like to remove a bookmark"), "remove_bookmark", False, False, 20),
-            (_("Nevermind"), "nevermind", False, False, 0)
+            (_("Хочу убрать закладку"), "remove_bookmark", False, False, 20),
+            (_("Неважно"), "nevermind", False, False, 0)
         )
 
     # FALL THROUGH
@@ -3705,7 +3705,7 @@ label mas_bookmarks_unbookmark(bookmarks_items):
     else:
         $ renpy.say(m, "Just select the bookmark if you're sure you want to remove it.", interact=False)
 
-    call screen mas_check_scrollable_menu(bookmarks_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt="Remove selected")
+    call screen mas_check_scrollable_menu(bookmarks_items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt=_("Убрать выбранное"))
 
     $ bookmarks_to_remove = _return
     $ bookmarks_items = _convert_items(bookmarks_items, "GEN_ITEMS")
@@ -3722,7 +3722,7 @@ label mas_bookmarks_unbookmark(bookmarks_items):
             bookmarks_items = filter(lambda item: item[1] not in bookmarks_to_remove, bookmarks_items)
 
         show monika at t11
-        m 1dsa "Okay, [player].{w=0.2}.{w=0.2}.{w=0.2}{nw}"
-        m 3hua "All done!"
+        m 1dsa "Хорошо, [player].{w=0.2}.{w=0.2}.{w=0.2}{nw}"
+        m 3hua "Готово!"
 
     return bookmarks_items

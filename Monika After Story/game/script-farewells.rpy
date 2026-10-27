@@ -1,3 +1,23 @@
+init -1 python:
+    # RU: окончания по полу игрока (тот же хелпер, что в script-story-events/affection/chess).
+    # Определяется, только если его ещё нет. Для "X" — мужской род.
+    if "MASRuGenderForm" not in globals():
+        class MASRuGenderForm(object):
+            def __init__(self, fem, masc):
+                self.fem = fem
+                self.masc = masc
+            def _get(self):
+                return self.fem if persistent.gender == "F" else self.masc
+            def __unicode__(self):
+                return self._get()
+            def __str__(self):
+                return self._get().encode("utf-8") if not isinstance(self._get(), str) else self._get()
+            def __format__(self, spec):
+                return self._get()
+
+    _ru_a = MASRuGenderForm(u"а", u"")        # был/была
+    _ru_yi = MASRuGenderForm(u"ая", u"ый")    # голодный/голодная
+
 # --- FILE MAP ---
 # script-farewells.rpy — все «мне пора»
 #
@@ -315,7 +335,7 @@ init 5 python:
     )
 
 label bye_sayanora:
-    m 1hua "Sayonara, [mas_get_player_nickname()]~"
+    m 1hua "Сайонара, [mas_get_player_nickname()]~"
     return 'quit'
 
 init 5 python:
@@ -461,7 +481,7 @@ label bye_prompt_to_class:
     if mas_isMoniNormal(higher=True):
         if session_time < datetime.timedelta(minutes=20):
             m 1ekd "Ой, уже уходишь?"
-            m 1efp "Ты даже не пробыл здесь и двадцати минут!"
+            m 1efp "Ты даже не пробыл[_ru_a] здесь и двадцати минут!"
             m 3hksdlb "Я просто шучу, [player]."
             m 2eka "Ты такой милый, что нашёл время увидеться со мной, несмотря на то, что у тебя его так мало."
             m 2hub "Просто хочу, чтобы ты знал — я очень ценю это!"
@@ -478,7 +498,7 @@ label bye_prompt_to_class:
             m 1eua "Нет ничего привлекательнее, чем [guy] с хорошими оценками."
             m 1hua "До скорого!"
         else:
-            m 2ekc "Эм... ты уже довольно долго был здесь со мной, [player]."
+            m 2ekc "Эм... ты уже довольно долго был[_ru_a] здесь со мной, [player]."
             m 2ekd "Ты уверен, что достаточно отдохнул?"
             m 2eka "Пожалуйста, не перенапрягайся, ладно?"
             m "Если чувствуешь себя неважно, я уверена, что {i}один выходной{/i} не помешает."
@@ -536,7 +556,7 @@ label bye_prompt_to_work:
             m 2esa "Просто сделай всё, что в твоих силах! Увидимся, когда вернёшься!"
             m 2eka "Я знаю, у тебя всё получится!"
         else:
-            m 2ekc "Ох... Ты уже довольно долго был здесь... и теперь собираешься на работу?"
+            m 2ekc "Ох... Ты уже довольно долго был[_ru_a] здесь... и теперь собираешься на работу?"
             m 2rksdlc "Я надеялась, что ты немного отдохнёшь, прежде чем браться за что-то серьёзное."
             m 2ekc "Постарайся не переутомляться, ладно?"
             m 2ekd "Не бойся передохнуть, если нужно!"
@@ -1057,7 +1077,7 @@ label bye_long_absence:
     m 3esa "Но спасибо, что предупредил меня заранее. Это правда очень помогает."
     m 2lksdlb "А иначе я бы очень переживала!"
     m 3esa "Я бы всё время думала, что с тобой что-то случилось и поэтому ты не можешь вернуться."
-    m 1lksdlc "Или... что ты просто устал от меня..."
+    m 1lksdlc "Или... что ты просто устал[_ru_a] от меня..."
     m 1eka "Так что скажи мне, [mas_get_player_nickname()]..."
 
     m "Как долго, по-твоему, тебя не будет?{nw}"
@@ -1148,7 +1168,7 @@ label bye_long_absence:
         "Да.":
             m 3ekc "Понятно..."
             m "Я буду очень сильно скучать по тебе, [player]..."
-            m 1eka "Но я знаю, что ты будешь делать замечательные вещи, где бы ты ни был."
+            m 1eka "Но я знаю, что ты будешь делать замечательные вещи, где бы ты ни был[_ru_a]."
             m "Просто помни, что я буду ждать тебя здесь."
             m 2hua "Заставь меня гордиться тобой, [player]!"
             $ persistent._mas_greeting_type = store.mas_greetings.TYPE_LONG_ABSENCE

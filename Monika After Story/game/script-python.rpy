@@ -129,8 +129,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_ptod_tip000",
-            category=["python tips"],
-            prompt="Can you teach me about Python?",
+            category=["советы python"],
+            prompt="· Научишь меня Python?",
             pool=True,
             rules={"bookmark_rule": store.mas_bookmarks_derand.BLACKLIST}
         )
@@ -157,8 +157,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_ptod_tip001",
-            category=["python tips"],
-            prompt="What is Python?"
+            category=["советы python"],
+            prompt="· Что такое Python?"
         )
     )
 
@@ -188,8 +188,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_ptod_tip002",
-            category=["python tips"],
-            prompt="Types",
+            category=["советы python"],
+            prompt="· Типы данных",
             pool=True,
             conditional="store.mas_ptod.has_day_past_tip(3)",
             action=EV_ACT_UNLOCK,
@@ -275,8 +275,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_ptod_tip003", # may change order, you decide on this
-            category=["python tips"],
-            prompt="An Interpreted Language",
+            category=["советы python"],
+            prompt="· Интерпретируемый язык",
             pool=True,
             conditional="store.mas_ptod.has_day_past_tip(1)",
             action=EV_ACT_UNLOCK,
@@ -339,8 +339,8 @@ label monika_ptod_tip003:
 #        Event(
 #            persistent.event_database,
 #            eventlabel="monika_ptod_tip004",
-#            category=["python tips"],
-#            prompt="What does python code look like?",
+#            category=["советы python"],
+#            prompt="· Как выглядит код на Python?",
 #            pool=True,
 #            conditional="store.mas_ptod.has_day_past_tip(3)",
 #            action=EV_ACT_UNLOCK,
@@ -384,8 +384,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_ptod_tip005",
-            category=["python tips"],
-            prompt="Comparisons and Booleans",
+            category=["советы python"],
+            prompt="· Сравнения и логические значения",
             pool=True,
             conditional="store.mas_ptod.has_day_past_tip(6)",
             action=EV_ACT_UNLOCK,
@@ -558,8 +558,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_ptod_tip006",
-            category=["python tips"],
-            prompt="Variables and Assignment",
+            category=["советы python"],
+            prompt="· Переменные и присваивание",
             pool=True,
             conditional="store.mas_ptod.has_day_past_tip(2)",
             action=EV_ACT_UNLOCK,
@@ -668,8 +668,8 @@ label monika_ptod_tip006:
 #        Event(
 #            persistent.event_database,
 #            eventlabel="monika_ptod_tip007",
-#            category=["python tips"],
-#            prompt="Variable Sizes",
+#            category=["советы python"],
+#            prompt="· Размер переменных",
 #            pool=True,
 #            conditional="store.mas_ptod.has_day_past_tip(6)",
 #            action=EV_ACT_UNLOCK,
@@ -704,8 +704,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_ptod_tip008",
-            category=["python tips"],
-            prompt="Literals",
+            category=["советы python"],
+            prompt="· Литералы",
             pool=True,
             conditional="store.mas_ptod.has_day_past_tip(6)",
             action=EV_ACT_UNLOCK,
@@ -789,8 +789,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="monika_ptod_tip009",
-            category=["python tips"],
-            prompt="Truth Values",
+            category=["советы python"],
+            prompt="· Истинность значений",
             pool=True,
             conditional="store.mas_ptod.has_day_past_tip(5)",
             action=EV_ACT_UNLOCK,
@@ -875,8 +875,8 @@ label monika_ptod_tip009:
 #        Event(
 #            persistent.event_database,
 #            eventlabel="monika_ptod_tip006",
-#            category=["python tips"],
-#            prompt="Evaluation Order and Short Circuiting",
+#            category=["советы python"],
+#            prompt="· Порядок вычислений и короткое замыкание",
 # TODO: this should be after if statements.
 #            conditional="store.mas_ptod.has_day_past_tip(2)",
 #            action=EV_ACT_UNLOCK,

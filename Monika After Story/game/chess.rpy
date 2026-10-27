@@ -9,6 +9,30 @@
 # Меню игр: zz_games.rpy  |  комплимент: script-compliments
 # ---
 
+init -1 python:
+    # RU: окончания по полу игрока (тот же хелпер, что в script-affection.rpy).
+    # Определяем, только если его ещё нет. "X" -> мужской род.
+    if "MASRuGenderForm" not in globals():
+        class MASRuGenderForm(object):
+            def __init__(self, fem, masc):
+                self.fem = fem
+                self.masc = masc
+            def _get(self):
+                return self.fem if persistent.gender == "F" else self.masc
+            def __unicode__(self):
+                return self._get()
+            def __str__(self):
+                return self._get().encode("utf-8") if not isinstance(self._get(), str) else self._get()
+            def __format__(self, spec):
+                return self._get()
+
+    if "_ru_a" not in globals():
+        _ru_a = MASRuGenderForm(u"а", u"")
+    if "_ru_la" not in globals():
+        _ru_la = MASRuGenderForm(u"ла", u"")
+    if "_ru_sya" not in globals():
+        _ru_sya = MASRuGenderForm(u"ась", u"ся")
+
 #We now will keep track of player wins/losses/draws/whatever
 default persistent._mas_chess_stats = {
     "wins": 0,
@@ -55,7 +79,7 @@ init python in mas_chess:
     CHESS_SAVE_PATH = "/chess_games/"
     CHESS_SAVE_EXT = ".pgn"
     CHESS_SAVE_NAME = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ-_0123456789"
-    CHESS_PROMPT_FORMAT = "{0} | {1} | Turn: {2} | You: {3}"
+    CHESS_PROMPT_FORMAT = "{0} | {1} | Ход: {2} | Ты: {3}"
 
     #chess modes
     MODE_NORMAL = "normal_chess"
@@ -67,7 +91,7 @@ init python in mas_chess:
 
     CHESS_MENU_WAIT_VALUE = "MATTE"
     CHESS_MENU_WAIT_ITEM = (
-        _("I can't make this decision right now..."),
+        _("Я пока не могу решить..."),
         CHESS_MENU_WAIT_VALUE,
         False,
         False,
@@ -180,9 +204,9 @@ init python in mas_chess:
 
         # now which one is the player?
         if pgn_game.headers["White"] == mth:
-            the_player = "Black"
+            the_player = u"Чёрные"
         elif pgn_game.headers["Black"] == mth:
-            the_player = "White"
+            the_player = u"Белые"
         else: # monika must be a player
             return None
 
@@ -724,7 +748,7 @@ label game_chess:
         # if player did bad, then we dont do file checks anymore
         if persistent._mas_chess_skip_file_checks:
             $ loaded_game = quicksaved_game[1]
-            m "Let's continue our unfinished game."
+            m "Давай продолжим нашу незаконченную партию."
 
             if loaded_game:
                 python:
@@ -791,9 +815,9 @@ label game_chess:
                         mas_loseAffection()
 
                     m 2wfw "[player]!"
-                    m 2wfx "You removed the save again."
+                    m 2wfx "Ты опять удалил[_ru_a] сохранение."
                     pause 0.7
-                    m 2rfc "Let's just play chess at another time, then."
+                    m 2rfc "Тогда давай сыграем в шахматы как-нибудь в другой раз."
                     return
 
             # do we have a backup
@@ -857,12 +881,12 @@ label game_chess:
             if failed_to_load_save:
                 # we successfully loaded the unfinished game and player did not
                 # cheat
-                m 1eua "We still have an unfinished game in progress."
+                m 1eua "У нас ещё есть незаконченная партия."
 
             label .load_check:
                 pass
 
-            m 1efb "Get ready!"
+            m 1efb "Приготовься!"
 
     if loaded_game:
         python:
@@ -945,7 +969,7 @@ label mas_chess_remenu:
     $ menu_options = menu_contents[menu_category]["options"]
     $ final_items = menu_contents[menu_category]["final_items"]
 
-    m "How would you like to play?[('{fast}' if loopback else '')]" nointeract
+    m "Как будем играть?[('{fast}' if loopback else '')]" nointeract
 
     #Now we show menu
     call screen mas_gen_scrollable_menu(menu_options, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, *final_items)
@@ -955,8 +979,8 @@ label mas_chess_remenu:
     #We're quitting out
     if _return == -1:
         show monika at t11
-        m 1ekc "...Alright, [player].{w=0.3} I was really looking forward to playing with you."
-        m 1eka "We'll play another time though, right?"
+        m 1ekc "...Ладно, [player].{w=0.3} А я так ждала, что мы поиграем."
+        m 1eka "Но мы ведь сыграем в другой раз, правда?"
         return
 
     #We're changing the main group of settings we wish to change
@@ -976,16 +1000,16 @@ label mas_chess_remenu:
                 # Take Monika back, so we won't face an empty right-side screen.
                 show monika at t11
 
-                m 1eub "Sure! {w=0.2}{nw}"
-                extend 1eua "Naturally, {i}Normal Chess{/i} means standard chess."
-                m 3eua "Then there's {i}Randomized Chess{/i}, a mode based on {i}Really Bad Chess{/i}."
-                m 3eub "We get completely random pieces which adds the factor of luck to make it fun for players of any skill level."
-                m 1eua "Alternatively, there's a more fair random chess mode called {i}Chess 960{/i}, also known as {i}Fischer Random Chess{/i}."
-                m 3eud "In this mode, the pieces in the back row are randomly shuffled while ensuring the bishops are placed on opposite color squares and the king is placed between two rooks."
-                m 4hua "There's 960 possible starting positions, so it was called {i}Chess 960{/i}."
-                m 1eua "{i}Chess 960{/i} allows players to avoid the complex opening theory while still testing their understanding of chess."
-                m 1etu "So which mode do you prefer? {w=0.3}{nw}"
-                extend 1hub "Ahaha~"
+                m 1eub "Конечно! {w=0.2}{nw}"
+                extend 1eua "{i}Обычные шахматы{/i}, само собой, — это классические шахматы."
+                m 3eua "Ещё есть {i}Шахматы со случайной расстановкой{/i} — режим по мотивам {i}Really Bad Chess{/i}."
+                m 3eub "Фигуры нам достаются совершенно случайные, так что появляется элемент удачи, и играть интересно при любом уровне."
+                m 1eua "А есть режим со случайностью, но почестнее — {i}Шахматы 960{/i}, их ещё называют {i}шахматами Фишера{/i}."
+                m 3eud "В нём фигуры на последней горизонтали расставляются случайно, но слоны всегда стоят на полях разного цвета, а король — между ладьями."
+                m 4hua "Всего получается 960 возможных начальных позиций — отсюда и название {i}Шахматы 960{/i}."
+                m 1eua "{i}Шахматы 960{/i} позволяют обойтись без заучивания сложной теории дебютов, но всё равно проверяют, насколько хорошо ты понимаешь игру."
+                m 1etu "Ну, какой режим тебе больше нравится? {w=0.3}{nw}"
+                extend 1hub "А-ха-ха~"
 
                 # There goes our Monika again.
                 show monika at t21
@@ -996,8 +1020,8 @@ label mas_chess_remenu:
         elif menu_category == "ruleset_select":
             if _return is 0:
                 show monika at t11
-                m 1eua "If we play with casual rules, we just won't count stalemates as draws.{w=0.2} {nw}"
-                extend 3eub "Essentially, the player who is not trapped is declared the winner."
+                m 1eua "Если играем по упрощённым правилам, пат не считается ничьей.{w=0.2} {nw}"
+                extend 3eub "Проще говоря, побеждает тот, кто не оказался в ловушке."
 
             else:
                 $ casual_rules = _return
@@ -1076,22 +1100,22 @@ label mas_chess_start_chess:
         #Monika wins by player surrender
         if is_surrender:
             if num_turns < 5:
-                m 1ekc "Don't give up so easily..."
-                m 1eka "I'm sure if you keep trying, you can beat me."
+                m 1ekc "Не сдавайся так легко..."
+                m 1eka "Уверена, если не опускать руки, ты сможешь меня обыграть."
                 m 1ekc "..."
-                m 1eka "I hope you don't get frustrated when you play with me."
-                m 3ekb "It really means a lot to me that you keep playing if you do~"
-                m 3hua "Let's play again soon, alright?"
+                m 1eka "Надеюсь, игра со мной тебя не слишком расстраивает."
+                m 3ekb "А если и расстраивает, то для меня очень много значит, что ты всё равно играешь~"
+                m 3hua "Давай скоро сыграем ещё, хорошо?"
 
             else:
-                m 1ekc "Giving up, [player]?"
-                m 1eub "Alright, but even if things aren't going too well, it's more fun to play to the end!"
-                m 3eka "In the end, I'm just happy to be spending time with you~"
-                m 1eua "Anyway..."
+                m 1ekc "Сдаёшься, [player]?"
+                m 1eub "Ладно, но даже когда дела идут не очень, доиграть до конца куда интереснее!"
+                m 3eka "В конце концов, я просто рада проводить время с тобой~"
+                m 1eua "Ну так вот..."
 
         #Monika wins by checkmate
         else:
-            m 1sub "I won, yay!~"
+            m 1sub "Я победила, ура!~"
 
             #Some setup
             python:
@@ -1104,7 +1128,7 @@ label mas_chess_start_chess:
 
             else:
                 call mas_chess_dlg_game_monika_wins_sometimes
-                m 1eua "Anyway..."
+                m 1eua "Ну так вот..."
 
         if not is_surrender:
             #Monika plays a little easier if you didn't just surrender
@@ -1118,19 +1142,19 @@ label mas_chess_start_chess:
     #Stalemate
     elif game_result == "1/2-1/2":
         if new_pgn_game.headers.get("DrawRequested"):
-            m 1eua "Sure, we'll call this game a draw."
-            m 3wuo "That was a pretty long game!"
-            $ line_start = "Great job though"
+            m 1eua "Хорошо, засчитаем ничью."
+            m 3wuo "Долгая вышла партия!"
+            $ line_start = "Но ты всё равно молодец"
 
         else:
-            m 1eka "Aw, looks like we have a stalemate."
-            $ line_start = "But on the bright side"
+            m 1eka "Ой, кажется, у нас пат."
+            $ line_start = "Зато есть и хорошая новость"
 
         if not persistent._mas_ever_won["chess"]:
-            m 3hub "[line_start], you're getting closer and closer to beating me, [player]~"
+            m 3hub "[line_start]: ты всё ближе к тому, чтобы меня обыграть, [player]~"
 
         else:
-            m 1hua "Nice work on getting this far, [player]~"
+            m 1hua "Ты здорово продержал[_ru_sya] так долго, [player]~"
 
         $ persistent._mas_chess_stats["practice_draws" if practice_mode else "draws"] += 1
 
@@ -1138,12 +1162,12 @@ label mas_chess_start_chess:
     else:
         python:
             player_win_quips = [
-                _("I'm so proud of you, [player]!"),
-                _("I'm proud of you, [player]!~"),
-                _("Well played, [player]!"),
-                _("It makes me really happy to see you win~"),
-                _("I'm happy to see you win!"),
-                _("No matter the outcome, I'll always enjoy playing with you.")
+                _("Я так тобой горжусь, [player]!"),
+                _("Я горжусь тобой, [player]!~"),
+                _("Отличная игра, [player]!"),
+                _("Мне правда очень приятно видеть, как ты побеждаешь~"),
+                _("Я рада, что ты победил[_ru_a]!"),
+                _("Чем бы ни кончилась партия, мне всегда приятно с тобой играть.")
             ]
             persistent._mas_chess_stats["practice_wins" if practice_mode else "wins"] += 1
 
@@ -1153,34 +1177,34 @@ label mas_chess_start_chess:
 
         #Main dialogue
         if practice_mode:
-            m 3hub "Congratulations [player], you won!"
+            m 3hub "Поздравляю, [player], ты победил[_ru_a]!"
 
             $ undo_count = new_pgn_game.headers.get("UndoCount", 0)
             if not undo_count:
-                m 1wuo "You didn't undo a single move!{w=0.2} {nw}"
-                extend 3hub "That's amazing!"
+                m 1wuo "Ты не отменил[_ru_a] ни одного хода!{w=0.2} {nw}"
+                extend 3hub "Потрясающе!"
 
             elif undo_count == 1:
-                m 1hua "You only undid once. {w=0.2}{nw}"
-                extend 3hub "Great job!"
+                m 1hua "Ты отменил[_ru_a] ход всего один раз. {w=0.2}{nw}"
+                extend 3hub "Отличная работа!"
 
             elif undo_count <= 5:
-                m 1hua "You only undid [undo_count] times too, great job."
+                m 1hua "И ходов отменено всего [undo_count], отличная работа."
 
             elif undo_count <= 10:
-                m 1eua "[undo_count] undos, not bad at all. If we keep practicing together, I'm sure we can lower that~"
+                m 1eua "Отмен ходов: [undo_count] — совсем неплохо. Уверена, если будем тренироваться вместе, станет ещё меньше~"
 
             else:
-                m 1eka "You undid [undo_count] moves though.{w=0.3} {nw}"
-                extend 3eua "But I'm sure if we keep practicing, we can get that number lower."
+                m 1eka "Правда, отмен ходов было [undo_count].{w=0.3} {nw}"
+                extend 3eua "Но я уверена, что если продолжим тренироваться, это число уменьшится."
 
             m 3hua "[renpy.substitute(random.choice(player_win_quips))]"
 
         else:
-            m 3eub "Great job, you won!"
+            m 3eub "Молодец, ты победил[_ru_a]!"
             m 3hub "[renpy.substitute(random.choice(player_win_quips))]"
 
-        m 1eua "Anyway..."
+        m 1eua "Ну так вот..."
 
         $ mas_chess._increment_chess_difficulty()
 
@@ -1195,52 +1219,52 @@ label mas_chess_start_chess:
 
     #We only save a game if there's enough turns
     if num_turns > 4:
-        m 1eua "Would you like to save this game?{nw}"
+        m 1eua "Хочешь сохранить эту партию?{nw}"
         $ _history_list.pop()
         menu:
-            m "Would you like to save this game?{fast}"
+            m "Хочешь сохранить эту партию?{fast}"
 
-            "Yes.":
+            "Да.":
                 call mas_chess_savegame
 
-            "No.":
+            "Нет.":
                 pass
 
     # FALL THROUGH
 
 label mas_chess_play_again_ask:
-    m 1eua "Would you like to play again?{nw}"
+    m 1eua "Хочешь сыграть ещё?{nw}"
     $ _history_list.pop()
     menu:
-        m "Would you like to play again?{fast}"
+        m "Хочешь сыграть ещё?{fast}"
 
-        "Yes.":
+        "Да.":
             $ mas_assignModifyEVLPropValue("mas_chess", "shown_count", "+=", 1)
             if drew_lots:
                 call mas_chess_draw_lots
 
             jump mas_chess_start_chess
 
-        "Yes, but with different rules.":
+        "Да, но по другим правилам.":
             $ mas_assignModifyEVLPropValue("mas_chess", "shown_count", "+=", 1)
             jump mas_chess_remenu
 
-        "No.":
-            m 1eua "Alright, let's play again soon."
+        "Нет.":
+            m 1eua "Хорошо, давай скоро сыграем снова."
 
     return
 
 label mas_chess_draw_lots(begin=True):
     show monika at t11
     $ drew_lots = True
-    $ lets_begin = "{w=0.2} Let's begin." if begin else ""
+    $ lets_begin = "{w=0.2} Начнём." if begin else ""
 
     if random.randint(0, 1) == 0:
         $ is_player_white = chess.WHITE
-        m 2eub "Oh look, I drew black![lets_begin]"
+        m 2eub "Смотри-ка, мне достались чёрные![lets_begin]"
     else:
         $ is_player_white = chess.BLACK
-        m 2eub "Oh look, I drew white![lets_begin]"
+        m 2eub "Смотри-ка, мне достались белые![lets_begin]"
     return
 
 label mas_chess_savegame(silent=False, allow_return=True):
@@ -1268,7 +1292,7 @@ label mas_chess_savegame(silent=False, allow_return=True):
             save_name = ""
             while len(save_name) == 0:
                 save_name = mas_input(
-                    "Enter a name for this game:",
+                    "Введи название для этой партии:",
                     allow=mas_chess.CHESS_SAVE_NAME,
                     length=15,
                     screen_kwargs={"use_return_button": allow_return}
@@ -1294,16 +1318,16 @@ label mas_chess_savegame(silent=False, allow_return=True):
 
         # check if this file exists already
         if is_file_exist:
-            m 1eka "We already have a game named '[save_name].'"
+            m 1eka "У нас уже есть партия под названием «[save_name]»."
 
-            m "Should I overwrite it?{nw}"
+            m "Перезаписать её?{nw}"
             $ _history_list.pop()
             menu:
-                m "Should I overwrite it?{fast}"
-                "Yes.":
+                m "Перезаписать её?{fast}"
+                "Да.":
                     pass
 
-                "No.":
+                "Нет.":
                     #NOTE: Since jumping back to the main label causes arg resets, we jump to a local label inside to prevent that
                     #TODO: Jump with args
                     jump .save_start
@@ -1323,35 +1347,35 @@ label mas_chess_savegame(silent=False, allow_return=True):
 
     if not silent:
         m 1dsc ".{w=0.5}.{w=0.5}.{nw}"
-        m 1hua "I've saved our game in '[display_file_path]'!"
+        m 1hua "Я сохранила нашу партию в «[display_file_path]»!"
 
         if not renpy.seen_label("mas_chess_savegame.pgn_explain"):
             label .pgn_explain:
                 pass
 
-            m 1esa "It's in a format called 'Portable Game Notation.'{w=0.2} {nw}"
-            extend 1eua "You can find PGN analyzers online to open it and see where you made your mistakes."
-            m 3eub "Whether you win, lose, surrender, or draw, there's always something you could've done better, so loading these games up can really help you improve!"
+            m 1esa "Она в формате, который называется «Portable Game Notation» (PGN).{w=0.2} {nw}"
+            extend 1eua "В интернете есть анализаторы PGN — можешь открыть файл и посмотреть, где ты ошибал[_ru_sya]."
+            m 3eub "Победа, поражение, сдача или ничья — всегда найдётся, что можно было сыграть лучше, так что разбор таких партий здорово помогает расти!"
 
             if game_result == mas_chess.IS_ONGOING:
-                m 1lksdlb "It's possible to edit this file and change the outcome of the game...{w=0.5} {nw}"
-                extend 1tsu "but I'm sure you wouldn't do that."
+                m 1lksdlb "Вообще, этот файл можно отредактировать и изменить исход партии...{w=0.5} {nw}"
+                extend 1tsu "но я уверена, что ты так не поступишь."
 
-                m 1tku "Right, [player]?{nw}"
+                m 1tku "Правда ведь, [player]?{nw}"
                 $ _history_list.pop()
                 menu:
-                    m "Right, [player]?{fast}"
+                    m "Правда ведь, [player]?{fast}"
 
-                    "Of course not.":
-                        m 1hua "Yay~"
+                    "Конечно, нет.":
+                        m 1hua "Ура~"
 
         if game_result == mas_chess.IS_ONGOING:
-            m 1eub "Let's continue this game soon!"
+            m 1eub "Давай скоро продолжим эту партию!"
     return
 
 label mas_chess_locked_no_play:
-    m 1euc "No thanks, [player]."
-    m 1rsc "I don't really feel like playing chess right now."
+    m 1euc "Нет, спасибо, [player]."
+    m 1rsc "Что-то мне сейчас не хочется играть в шахматы."
     return
 
 label mas_chess_cannot_work_embarrassing:
@@ -1359,28 +1383,28 @@ label mas_chess_cannot_work_embarrassing:
     $ quick_menu = True
     show monika at t11
     m 1rksdla "..."
-    m 3hksdlb "Well that's embarrassing, it seems I can't actually get chess to work on your system..."
-    m 1ekc "Sorry about that, [player]."
-    m 1eka "Maybe we can do something else instead?"
+    m 3hksdlb "Как неловко... Похоже, у меня не получается запустить шахматы на твоей системе..."
+    m 1ekc "Прости, [player]."
+    m 1eka "Может, займёмся чем-нибудь другим?"
     return
 
 label mas_chess_dlg_game_monika_wins_often:
-    m 1eka "Sorry you didn't win this time, [player]..."
-    m 1ekc "I hope you'll at least keep trying though."
-    m 1eua "Let's play again soon, okay?"
+    m 1eka "Жаль, что в этот раз ты не победил[_ru_a], [player]..."
+    m 1ekc "Но я надеюсь, ты не бросишь попытки."
+    m 1eua "Давай скоро сыграем ещё, ладно?"
 
     if not persistent._mas_ever_won["chess"]:
-        m 1hua "You'll beat me someday~"
+        m 1hua "Когда-нибудь ты меня обыграешь~"
     return
 
 label mas_chess_dlg_game_monika_wins_sometimes:
-    m 1hub "That was really fun, [player]!"
-    m 3eka "No matter the outcome, I always enjoy playing chess with you~"
-    m 3hua "I bet if you keep practicing, you'll be even better than me someday!"
+    m 1hub "Было очень весело, [player]!"
+    m 3eka "Чем бы ни кончилась партия, мне всегда нравится играть с тобой в шахматы~"
+    m 3hua "Спорим, если будешь тренироваться, однажды станешь играть даже лучше меня!"
 
     #If the difficulty is above base level, we'll mention lowering it
     if persistent._mas_chess_difficulty != (0, 1):
-        m 3eua "Until then though, I'll try and go a little easier on you."
+        m 3eua "А пока я постараюсь немного тебе поддаваться."
     return
 
 # label for new context for confirm screen
@@ -1427,16 +1451,16 @@ label mas_chess_save_migration:
         # only show this if we even have multiple pgn games
         if game_count > 1:
             if renpy.seen_label("mas_chess_save_multi_dlg"):
-                $ pick_text = _("You still need to pick a game to keep.")
+                $ pick_text = _("Тебе всё ещё нужно выбрать, какую партию оставить.")
 
             else:
                 label mas_chess_save_multi_dlg:
-                    m 1eua "So I've been thinking, [player]..."
-                    m 1euc "Most people who leave in the middle of a chess game don't come back to start a new one."
-                    m 3eud "...So it makes no sense for me to keep track of more than one unfinished game between us."
-                    m 1rka "And since we have [game_count] games in progress..."
-                    m 3euc "I have to ask you to pick only one to keep.{w=0.2} Sorry, [player]."
-                    $ pick_text = _("Pick a game you'd like to keep.")
+                    m 1eua "Знаешь, я тут подумала, [player]..."
+                    m 1euc "Большинство тех, кто бросает шахматную партию на середине, уже не возвращаются, чтобы начать новую."
+                    m 3eud "...Так что мне нет смысла хранить больше одной нашей незаконченной партии."
+                    m 1rka "А раз у нас незаконченных партий уже [game_count]..."
+                    m 3euc "Мне придётся попросить тебя оставить только одну.{w=0.2} Прости, [player]."
+                    $ pick_text = _("Выбери партию, которую хочешь оставить.")
 
             show monika 1euc at t21
             $ renpy.say(m, pick_text, interact=False)
@@ -1446,14 +1470,14 @@ label mas_chess_save_migration:
             show monika at t11
             if _return == mas_chess.CHESS_MENU_WAIT_VALUE:
                 # user backs out
-                m 2dsc "I see."
-                m 2eua "In that case, please take your time."
-                m 1eua "We'll play chess again once you've made your decision."
+                m 2dsc "Понятно."
+                m 2eua "Тогда не торопись."
+                m 1eua "Сыграем в шахматы снова, когда определишься."
                 return False
 
             else:
                 # user selected a game
-                m 1eua "Alright."
+                m 1eua "Хорошо."
                 python:
                     sel_game = actual_pgn_games.pop(_return)
                     for pgn_game in actual_pgn_games:
@@ -1480,29 +1504,29 @@ label mas_chess_dlg_quicksave_lost:
         persistent._mas_chess_dlg_actions[mas_chess.QS_LOST] += 1
         qs_gone_count = persistent._mas_chess_dlg_actions[mas_chess.QS_LOST]
 
-    m 2lksdlb "Uh, [player]...{w=0.5} I think I messed up in saving our last game, and now I can't open it anymore."
+    m 2lksdlb "Эм, [player]...{w=0.5} Кажется, я напутала с сохранением нашей прошлой партии, и теперь не могу её открыть."
 
     if qs_gone_count == 2:
-        m 1lksdld "I'm really, really sorry, [player]..."
+        m 1lksdld "Мне правда-правда очень жаль, [player]..."
         show monika 1ekc
         pause 1.0
-        m 1eka "But don't worry, I'll make it up to you...{w=0.3}{nw}"
-        extend 3hua "by starting a new game!"
-        m 3hub "Ahaha~"
+        m 1eka "Но не переживай, я всё исправлю...{w=0.3}{nw}"
+        extend 3hua "и начну новую партию!"
+        m 3hub "А-ха-ха~"
 
     elif qs_gone_count == 3:
-        m 1lksdlc "I'm so clumsy, [player]...{w=0.3} I'm sorry."
-        m 3eksdla "Let's start a new game instead."
+        m 1lksdlc "Какая же я растяпа, [player]...{w=0.3} Прости."
+        m 3eksdla "Давай лучше начнём новую партию."
 
     elif qs_gone_count % 5 == 0:
-        m 2esc "This has happened [qs_gone_count] times now..."
-        m 2tsc "I wonder if this is a side effect of {i}someone{/i} trying to edit the saves.{w=1}.{w=1}."
-        m 7rsc "Anyway..."
-        m 1esc "Let's start a new game."
+        m 2esc "Это случается уже в [qs_gone_count]-й раз..."
+        m 2tsc "Интересно, а не потому ли это, что {i}кое-кто{/i} пытается редактировать сохранения.{w=1}.{w=1}."
+        m 7rsc "Ну так вот..."
+        m 1esc "Давай начнём новую партию."
 
     else:
-        m 1lksdlc "I'm sorry..."
-        m 3eka "Let's start a new game instead."
+        m 1lksdlc "Прости..."
+        m 3eka "Давай лучше начнём новую партию."
 
     return None
 
@@ -1510,44 +1534,44 @@ label mas_chess_dlg_quicksave_lost:
 ### quickfile lost
 # main label for quickfile lost flow
 label mas_chess_dlg_quickfile_lost:
-    m 2lksdla "Well this is embarrassing..."
-    m 2ekc "I could have sworn that we had an unfinished game, but I can't find the save file."
+    m 2lksdla "Как неловко..."
+    m 2ekc "Могу поклясться, у нас была незаконченная партия, но я не могу найти файл сохранения."
 
-    m 2tkc "Did you mess with the saves, [player]?{nw}"
+    m 2tkc "Ты что-то делал[_ru_a] с сохранениями, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        m "Did you mess with the saves, [player]?{fast}"
+        m "Ты что-то делал[_ru_a] с сохранениями, [player]?{fast}"
 
-        "I deleted the save.":
+        "Я удалил[_ru_a] сохранение.":
             jump mas_chess_dlg_quickfile_lost_deleted
 
-        "It was an accident!":
+        "Это вышло случайно!":
             jump mas_chess_dlg_quickfile_lost_accident
 
-        "Maybe...":
+        "Может быть...":
             jump mas_chess_dlg_quickfile_lost_maybe
 
-        "Of course not!":
+        "Конечно, нет!":
             jump mas_chess_dlg_quickfile_lost_ofcoursenot
 
 
 #Player deleted the saves
 label mas_chess_dlg_quickfile_lost_deleted:
-    m 1eka "Thanks for being honest with me, [player]."
+    m 1eka "Спасибо, что честно признал[_ru_sya], [player]."
 
-    m 3ekd "Did you not want to continue that game?{nw}"
+    m 3ekd "Ты не хотел[_ru_a] продолжать ту партию?{nw}"
     $ _history_list.pop()
     menu:
-        m "Did you not want to continue that game?{fast}"
+        m "Ты не хотел[_ru_a] продолжать ту партию?{fast}"
 
-        "Yeah.":
-            m 1eka "I understand, [player]."
-            m 1hua "Let's start a new game~"
+        "Да.":
+            m 1eka "Понимаю, [player]."
+            m 1hua "Давай начнём новую партию~"
 
-        "No.":
-            m 1etc "Oh?"
-            m 1rsc "I guess you just deleted it by mistake then."
-            m 1eua "Let's just start a new game."
+        "Нет.":
+            m 1etc "О?"
+            m 1rsc "Значит, ты просто удалил[_ru_a] его по ошибке."
+            m 1eua "Тогда просто начнём новую партию."
     return
 
 #Of course not flow
@@ -1558,19 +1582,19 @@ label mas_chess_dlg_quickfile_lost_ofcoursenot:
 
     if qf_gone_count in [3,4]:
         m 2esc "..."
-        m "[player],{w=0.2} did you..."
-        m 2dsc "Nevermind."
-        m 1esc "Let's play a new game."
+        m "[player],{w=0.2} ты что..."
+        m 2dsc "Неважно."
+        m 1esc "Давай сыграем новую партию."
 
     elif qf_gone_count == 5:
         $ mas_loseAffection()
         m 2esc "..."
-        m "[player],{w=0.2} this is happening way too much."
-        m 2dsc "I really don't believe you this time."
+        m "[player],{w=0.2} это происходит слишком уж часто."
+        m 2dsc "В этот раз я тебе правда не верю."
         pause 2.0
-        m 2esc "I hope you're not messing with me."
+        m 2esc "Надеюсь, ты не морочишь мне голову."
         m "..."
-        m 1esc "Whatever.{w=0.5} Let's just play a new game."
+        m 1esc "Ладно, неважно.{w=0.5} Просто сыграем новую партию."
 
     elif qf_gone_count >= 6:
         python:
@@ -1583,17 +1607,17 @@ label mas_chess_dlg_quickfile_lost_ofcoursenot:
             persistent._mas_chess_timed_disable = True
 
         m 2dfc "..."
-        m 2efc "[player],{w=0.3} I don't believe you."
-        m 2efd "If you're just going to throw away our chess games like that..."
-        m 6wfw "Then I don't want to play chess with you anymore!"
+        m 2efc "[player],{w=0.3} я тебе не верю."
+        m 2efd "Если ты вот так просто выбрасываешь наши партии..."
+        m 6wfw "То я больше не хочу играть с тобой в шахматы!"
         return True
 
     else:
-        m 1lksdlb "Ah, yeah. You wouldn't do that to me."
-        m "I must have misplaced the save file."
-        m 1lksdlc "Sorry, [player]."
-        m 1eka "I'll make it up to you...{w=0.3}{nw}"
-        extend 1eub "by starting a new game!"
+        m 1lksdlb "А, ну да. Ты бы так со мной не поступил[_ru_a]."
+        m "Наверное, я сама куда-то задевала файл сохранения."
+        m 1lksdlc "Прости, [player]."
+        m 1eka "Я всё исправлю...{w=0.3}{nw}"
+        extend 1eub "и начну новую партию!"
 
     return None
 
@@ -1605,23 +1629,23 @@ label mas_chess_dlg_quickfile_lost_maybe:
         qf_gone_count = persistent._mas_chess_dlg_actions[mas_chess.QF_LOST_MAYBE]
 
     if qf_gone_count == 1:
-        m 2ekd "[player]!{w=0.2} I should have known you were just messing with me!"
+        m 2ekd "[player]!{w=0.2} Так и знала, что ты меня разыгрываешь!"
         jump mas_chess_quickfile_lost_filechecker
 
     if qf_gone_count == 2:
-        m 2ekd "[player]!{w=0.2} Stop messing with me!"
+        m 2ekd "[player]!{w=0.2} Хватит меня разыгрывать!"
         jump mas_chess_quickfile_lost_filechecker
 
     else:
         $ persistent._mas_chess_skip_file_checks = True
 
-        m 2ekd "[player]! That's--"
+        m 2ekd "[player]! Это же--"
         m 2dkc "..."
-        m 1esa "...not a problem at all."
-        m "I knew you were going to do this again..."
-        m 1hub "...so I kept a backup of our save!"
-        m 1kua "You can't trick me anymore, [player]."
-        m "Now let's continue our game."
+        m 1esa "...вовсе не проблема."
+        m "Я знала, что ты снова так сделаешь..."
+        m 1hub "...поэтому сохранила резервную копию!"
+        m 1kua "Больше тебе меня не провести, [player]."
+        m "А теперь давай продолжим партию."
         return store.mas_chess.CHESS_GAME_BACKUP
 
 
@@ -1632,7 +1656,7 @@ label mas_chess_quickfile_lost_filechecker:
     if os.access(game_file, os.F_OK):
         jump mas_chess_dlg_quickfile_lost_maybe_save_found
 
-    m 1eka "Can you put the save back so we can play?"
+    m 1eka "Можешь вернуть сохранение на место, чтобы мы доиграли?"
 
     show monika 1eua
 
@@ -1660,26 +1684,26 @@ label mas_chess_quickfile_lost_maybe_filechecker_loop:
     show screen mas_background_timed_jump(4, "mas_chess_quickfile_lost_maybe_filechecker_loop")
     $ seconds += 4
     menu:
-        "I deleted the save...":
+        "Я удалил[_ru_a] сохранение...":
             hide screen mas_background_timed_jump
             jump mas_chess_dlg_quickfile_lost_maybe_filechecker_no_file
 
 label mas_chess_dlg_quickfile_lost_maybe_filechecker_file_found:
-    m 1hua "Yay!{w=0.2} Thanks for putting it back, [player]."
-    m "Now we can continue our game."
+    m 1hua "Ура!{w=0.2} Спасибо, что вернул[_ru_a] его, [player]."
+    m "Теперь можно продолжить партию."
     show monika 1eua
     return mas_chess.CHESS_GAME_CONT
 
 label mas_chess_dlg_quickfile_lost_maybe_filechecker_no_file:
     m 1ekd "[player]..."
-    m 1eka "That's okay. Let's just play a new game."
+    m 1eka "Ничего страшного. Просто сыграем новую партию."
     return None
 
 # generic maybe monika, found file
 label mas_chess_dlg_quickfile_lost_maybe_save_found:
-    m 2eua "Oh!"
-    m 1hua "There's the save.{w=0.2} Thanks for putting it back, [player]."
-    m 1eua "Now we can continue our game."
+    m 2eua "О!"
+    m 1hua "Вот и сохранение.{w=0.2} Спасибо, что вернул[_ru_a] его, [player]."
+    m 1eua "Теперь можно продолжить партию."
     return store.mas_chess.CHESS_GAME_CONT
 
 ## Accident monika flow
@@ -1689,21 +1713,21 @@ label mas_chess_dlg_quickfile_lost_accident:
         qf_gone_count = persistent._mas_chess_dlg_actions[mas_chess.QF_LOST_ACDNT]
 
     if qf_gone_count == 2:
-        m 1eka "Again? Don't be so clumsy, [player]."
-        m 1hua "But that's okay."
-        m 1eua "We'll just play a new game instead."
+        m 1eka "Опять? Не будь растяпой, [player]."
+        m 1hua "Но ничего страшного."
+        m 1eua "Просто сыграем новую партию."
 
     elif qf_gone_count >= 3:
         $ persistent._mas_chess_skip_file_checks = True
-        m 1eka "I had a feeling this would happen again."
-        m 3tub "So I kept a backup of our save!"
-        m 1hua "Now we can continue our game~"
+        m 1eka "У меня было предчувствие, что это повторится."
+        m 3tub "Поэтому я сохранила резервную копию!"
+        m 1hua "Теперь можно продолжить партию~"
         return store.mas_chess.CHESS_GAME_BACKUP
 
     else:
         m 1ekc "[player]...{w=0.3} {nw}"
-        extend 1eka "That's okay.{w=0.3} Accidents happen."
-        m 1eua "Let's play a new game instead."
+        extend 1eka "Ничего страшного.{w=0.3} Всякое бывает."
+        m 1eua "Давай лучше сыграем новую партию."
     return None
 
 ### quickfile edited
@@ -1711,15 +1735,15 @@ label mas_chess_dlg_quickfile_lost_accident:
 label mas_chess_dlg_quickfile_edited:
     m 2lksdlc "[player]..."
 
-    m 2ekc "Did you edit the save file?{nw}"
+    m 2ekc "Ты редактировал[_ru_a] файл сохранения?{nw}"
     $ _history_list.pop()
     menu:
-        m "Did you edit the save file?{fast}"
+        m "Ты редактировал[_ru_a] файл сохранения?{fast}"
 
-        "Yes.":
+        "Да.":
             jump mas_chess_dlg_quickfile_edited_yes
 
-        "No.":
+        "Нет.":
             jump mas_chess_dlg_quickfile_edited_no
 
 
@@ -1730,18 +1754,18 @@ label mas_chess_dlg_quickfile_edited_yes:
         qf_edit_count = persistent._mas_chess_dlg_actions[mas_chess.QF_EDIT_YES]
 
     if qf_edit_count == 1:
-        m 1dsc "I'm disappointed in you."
-        m 1eka "But I'm glad that you were honest with me."
+        m 1dsc "Я в тебе разочарована."
+        m 1eka "Но я рада, что ты сказал[_ru_a] правду."
 
         # we want a timed menu here. Let's give the player 5 seconds to say sorry
         show screen mas_background_timed_jump(5, "mas_chess_dlg_quickfile_edited_yes.game_ruined")
         menu:
-            "I'm sorry.":
+            "Прости.":
                 hide screen mas_background_timed_jump
                 # light affection boost for being honest
                 $ mas_gainAffection(modifier=0.5)
-                m 1hua "Apology accepted!"
-                m 1eua "Luckily, I still remember a little bit of the last game, so we can continue it from there."
+                m 1hua "Извинения приняты!"
+                m 1eua "К счастью, я ещё немного помню прошлую партию, так что можем продолжить с того места."
                 return store.mas_chess.CHESS_GAME_BACKUP
 
             "...":
@@ -1749,25 +1773,25 @@ label mas_chess_dlg_quickfile_edited_yes:
                     pass
 
                 hide screen mas_background_timed_jump
-                m 1lfc "Since that game's been ruined, let's just play a new game."
+                m 1lfc "Раз та партия испорчена, давай просто сыграем новую."
 
     elif qf_edit_count == 2:
         python:
             persistent._mas_chess_timed_disable = datetime.datetime.now()
             mas_loseAffection()
 
-        m 2dfc "I am incredibly disappointed in you..."
-        m 2rfc "Let's play chess some other time.{w=0.2} I don't feel like playing right now."
+        m 2dfc "Я в тебе ужасно разочарована..."
+        m 2rfc "Давай сыграем в шахматы в другой раз.{w=0.2} Сейчас мне не хочется."
         return True
 
     else:
         $ mas_loseAffection()
         $ persistent._mas_chess_skip_file_checks = True
 
-        m 2dsc "I'm not surprised..."
-        m 2esc "But I am prepared."
-        m 7esc "I kept a backup of our game just in case you did this again."
-        m 1esa "Now let's finish this game."
+        m 2dsc "Я не удивлена..."
+        m 2esc "Но я подготовилась."
+        m 7esc "Я сохранила резервную копию партии — как раз на случай, если ты снова так сделаешь."
+        m 1esa "А теперь давай доиграем."
         return store.mas_chess.CHESS_GAME_BACKUP
 
     return None
@@ -1782,33 +1806,33 @@ label mas_chess_dlg_quickfile_edited_no:
     if qf_edit_count == 1:
         $ mas_loseAffection()
 
-        m 1dsc "Hmm..."
-        m 1etc "The save file looks different from how I last remembered it,{w=0.2} {nw}"
-        extend 1rksdlc "{nw}but maybe that's just my memory failing me..."
-        m 1eua "Let's continue this game."
+        m 1dsc "Хм..."
+        m 1etc "Файл сохранения выглядит не так, как я его запомнила,{w=0.2} {nw}"
+        extend 1rksdlc "{nw}но, может, меня просто подводит память..."
+        m 1eua "Давай продолжим эту партию."
         return store.mas_chess.CHESS_GAME_FILE
 
     elif qf_edit_count == 2:
         $ mas_loseAffection(modifier=2)
 
-        m 1ekc "I see."
+        m 1ekc "Понятно."
         m "..."
-        m "Let's just continue this game."
+        m "Давай просто продолжим партию."
         return store.mas_chess.CHESS_GAME_FILE
 
     else:
         $ mas_loseAffection(modifier=3)
         m 2dfc "[player]..."
-        m 2dftdc "I kept a backup of our game.{w=0.5} I know you edited the save file."
-        m 6dktuc "I just-"
+        m 2dftdc "У меня есть резервная копия партии.{w=0.5} Я знаю, что ты редактировал[_ru_a] сохранение."
+        m 6dktuc "Я просто-"
         $ _history_list.pop()
-        m 6ektud "I just{fast} can't believe you would cheat and {i}lie{/i} to me..."
+        m 6ektud "Я просто{fast} не могу поверить, что ты стал[_ru_a] бы жульничать и {i}врать{/i} мне..."
         m 6dktuc "..."
 
         #NOTE: This is the ultimate choice, it dictates whether we delete everything or not
         show screen mas_background_timed_jump(3, "mas_chess_dlg_quickfile_edited_no.menu_silent")
         menu:
-            "I'm sorry.":
+            "Прости.":
                 hide screen mas_background_timed_jump
                 # light affection boost for apologizing
                 $ mas_gainAffection(modifier=0.5)
@@ -1820,7 +1844,7 @@ label mas_chess_dlg_quickfile_edited_no:
                 pause 1.0
                 show monika 2ektsc
                 pause 1.0
-                m 6ektpc "I forgive you, [player], but please don't do this to me again."
+                m 6ektpc "Я прощаю тебя, [player], но, пожалуйста, больше так со мной не поступай."
                 m 2dktdc "..."
                 return store.mas_chess.CHESS_GAME_BACKUP
 
@@ -1836,8 +1860,8 @@ label mas_chess_dlg_quickfile_edited_no_quicksave:
         mas_loseAffection()
 
     m 2dfc "[player]..."
-    m 2tfc "I see you've edited my backup saves."
-    m 2lfd "If you want to be like that right now, then we'll play chess some other time."
+    m 2tfc "Вижу, ты отредактировал[_ru_a] и мои резервные копии."
+    m 2lfd "Если ты сейчас так себя ведёшь, сыграем в шахматы в другой раз."
     return True
 
 # 3rd time no edit, no sorry
@@ -1847,8 +1871,8 @@ label mas_chess_dlg_pre_go_ham:
         persistent._mas_chess_mangle_all = True
         persistent.autoload = "mas_chess_go_ham_and_delete_everything"
 
-    m 6ektsc "I can't trust you anymore."
-    m 6dktsd "Goodbye, [player].{nw}"
+    m 6ektsc "Я больше не могу тебе доверять."
+    m 6dktsd "Прощай, [player].{nw}"
 
     # do some permanent stuff
 label mas_chess_go_ham_and_delete_everything:
@@ -1904,8 +1928,8 @@ screen mas_chess_confirm(prompt):
                 xalign 0.5
                 spacing 100
 
-                textbutton _("Yes") action Return(True)
-                textbutton _("No") action Return(False)
+                textbutton _("Да") action Return(True)
+                textbutton _("Нет") action Return(False)
 
 # promotion screen for chess
 screen mas_chess_promote(q, r, n, b):
@@ -1924,7 +1948,7 @@ screen mas_chess_promote(q, r, n, b):
             yalign .5
             spacing 30
 
-            label _("Select piece to promote to"): # only use : if the choices are to the right of the label
+            label _("Выбери фигуру для превращения"): # only use : if the choices are to the right of the label
                 style "confirm_prompt"
                 text_color mas_globals.button_text_idle_color
                 xalign 0.5
@@ -3242,7 +3266,7 @@ init python:
 
             #Init the 4 buttons
             self._button_save = MASButtonDisplayable.create_stb(
-                _("Save"),
+                _("Сохранить"),
                 True,
                 MASChessDisplayableBase.BUTTON_INDICATOR_X,
                 MASChessDisplayableBase.DRAWN_BUTTON_Y_TOP,
@@ -3253,7 +3277,7 @@ init python:
             )
 
             self._button_giveup = MASButtonDisplayable.create_stb(
-                _("Surrender"),
+                _("Сдаться"),
                 True,
                 MASChessDisplayableBase.BUTTON_INDICATOR_X,
                 MASChessDisplayableBase.DRAWN_BUTTON_Y_MID,
@@ -3264,7 +3288,7 @@ init python:
             )
 
             self._button_draw = MASButtonDisplayable.create_stb(
-                _("Call Draw"),
+                _("Ничья"),
                 True,
                 MASChessDisplayableBase.BUTTON_INDICATOR_X,
                 MASChessDisplayableBase.DRAWN_BUTTON_Y_MID_LOW,
@@ -3279,7 +3303,7 @@ init python:
             self._button_draw.disable()
 
             self._button_done = MASButtonDisplayable.create_stb(
-                _("Done"),
+                _("Готово"),
                 False,
                 MASChessDisplayableBase.BUTTON_INDICATOR_X,
                 MASChessDisplayableBase.DRAWN_BUTTON_Y_TOP,
@@ -3290,7 +3314,7 @@ init python:
             )
 
             self._button_undo = MASButtonDisplayable.create_stb(
-                _("Undo"),
+                _("Отменить ход"),
                 True,
                 MASChessDisplayableBase.BUTTON_INDICATOR_X,
                 MASChessDisplayableBase.DRAWN_BUTTON_Y_BOT,
@@ -3308,30 +3332,30 @@ init python:
                 casual_rules,
                 player_move_prompts={
                     "generic": [
-                        "It's your turn, [player].",
-                        "Your move, [player]~",
-                        "What will you do, I wonder...",
-                        "Alright, your turn, [player]~",
-                        "You got this, [player]!"
+                        "Твой ход, [player].",
+                        "Ходи, [player]~",
+                        "Интересно, что же ты сделаешь...",
+                        "Так, теперь ты, [player]~",
+                        "У тебя всё получится, [player]!"
                     ],
                     "check": [
-                        "[mas_quipExp('3tfb')]Check!",
-                        "[mas_quipExp('3huu')]I've got you now, [player]!",
-                        "[mas_quipExp('3hub')]Looks like you're in check!"
+                        "[mas_quipExp('3tfb')]Шах!",
+                        "[mas_quipExp('3huu')]Попал[_ru_sya], [player]!",
+                        "[mas_quipExp('3hub')]Похоже, тебе шах!"
                     ]
                 },
                 monika_move_quips={
                     "generic": [
-                        "Alright, let's see...",
-                        "Okay, my turn...",
-                        "Let's see what I can do.",
-                        "I think I'll try this...",
-                        "Okay, I'll move this here then."
+                        "Так, посмотрим...",
+                        "Ладно, мой ход...",
+                        "Посмотрим, что я могу сделать.",
+                        "Пожалуй, попробую так...",
+                        "Ладно, тогда пойду сюда."
                     ],
                     "check": [
-                        "[mas_quipExp('1eusdlc')]Uh oh...",
-                        "[mas_quipExp('1rksdlc')]Hmm...{w=0.2}I need to get out of this...",
-                        "[mas_quipExp('1etc')]What's the right move here..."
+                        "[mas_quipExp('1eusdlc')]Ой-ой...",
+                        "[mas_quipExp('1rksdlc')]Хм...{w=0.2}надо как-то выбираться...",
+                        "[mas_quipExp('1etc')]Какой же тут правильный ход..."
                     ]
                 }
             )
@@ -3415,9 +3439,9 @@ init python:
                 except OSError as os_err:
                     if not renpy.windows:
                         renpy.show("monika 1etsdlc", at_list=[t11])
-                        renpy.say(m, "Hmm, that's odd. It seems some permissions were changed and I can't get chess running on your system.")
+                        renpy.say(m, "Хм, странно. Похоже, изменились какие-то права доступа, и я не могу запустить шахматы на твоей системе.")
                         renpy.show("monika 3eua")
-                        renpy.say(m, "Hold on a second, [player]. I'm going to try something quickly.{w=0.3}.{w=0.3}.{w=0.3}{nw}")
+                        renpy.say(m, "Секунду, [player]. Сейчас кое-что быстро попробую.{w=0.3}.{w=0.3}.{w=0.3}{nw}")
 
                         store.mas_ptod.rst_cn()
                         local_ctx = {
@@ -3449,7 +3473,7 @@ init python:
                             )
 
                             renpy.show("monika 3hua", at_list=[t11])
-                            renpy.say(m, "Yay! We should be able to play now~")
+                            renpy.say(m, "Ура! Теперь мы сможем поиграть~")
                             renpy.show("monika", at_list=[t21])
                             return stockfish_proc
 
@@ -3516,7 +3540,7 @@ init python:
             # inital check for buttons
             elif self.is_player_turn():
                 if self._button_save.event(ev, x, y, st):
-                    wants_save = renpy.call_in_new_context("mas_chess_confirm_context", prompt=_("You'd like to continue later?"))
+                    wants_save = renpy.call_in_new_context("mas_chess_confirm_context", prompt=_("Хочешь продолжить позже?"))
                     if wants_save:
                         #User wants to save this game
                         self.quit_game = True
@@ -3531,7 +3555,7 @@ init python:
                     return self.undo_move()
 
                 elif self._button_giveup.event(ev, x, y, st):
-                    wants_quit = renpy.call_in_new_context("mas_chess_confirm_context", prompt=_("Are you sure you want to give up?"))
+                    wants_quit = renpy.call_in_new_context("mas_chess_confirm_context", prompt=_("Ты точно хочешь сдаться?"))
                     if wants_quit:
                         #User wishes to surrender
                         self.quit_game = True
