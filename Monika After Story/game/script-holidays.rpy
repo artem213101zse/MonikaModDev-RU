@@ -1185,6 +1185,45 @@ label greeting_o31_hatana_2b:
     call greeting_o31_cleanup
     return
 
+init 5 python:
+    addEvent(
+        Event(
+            persistent.greeting_database,
+            eventlabel="greeting_o31_hatana_2b",
+            category=[store.mas_greetings.TYPE_HOL_O31]
+        ),
+        code="GRE"
+    )
+
+label greeting_o31_hatana_tracen_uniform:
+    scene black
+    pause 2.0
+    
+    m "Okay, I think everything's in place."
+    m "All lined up at the starting gate...{w=0.3}and ready to run!"
+    window hide
+
+    # sfx is about 2.18s
+    play sound "mod_assets/sfx/gate_open.ogg"
+    show white zorder 200 with Dissolve(0.5) 
+    pause 0.75
+
+    call spaceroom(dissolve_all=True)
+    hide white with Dissolve(1.0) # slower fade out for effect
+
+    window auto
+    m 2hubla "Ahaha~ What do you think, [player]?"
+    m "I think the ears are the perfect addition, don't you?"
+    m 1hua "Now that I have it on, it actually does sort of make me want to go for a jog. Ehehe~"
+    m 1kua "Can you imagine me zooming around the course, [mas_get_player_nickname()]?"
+    m 1hksdlb "Ahaha! I'm definitely letting myself get carried away now."
+
+    $ store.mas_sprites_hatana._unlock_all()
+    call greeting_o31_deco
+    call greeting_o31_cleanup
+    return
+        
+
 label greeting_o31_deco:
     m 1eua "Anyway..."
     m 3eua "Do you like what I've done with the room?"
@@ -1374,7 +1413,7 @@ init 5 python:
         Event(
             persistent.farewell_database,
             eventlabel="bye_trick_or_treat",
-            prompt="I'm going to take you trick or treating.",
+            prompt="· Возьму тебя собирать сладости.",
             pool=True,
             unlocked=False,
             action=EV_ACT_UNLOCK,
@@ -2876,8 +2915,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="mas_d25_monika_carolling",
-            category=["holidays", "music"],
-            prompt="Carolling",
+            category=["праздники", "музыка"],
+            prompt="· Колядки",
             conditional="persistent._mas_d25_in_d25_mode",
             start_date=mas_d25c_start,
             end_date=mas_d25p,
@@ -2936,8 +2975,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="mas_d25_monika_mistletoe",
-            category=["holidays"],
-            prompt="Mistletoe",
+            category=["праздники"],
+            prompt="· Омела",
             conditional="persistent._mas_d25_in_d25_mode",
             start_date=mas_d25c_start,
             end_date=mas_d25p,
@@ -2979,8 +3018,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="mas_d25_monika_christmaslights",
-            category=['holidays'],
-            prompt="Christmas Lights",
+            category=['праздники'],
+            prompt="· Рождественские огни",
             start_date=mas_d25c_start,
             end_date=mas_nye,
             conditional=(
@@ -3048,7 +3087,7 @@ init 20 python:
     mas_poem_d25_1 = MASPoem(
         poem_id="poem_d25_1",
         category="d25",
-        prompt="The Joy to my World",
+        prompt="· Радость моего мира",
         title = "     My dearest [player],",
         text = """\
      You truly are the joy to my world.
@@ -3071,7 +3110,7 @@ init 20 python:
     mas_poem_d25_2 = MASPoem(
         poem_id="poem_d25_2",
         category="d25",
-        prompt="Incomparable",
+        prompt="· Несравненная",
         title="     My dearest [player],",
         text="""\
      Nothing can compare to the warmth you give me.
@@ -3096,7 +3135,7 @@ init 20 python:
     mas_poem_d25_3 = MASPoem(
         poem_id="poem_d25_3",
         category="d25",
-        prompt="Someday",
+        prompt="· Когда-нибудь",
         title="     My dearest [player],",
         text="""\
      Warmer than the fire in the hearth,
@@ -3119,7 +3158,7 @@ init 20 python:
     mas_poem_d25_4 = MASPoem(
         poem_id="poem_d25_4",
         category="d25",
-        prompt="This Christmas",
+        prompt="· Это Рождество",
         title="     My dearest [player],",
         text="""\
 
@@ -4849,8 +4888,8 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="mas_d25_monika_d25_mode_exit",
-            category=['holidays'],
-            prompt="Can you take down the holiday decorations?",
+            category=['праздники'],
+            prompt="· Уберёшь праздничные украшения?",
             conditional="persistent._mas_d25_deco_active",
             start_date=mas_nyd+datetime.timedelta(days=1),
             end_date=mas_d25c_end,
@@ -5742,7 +5781,7 @@ init 5 python:
             persistent.farewell_database,
             eventlabel="bye_player_bday",
             unlocked=False,
-            prompt="Let's go out for my birthday!",
+            prompt="· Пойдём погуляем в мой день рождения!",
             pool=True,
             rules={"no_unlock": None},
             aff_range=(mas_aff.NORMAL,None),
@@ -5925,7 +5964,7 @@ init 20 python:
     mas_poem_pbday_1 = MASPoem(
         poem_id = "poem_pbday_1",
         category = "pbday",
-        prompt = "The One",
+        prompt = "· Единственный",
         title = " My dearest [player],",
         text = """\
  To the one I love,
@@ -5945,7 +5984,7 @@ init 20 python:
     mas_poem_pbday_2 = MASPoem(
         poem_id = "poem_pbday_2",
         category = "pbday",
-        prompt = "Your Day",
+        prompt = "· Твой день",
         title = " My dearest [player],",
         text = """\
  Any day with you is a happy day.
@@ -5969,7 +6008,7 @@ init 20 python:
     mas_poem_pbday_3 = MASPoem(
         poem_id = "poem_pbday_3",
         category = "pbday",
-        prompt = "One Wish",
+        prompt = "· Одно желание",
         title = " My dearest [player],",
         text = """\
  Sprinkles and candles for my [player]’s cake,
@@ -5993,7 +6032,7 @@ init 20 python:
     mas_poem_pbday_4 = MASPoem(
         poem_id = "poem_pbday_4",
         category = "pbday",
-        prompt = "My [player]",
+        prompt = "· Мой [player]",
         title = " My [player],",
         text = """\
  How our love has grown.
@@ -6027,7 +6066,7 @@ init 20 python:
     mas_poem_pbday_5 = MASPoem(
         poem_id = "poem_pbday_5",
         category = "pbday",
-        prompt = "Birthdays",
+        prompt = "· Дни рождения",
         title = " My dearest [player],",
         text = """\
  Some birthdays are wonderful, chock-full of fun
@@ -6437,7 +6476,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='mas_f14_monika_vday_colors',
-            prompt="Valentine's Day colors",
+            prompt="· Цвета Дня святого Валентина",
             category=['праздники','романтика'],
             action=EV_ACT_RANDOM,
             conditional="persistent._mas_f14_in_f14_mode",
@@ -6482,7 +6521,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='mas_f14_monika_vday_cliches',
-            prompt="Valentine's story clichés",
+            prompt="· Клише валентинок",
             category=['праздники','литература','романтика'],
             action=EV_ACT_RANDOM,
             conditional="persistent._mas_f14_in_f14_mode",
@@ -6520,7 +6559,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='mas_f14_monika_vday_chocolates',
-            prompt="Valentine's Day chocolates",
+            prompt="· Шоколад на Валентинов день",
             category=['праздники','романтика'],
             action=EV_ACT_RANDOM,
             conditional="persistent._mas_f14_in_f14_mode",
@@ -6557,7 +6596,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel='mas_f14_monika_vday_origins',
-            prompt="How did Valentine's Day start?",
+            prompt="· Откуда взялся День святого Валентина?",
             category=['праздники','романтика'],
             pool=True,
             conditional="persistent._mas_f14_in_f14_mode",
@@ -6608,7 +6647,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="mas_f14_happy_vday",
-            prompt="Happy Valentine's Day!",
+            prompt="· С Днём святого Валентина!",
             action=EV_ACT_UNLOCK,
             pool=False,
             start_date=mas_f14,
@@ -6833,7 +6872,7 @@ init 5 python:
         Event(
             persistent._mas_apology_database,
             eventlabel="mas_apology_missed_vday",
-            prompt="...for missing Valentine's Day.",
+            prompt="· ...за пропущенный День святого Валентина.",
             unlocked=False
         ),
         code="APL"
@@ -6883,7 +6922,7 @@ init 20 python:
     mas_poem_vday_1 = MASPoem(
         poem_id="poem_f14_1",
         category="f14",
-        prompt="Found",
+        prompt="· Нашёл",
         title=" My dearest [player],",
         text="""\
  I{i}'{/i}ve always loved Valentine's Day, but this one feels different.
@@ -6902,7 +6941,7 @@ init 20 python:
     mas_poem_vday_2 = MASPoem(
         poem_id="poem_f14_2",
         category="f14",
-        prompt="Everything",
+        prompt="· Всё",
         title=" My dearest [player],",
         text="""\
  Can it really be our second Valentine's Day?
@@ -6938,7 +6977,7 @@ init 20 python:
     mas_poem_vday_3 = MASPoem(
         poem_id="poem_f14_3",
         category="f14",
-        prompt="You",
+        prompt="· Ты",
         title=" My dearest [player],",
         text="""\
  Boxes of chocolates and hearts; cards colored ruby red.
@@ -6959,7 +6998,7 @@ init 20 python:
     mas_poem_vday_4 = MASPoem(
         poem_id="poem_f14_4",
         category="f14",
-        prompt="Roses",
+        prompt="· Розы",
         title=" My dearest [player],",
         text="""\
  All the roses in the world,
@@ -6986,7 +7025,7 @@ init 20 python:
     mas_poem_vday_5 = MASPoem(
         poem_id="poem_f14_5",
         category="f14",
-        prompt="Sweetest",
+        prompt="· Самая сладкая",
         title=" My dearest [player],",
         text="""\
  Chocolate covered cherries and a goodnight kiss;
@@ -7006,7 +7045,7 @@ init 20 python:
     mas_poem_vday_6 = MASPoem(
         poem_id="poem_f14_6",
         category="f14",
-        prompt="Forget-me-not",
+        prompt="· Незабудка",
         title=" My dearest [player],",
         text="""\
  All the flowers know are their vase.
@@ -7469,7 +7508,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="mas_bday_pool_happy_bday",
-            prompt="Happy birthday!",
+            prompt="· С днём рождения!",
             action=EV_ACT_UNLOCK,
             rules={"no_unlock": None},
             start_date=mas_monika_birthday,
@@ -7532,7 +7571,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="mas_bday_pool_happy_belated_bday",
-            prompt="Happy belated birthday!",
+            prompt="· С прошедшим днём рождения!",
             action=EV_ACT_UNLOCK,
             rules={"no_unlock": None},
             years=[]
@@ -7993,7 +8032,7 @@ init 5 python:
         Event(
             persistent._mas_apology_database,
             eventlabel="mas_apology_missed_bday",
-            prompt="...for missing your birthday.",
+            prompt="· ...что меня не было в твой день рождения.",
             unlocked=False
         ),
         code="APL"
@@ -8019,7 +8058,7 @@ init 5 python:
         Event(
             persistent._mas_apology_database,
             eventlabel="mas_apology_forgot_bday",
-            prompt="...for forgetting your birthday.",
+            prompt="· ...за забытый день рождения.",
             unlocked=False
         ),
         code="APL"

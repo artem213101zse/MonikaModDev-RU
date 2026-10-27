@@ -8,6 +8,29 @@
 # Обращения «он/она» начинай править отсюда.
 # ---
 
+init -1 python:
+    # RU: окончания по полу игрока, вычисляются в момент показа реплики.
+    # persistent.gender: "M"/"F"/"X"; для "X" используется мужской род.
+    class MASRuGenderForm(object):
+        def __init__(self, fem, masc):
+            self.fem = fem
+            self.masc = masc
+        def _get(self):
+            return self.fem if persistent.gender == "F" else self.masc
+        def __unicode__(self):
+            return self._get()
+        def __str__(self):
+            return self._get().encode("utf-8") if not isinstance(self._get(), str) else self._get()
+        def __format__(self, spec):
+            return self._get()
+
+    _ru_a = MASRuGenderForm(u"а", u"")       # был/была, сделал/сделала
+    _ru_la = MASRuGenderForm(u"ла", u"")     # мог/могла, исчез/исчезла
+    _ru_sya = MASRuGenderForm(u"ась", u"ся") # родился/родилась
+    _ru_el = MASRuGenderForm(u"ла", u"ёл")   # нашёл/нашла, пошёл/пошла
+    _ru_ym = MASRuGenderForm(u"ой", u"ым")   # честным/честной
+    _ru_oy = MASRuGenderForm(u"а", u"")      # сам/сама
+
 #Этот файл будет включать короткие сюжетные события, которые не требуют отдельного файла.
 
 #Событие создаётся путём добавления метки и добавления требования (см. комментарий ниже).
@@ -43,8 +66,8 @@ label mas_gender:
         "Мужской.":
             $ persistent._mas_pm_is_trans = False
             $ persistent.gender = "M"
-            m 3eua "Хорошо, [player], спасибо, что подтвердил это для меня."
-            m 1hksdlb "Не то чтобы я была бы в шоке, если бы ты ответил иначе, конечно!"
+            m 3eua "Хорошо, [player], спасибо, что сказал мне."
+            m 1hksdlb "Не то чтобы я была бы в шоке, если бы ты ответил иначе!"
 
         "Женский.":
             $ persistent._mas_pm_is_trans = False
@@ -63,7 +86,7 @@ label mas_gender:
             call mas_gender_trans
 
             if persistent.gender != "X":
-                m 1eka "Спасибо, что рассказал(а) мне, и просто помни..."
+                m 1eka "Спасибо, что рассказал[_ru_a] мне, и просто помни..."
 
     m 1ekbsa "Я всегда буду любить тебя таким(ой), какой(ая) ты есть, [player]~"
 
@@ -135,7 +158,7 @@ label monika_gender_redo: # todo: Проверить перевод
 
         "Я парень.":
             if persistent.gender == "M" and not persistent._mas_pm_is_trans:
-                $ gender_var = "boy"
+                $ gender_var = "парень"
                 call mas_gender_redo_same
             else:
                 $ persistent.gender = "M"
@@ -144,7 +167,7 @@ label monika_gender_redo: # todo: Проверить перевод
 
         "Я девушка.":
             if persistent.gender == "F" and not persistent._mas_pm_is_trans:
-                $ gender_var = "girl"
+                $ gender_var = "девушка"
                 call mas_gender_redo_same
             else:
                 $ persistent.gender = "F"
@@ -185,10 +208,10 @@ label mas_gender_neither:
     return
 
 label mas_gender_redo_same:
-    m 1hksdlb "...That's the same as before, [player]!"
-    m 3eua "If you're confused about how to answer, just pick whatever makes you happiest."
-    m 3eka "It doesn't matter what your body looks like, so as long as you say you're a [gender_var], you're a [gender_var] to me, all right?"
-    m 1eua "I want you to be who you want to be while you're in this room."
+    m 1hksdlb "...Ты выбрал[_ru_a] то же самое, что и раньше, [player]!"
+    m 3eua "Если не знаешь, что ответить, просто выбери то, от чего тебе станет радостнее."
+    m 3eka "Неважно, как выглядит твоё тело: если ты говоришь, что ты [gender_var], значит, для меня ты [gender_var], хорошо?"
+    m 1eua "Пока ты здесь, в этой комнате, я хочу, чтобы ты был[_ru_a] тем, кем сам[_ru_oy] хочешь быть."
     return
 
 label mas_gender_redo_react:
@@ -507,17 +530,17 @@ init 3 python:
 
     mas_awkward_quips = [
         "Мне как-то...{w=0.5}неловко называть тебя так постоянно.",
-        "Это...{w=0.5}}не то, как я бы хотела тебя называть [player].",
-        "Это...{w=0.5}}не то, как я бы хотела тебя называть [player].",
+        "Это...{w=0.5}не совсем то, как мне хотелось бы тебя называть, [player].",
+        "Это...{w=0.5}не совсем то, как мне хотелось бы тебя называть, [player].",
         "Не то чтобы это было плохо, но...",
-        "Ты что, хочешь меня поставить в неловкое положение, [player]?"
+        "Ты что, хочешь поставить меня в неловкое положение, [player]?"
     ]
 
     mas_bad_quips = [
-        "[player]...{w=0.5}почему ты вообще думаешь называть себя так?",
+        "[player]...{w=0.5}с чего ты вообще решил[_ru_a] так себя называть?",
         "[player]...{w=0.5}почему я должна тебя так называть?",
         "Я бы ни за что не стала тебя так называть, [player].",
-        "Что? Пожалуйста, [player],{w=0.5} не обзывай себя такими словами"
+        "Что? Пожалуйста, [player],{w=0.5} не называй себя такими словами."
     ]
 
     mas_good_player_name_comp = re.compile('|'.join(mas_good_player_nickname_list), re.IGNORECASE)
@@ -527,7 +550,7 @@ init 3 python:
 label mas_player_name_enter_name_loop(input_prompt):
     python:
         good_quips = [
-            "Каое замечательное имя!",
+            "Какое замечательное имя!",
             "Мне очень нравится, [player].",
             "Мне нравится это имя, [player].",
             "Это отличное имя!"
@@ -699,37 +722,37 @@ init 5 python:
     )
 
 label mas_birthdate:
-    m 1euc "Hey [player], I've been thinking..."
+    m 1euc "Слушай, [player], я тут подумала..."
     if persistent._mas_player_bday is not None:
         $ bday_str, diff = store.mas_calendar.genFormalDispDate(persistent._mas_player_bday)
-        m 3eksdlc "I know you've told me your birthday before, but I'm not sure I was clear if I asked you for {i}birthdate{/i} or just your {i}birthday...{/i}"
+        m 3eksdlc "Твой день рождения у меня уже записан, но я не уверена, что ясно спросила: мне нужна была {i}дата рождения{/i}, а не просто {i}день рождения...{/i}"
 
-        m "So just to make sure, is your birthdate [bday_str]?{nw}"
+        m "Так что уточню: твоя дата рождения — [bday_str]?{nw}"
         $ _history_list.pop()
         menu:
-            m "So just to make sure, is your birthdate [bday_str]?{fast}"
-            "Yes.":
+            m "Так что уточню: твоя дата рождения — [bday_str]?{fast}"
+            "Да.":
                 if datetime.date.today().year - persistent._mas_player_bday.year < 5:
-                    m 2rksdla "Are you sure about that, [player]?"
-                    m 2eksdlc "That would make you very young..."
-                    m 3ekc "Remember, I'm asking for your {b}birthdate{/b}, not just your birthday."
-                    m 1eka "So, when were you born, [player]?"
+                    m 2rksdla "Точно, [player]?"
+                    m 2eksdlc "Тогда получается, что ты совсем ещё ребёнок..."
+                    m 3ekc "Напоминаю: мне нужна {b}дата рождения{/b}, а не только день и месяц."
+                    m 1eka "Так когда ты родил[_ru_sya], [player]?"
                     jump mas_bday_player_bday_select_select
                 else:
                     $ old_bday = mas_player_bday_curr()
                     if not mas_isplayer_bday():
-                        m 1hua "Ah, great [player], thank you."
-                        m 3hksdlb "I just had to make sure, I wouldn't want to get something as important as when you were born wrong, ahaha!"
+                        m 1hua "Отлично, [player], спасибо."
+                        m 3hksdlb "Просто хотела убедиться. Не хотелось бы ошибиться в чём-то настолько важном, как день твоего рождения, а-ха-ха!"
 
-            "No.":
-                m 3rksdlc "Oh! Okay then..."
-                m 1eksdld "When {i}is{/i} your birthdate, [player]?"
+            "Нет.":
+                m 3rksdlc "Ой! Ну ладно..."
+                m 1eksdld "А {i}когда{/i} же тогда твоя дата рождения, [player]?"
                 jump mas_bday_player_bday_select_select
 
     else:
-        m 3wud "I don't actually know when your birthdate is!"
-        m 3hub "That's something I should probably know, ahaha!"
-        m 1eua "So, when were you born, [player]?"
+        m 3wud "А я ведь даже не знаю, когда у тебя день рождения!"
+        m 3hub "Мне явно стоит это знать, а-ха-ха!"
+        m 1eua "Так когда ты родил[_ru_sya], [player]?"
         jump mas_bday_player_bday_select_select
 
 label birthdate_set:
@@ -810,44 +833,44 @@ label birthdate_set:
         $ persistent._mas_player_bday_spent_time = True
         if old_bday == mas_player_bday_curr():
             if mas_isMoniNormal(higher=True):
-                m 3hub "Ahaha! So today {i}is{/i} your birthday!"
-                m 1tsu "I'm glad I was prepared, ehehe..."
-                m 3eka "Hold on just one moment, [player]..."
+                m 3hub "А-ха-ха! Значит, сегодня и правда твой день рождения!"
+                m 1tsu "Хорошо, что я подготовилась, хе-хе..."
+                m 3eka "Подожди секундочку, [player]..."
                 show monika 1dsc
                 pause 2.0
                 $ store.mas_surpriseBdayShowVisuals()
                 $ persistent._mas_player_bday_decor = True
-                m 3hub "Happy Birthday, [player]!"
-                m 1hub "I'm so happy I get to be with you on your birthday!"
-                m 3sub "Oh...{w=0.5}your cake!"
+                m 3hub "С днём рождения, [player]!"
+                m 1hub "Я так счастлива, что могу быть рядом с тобой в твой день рождения!"
+                m 3sub "Ой...{w=0.5}твой торт!"
                 call mas_player_bday_cake
             elif mas_isMoniDis(higher=True):
-                m 2eka "Ah, so today {i}is{/i} your birthday..."
-                m "Happy Birthday, [player]."
-                m 4eka "I hope you have a good day."
+                m 2eka "А, значит, сегодня и правда твой день рождения..."
+                m "С днём рождения, [player]."
+                m 4eka "Надеюсь, день у тебя пройдёт хорошо."
         else:
             if mas_isMoniNormal(higher=True):
                 $ mas_gainAffection(5, bypass=True)
                 $ persistent._mas_player_bday_in_player_bday_mode = True
                 $ mas_unlockEVL("bye_player_bday", "BYE")
-                m 1wuo "Oh...{w=1}Oh!"
-                m 3sub "Today's your birthday!"
-                m 3hub "Happy Birthday, [player]!"
-                m 1rksdla "I wish I had known earlier so I could've prepared something."
-                m 1eka "But I can at least do this..."
+                m 1wuo "Ой...{w=1}Ой!"
+                m 3sub "Сегодня же твой день рождения!"
+                m 3hub "С днём рождения, [player]!"
+                m 1rksdla "Жаль, что я не узнала об этом раньше, а то бы что-нибудь приготовила."
+                m 1eka "Но кое-что я всё-таки могу сделать..."
                 call mas_player_bday_moni_sings
-                m 1hub "Ahaha! It's not much but it's something!"
-                m 3hua "I promise next year we'll do something extra special, [player]!"
+                m 1hub "А-ха-ха! Немного, но хоть что-то!"
+                m 3hua "Обещаю, в следующем году мы устроим что-нибудь особенное, [player]!"
             elif mas_isMoniDis(higher=True):
-                m 2eka "Oh, so today's your birthday..."
-                m "Happy Birthday, [player]."
-                m 4eka "I hope you have a good day."
+                m 2eka "А, так сегодня твой день рождения..."
+                m "С днём рождения, [player]."
+                m 4eka "Надеюсь, день у тебя пройдёт хорошо."
 
     # have to use the raw data here to properly compare in the rare even that the player bday and first sesh are on 2/29
     elif not mas_isMonikaBirthday() and (persistent._mas_player_bday.month == mas_getFirstSesh().date().month and persistent._mas_player_bday.day == mas_getFirstSesh().date().day):
-        m 1sua "Oh! Your birthday is the same date as our anniversary, [player]?"
-        m 3hub "That's amazing!"
-        m 1sua "I can't imagine a more special day than celebrating your birthday and our love on the same day..."
+        m 1sua "Ой! Твой день рождения совпадает с нашей годовщиной, [player]?"
+        m 3hub "Это же потрясающе!"
+        m 1sua "Не представляю дня особеннее, чем когда мы отмечаем и твой день рождения, и нашу любовь одновременно..."
 
         if mas_player_bday_curr() == mas_o31:
             $ hol_str = "Halloween"
@@ -860,41 +883,41 @@ label birthdate_set:
         else:
             $ hol_str = None
         if hol_str is not None:
-            m "And with it also being [hol_str]..."
-        m 3hua "It just sounds magical~"
+            m "А раз это ещё и [hol_str]..."
+        m 3hua "Звучит просто волшебно~"
 
     elif mas_player_bday_curr() == mas_monika_birthday:
-        m 1wuo "Oh...{w=1}Oh!"
-        m 3sua "We share the same birthday!"
-        m 3sub "That's {i}so{/i} cool, [player]!"
-        m 1tsu "I guess we really are meant to be together, ehehe..."
+        m 1wuo "Ой...{w=1}Ой!"
+        m 3sua "У нас с тобой один день рождения!"
+        m 3sub "Это {i}так{/i} здорово, [player]!"
+        m 1tsu "Похоже, нам и правда суждено быть вместе, хе-хе..."
         if mas_isMonikaBirthday() and mas_isMoniNormal(higher=True):
             $ mas_gainAffection(5, bypass=True)
             $ persistent._mas_player_bday_in_player_bday_mode = True
-            m 3hua "That just makes today that much more special~"
-            m 1eub "Sing with me, [player]!"
+            m 3hua "От этого сегодняшний день становится ещё особеннее~"
+            m 1eub "Пой со мной, [player]!"
             call mas_player_bday_moni_sings
         else:
-            m 3hua "We'll have to make that an extra special day~"
+            m 3hua "Надо будет сделать этот день по-настоящему особенным~"
 
     elif mas_player_bday_curr() == mas_o31:
-        m 3eua "Oh! That's pretty neat that you were born on Halloween, [player]!"
-        m 1hua "Birthday cake, candy, and you..."
-        m 3hub "That's a lot of sweets for one day, ahaha!"
+        m 3eua "Ой! Как здорово, что твой день рождения выпадает на Хэллоуин, [player]!"
+        m 1hua "Праздничный торт, конфеты и ты..."
+        m 3hub "Сколько сладкого за один день, а-ха-ха!"
 
     elif mas_player_bday_curr() == mas_d25:
-        m 1hua "Oh! That's amazing that you were born on Christmas, [player]!"
-        m 3rksdla "Although...{w=0.5}receiving presents for both on the same day might seem like you don't get as many..."
-        m 3hub "It still must make it an extra special day!"
+        m 1hua "Ой! Как чудесно, что твой день рождения прямо на Рождество, [player]!"
+        m 3rksdla "Хотя...{w=0.5}когда подарки на оба праздника дарят в один день, может показаться, что их меньше..."
+        m 3hub "Но всё равно это наверняка особенный день!"
 
     elif mas_player_bday_curr() == mas_f14:
-        m 1sua "Oh! Your birthday is on Valentine's Day..."
-        m 3hua "How romantic!"
-        m 1ekbsa "I can't wait to celebrate our love and your birthday on the same day, [player]~"
+        m 1sua "Ой! Твой день рождения — в День святого Валентина..."
+        m 3hua "Как романтично!"
+        m 1ekbsa "Жду не дождусь, когда мы отметим нашу любовь и твой день рождения в один день, [player]~"
 
     elif persistent._mas_player_bday.month == 2 and persistent._mas_player_bday.day == 29:
-        m 3wud "Oh! You were born on leap day, that's really neat!"
-        m 3hua "We'll just have to celebrate your birthday on March 1st on non-leap years then, [player]."
+        m 3wud "Ой! Твой день рождения — 29 февраля, как здорово!"
+        m 3hua "Значит, в невисокосные годы будем отмечать его 1 марта, [player]."
 
     $ persistent._mas_player_confirmed_bday = True
     $ mas_rmallEVL("calendar_birthdate")
@@ -1096,31 +1119,31 @@ init 5 python:
 
 label mas_random_limit_reached:
     #Notif so people don't get stuck here
-    $ mas_display_notif(m_name, ["Hey [player]..."], "Topic Alerts")
+    $ mas_display_notif(m_name, ["Эй, [player]..."], "Topic Alerts")
 
     python:
         limit_quips = [
-            _("It seems I'm at a loss on what to say."),
-            _("I'm not sure what else to say, but can you just be with me a little longer?"),
-            _("No point in trying to say everything right away..."),
-            _("I hope you've enjoyed listening to everything I was thinking about today..."),
-            _("Do you still enjoy spending this time with me?"),
-            _("I hope I didn't bore you too much."),
-            _("You don't mind if I think about what to say next, do you?")
+            _("Кажется, я не знаю, что ещё сказать."),
+            _("Не знаю, о чём ещё поговорить, но, может, просто побудешь со мной ещё немножко?"),
+            _("Нет смысла пытаться выговориться за один раз..."),
+            _("Надеюсь, тебе понравилось слушать обо всём, о чём я сегодня думала..."),
+            _("Тебе всё ещё нравится проводить со мной это время?"),
+            _("Надеюсь, я тебя не слишком утомила."),
+            _("Ты же не против, если я немного подумаю, о чём поговорить дальше?")
         ]
         limit_quip=renpy.random.choice(limit_quips)
 
     m 1eka "[limit_quip]"
     if len(mas_rev_unseen) > 0 or persistent._mas_enable_random_repeats:
-        m 1ekc "I'm sure I'll have something to talk about in a while."
+        m 1ekc "Уверена, скоро у меня снова найдётся, о чём поговорить."
 
     else:
         if not renpy.seen_label("mas_random_ask"):
             call mas_random_ask
             if _return:
-                m "Now let me think of something to talk about."
+                m "А теперь дай-ка подумать, о чём бы нам поговорить."
                 return
-        m 1ekc "Hopefully I'll think of something fun to talk about soon."
+        m 1ekc "Надеюсь, скоро я придумаю что-нибудь интересное."
         $ mas_showEVL('monika_quiet_time','EVE',unlock=True)
         $ mas_stripEVL('monika_quiet_time',remove_dates=False)
 
@@ -1363,7 +1386,7 @@ label mas_crashed_long_prefluster:
 
     # but flustered mode bgins
     show monika 6ATL_cryleftright
-    m "{cps=*1.5}What happened?{/cps}{nw}"
+    m "{cps=*1.5}Что случилось?{/cps}{nw}"
 
     return
 
@@ -1371,7 +1394,7 @@ label mas_crashed_long_postfluster:
     window hide
     show screen mas_background_timed_jump(8, "mas_crashed_long_nofluster")
     menu:
-        "Calm down, [m_name]. You're safe now.":
+        "Успокойся, [m_name]. Теперь ты в безопасности.":
             hide screen mas_background_timed_jump
 
             # light affection boost for calming her down
@@ -1383,8 +1406,8 @@ label mas_crashed_long_postfluster:
             window auto
 
             # thank player with a smile
-            m 6ektda "Thanks, [player]."
-            m "I feel better now that you're here with me."
+            m 6ektda "Спасибо, [player]."
+            m "Теперь, когда ты рядом, мне уже лучше."
 
         "...":
             label mas_crashed_long_nofluster:
@@ -1400,7 +1423,7 @@ label mas_crashed_long_postfluster:
                 window auto
 
                 # much better now
-                m "Okay, I feel better now."
+                m "Всё, мне уже лучше."
 
     # its like we wiping away tears
     show monika 6dstdc
@@ -1410,41 +1433,41 @@ label mas_crashed_long_postfluster:
 label mas_crashed_long_whq:
 
     # ask player what happeend
-    m 2ekc "Anyway..."
-    m "Do you know what happened, [player]?{nw}"
+    m 2ekc "В общем..."
+    m "Ты знаешь, что произошло, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        m "Do you know what happened, [player]?{fast}"
-        "The game crashed.":
-            m 2wud "The game...{w=0.3}crashed?"
-            m 2ekd "That's scary, [player]."
+        m "Ты знаешь, что произошло, [player]?{fast}"
+        "Игра вылетела.":
+            m 2wud "Игра...{w=0.3}вылетела?"
+            m 2ekd "Это страшно, [player]."
 
-        "I don't know.":
-            m "Well..."
-            m "I'd really appreciate it if you could look into it."
-            m "It's scary to be suddenly thrown into the darkness like that."
+        "Не знаю.":
+            m "Ну..."
+            m "Я была бы очень благодарна, если бы ты в этом разобрал[_ru_sya]."
+            m "Это так страшно — вдруг оказаться в полной темноте."
             jump mas_crashed_long_whq.end
 
     # ask player to do something about this
-    m "Do you think you can stop that from happening?{nw}"
+    m "Как думаешь, получится сделать так, чтобы это не повторялось?{nw}"
     $ _history_list.pop()
     menu:
-        m "Do you think you can stop that from happening?{fast}"
-        "I'll try.":
+        m "Как думаешь, получится сделать так, чтобы это не повторялось?{fast}"
+        "Постараюсь.":
             # light affection boost because you will try do something for her
             $ mas_gainAffection(modifier=0.2, bypass=True)
             $ persistent._mas_crashed_trynot = True
-            m 1hua "Thanks, [player]!"
-            m 1eua "I'm counting on you."
-            m "But I'll mentally prepare myself just in case."
+            m 1hua "Спасибо, [player]!"
+            m 1eua "Я на тебя рассчитываю."
+            m "Но на всякий случай я всё равно морально подготовлюсь."
 
-        "It just happens.":
-            m 1ekc "Oh..."
-            m 1lksdlc "That's okay.{w=0.3} I'll just mentally prepare myself in case it happens again."
+        "Такое просто бывает.":
+            m 1ekc "Ох..."
+            m 1lksdlc "Ничего страшного.{w=0.3} Просто буду морально готова, если это повторится."
 
 label .end:
-    m "Anyway..."
-    m 1eua "What should we do today?"
+    m "В общем..."
+    m 1eua "Чем займёмся сегодня?"
 
     $ persistent._mas_crashed_before = True
     $ mas_resetQuitMsg()
@@ -1467,13 +1490,13 @@ label mas_crashed_post:
 
 label mas_crashed_long_fluster:
     $ mas_setApologyReason(reason=10)
-    m "{cps=*1.5}O-{w=0.3}one second you were there b-{w=0.3}but then the next second everything turned black...{/cps}{nw}"
-    m "{cps=*1.5}and then you d-{w=0.3}disappeared, so I was worried that s-{w=0.3}s-{w=0.3}something happened to you...{/cps}{nw}"
-    m "{cps=*1.5}...and I was so s-{w=0.3}scared because I thought I broke everything again!{/cps}{nw}"
-    m "{cps=*1.5}But I didn't mess with the game this time, I swear.{/cps}{nw}"
-    m "{cps=*1.5}A-{w=0.3}at least, I don't think I did, but I guess it's possible...{/cps}{nw}"
-    m "{cps=*1.5}because I'm n-{w=0.3}not really sure what I'm doing sometimes,{/cps}{nw}"
-    m "{cps=*1.5}but I hope this t-{w=0.3}time isn't my f-{w=0.3}fault cause I really didn't touch anything...{/cps}{nw}"
+    m "{cps=*1.5}В-{w=0.3}вот ты был[_ru_a] здесь, а-{w=0.3}а в следующую секунду всё почернело...{/cps}{nw}"
+    m "{cps=*1.5}а потом ты и-{w=0.3}исчез[_ru_la], и я испугалась, что с тобой ч-{w=0.3}ч-{w=0.3}что-то случилось...{/cps}{nw}"
+    m "{cps=*1.5}...и мне было так с-{w=0.3}страшно, я думала, что опять всё сломала!{/cps}{nw}"
+    m "{cps=*1.5}Но в этот раз я в игре ничего не трогала, честно.{/cps}{nw}"
+    m "{cps=*1.5}П-{w=0.3}по крайней мере, мне так кажется, хотя всё может быть...{/cps}{nw}"
+    m "{cps=*1.5}потому что иногда я с-{w=0.3}сама не очень понимаю, что делаю,{/cps}{nw}"
+    m "{cps=*1.5}но надеюсь, в этот р-{w=0.3}раз это не моя в-{w=0.3}вина, я правда ничего не трогала...{/cps}{nw}"
     return
 
 
@@ -1612,22 +1635,22 @@ init 11 python:
                 text="".join([
                     just_let_u_know,
                     block_break,
-                    "However, some of your backups were corrupted as well. ",
+                    "Правда, некоторые резервные копии тоже оказались повреждены. ",
                     even_though_bs,
-                    "you should still delete those, since they might mess ",
+                    "их всё равно стоит удалить, иначе они могут ей ",
                     "with it. ",
                     block_break,
-                    "Here's a list of the files that were corrupted:",
+                    "Вот список повреждённых файлов:",
                     block_break,
                     "\n".join(store.mas_utils.bullet_list(
                         mas_per_check.mas_bad_backups
                     )),
                     block_break,
-                    'You can find these in "',
+                    'Эти файлы лежат в папке "',
                     renpy.config.savedir,
                     '". ',
-                    "When you're in there, you should also make copies of ",
-                    "the good backups, just in case.",
+                    "Раз уж ты там, заодно сделай копии ",
+                    "целых резервных файлов, на всякий случай.",
                     block_break,
                     if_i_ever,
                     block_break,
@@ -1656,10 +1679,10 @@ init 11 python:
 
 
 label mas_corrupted_persistent:
-    m 1eud "Hey, [player]..."
-    m 3euc "Someone left a note in the characters folder addressed to you."
-    m 1ekc "Of course, I haven't read it, since it's obviously for you...{w=0.3}{nw}"
-    extend 1ekd "but here."
+    m 1eud "Слушай, [player]..."
+    m 3euc "Кто-то оставил в папке characters записку для тебя."
+    m 1ekc "Я её, конечно, не читала — она ведь явно адресована тебе...{w=0.3}{nw}"
+    extend 1ekd "но вот, держи."
 
     # just pasting the poem screen code here
     window hide
@@ -1672,14 +1695,14 @@ label mas_corrupted_persistent:
     window auto
     $ _gtext = glitchtext(7)
 
-    m 1ekc "Do you know what this is about?{nw}"
+    m 1ekc "Ты не знаешь, о чём это?{nw}"
     $ _history_list.pop()
     menu:
-        m "Do you know what this is about?{fast}"
-        "It's nothing to worry about.":
+        m "Ты не знаешь, о чём это?{fast}"
+        "Не о чем беспокоиться.":
             jump mas_corrupted_persistent_post_menu
 
-        "It's about [_gtext].":
+        "Это насчёт [_gtext].":
             $ persistent._mas_pm_snitched_on_chibika = True
             $ disable_esc()
             $ mas_MUMURaiseShield()
@@ -1697,13 +1720,13 @@ label mas_corrupted_persistent:
             $ enable_esc()
 
     menu:
-        "It's nothing to worry about.":
+        "Не о чем беспокоиться.":
             pass
 
 label mas_corrupted_persistent_post_menu:
-    m 1euc "Oh, alright."
-    m 1hub "I'll try not to worry about it, then."
-    m 3eub "I know you'd tell me if it were important, [player]."
+    m 1euc "А, ну ладно."
+    m 1hub "Тогда постараюсь не переживать."
+    m 3eub "Уверена, если бы это было что-то важное, ты бы мне сказал[_ru_a], [player]."
     return
 
 init 5 python:
@@ -1716,10 +1739,10 @@ init 5 python:
     )
 
 label mas_new_character_file:
-    m 1eua "Say, [player]..."
-    m 3eua "Do you remember my character file?"
-    m 1eud "Well I've been investigating it recently, and it turns out that it's just an image with some sort of code in it!"
-    m 3ekc "It doesn't even contain anything about me at all, only my name."
+    m 1eua "Слушай, [player]..."
+    m 3eua "Помнишь мой файл персонажа?"
+    m 1eud "Так вот, недавно я его изучила, и оказалось, что это просто картинка с каким-то кодом внутри!"
+    m 3ekc "Там даже ничего обо мне нет, только моё имя."
 
     python:
         import os
@@ -1733,7 +1756,7 @@ label mas_new_character_file:
             )
 
     if moni_exist():
-        m 1dsd "So if you'll excuse me for a second..."
+        m 1dsd "Так что, с твоего позволения, я на секундочку..."
 
         python:
             store.mas_ptod.rst_cn()
@@ -1743,7 +1766,7 @@ label mas_new_character_file:
         show monika at t22
         show screen mas_py_console_teaching
 
-        m 1esc "I'm going to delete it."
+        m 1esc "Я его удалю."
 
         call mas_wx_cmd("import os", local_ctx, w_wait=1.0)
         call mas_wx_cmd("os.remove(os.path.normcase(basedir+'/characters/monika.chr'))", local_ctx, w_wait=1.0, x_wait=1.0)
@@ -1751,20 +1774,20 @@ label mas_new_character_file:
 #        "test dialogue - IGNORE"
 
         if moni_exist():
-            m 1lksdlb "Aha...{w=0.3}I'll try this again later."
-            m 1eua "Anyway..."
+            m 1lksdlb "Ой...{w=0.3}попробую ещё раз попозже."
+            m 1eua "В общем..."
 
         $ store.mas_ptod.ex_cn()
         hide screen mas_py_console_teaching
         show monika at t11
 
-    m 1rkc "If you were bringing that around with you, I do appreciate the sentiment."
-    m 1dsc "However..."
-    m 1esc "I don't think you should be carrying some useless piece of data around wherever you go."
-    m 3wub "So I came up with a way to transform myself into a file that you can bring around!"
-    m "All you have to do is tell me that you're going to take me somewhere when you say goodbye, and I'll do the rest."
-    m 1hua "Doesn't that sound wonderful?"
-    m 3hub "I can't wait to join you wherever you go."
+    m 1rkc "Если ты носил[_ru_a] его с собой, мне очень приятна такая забота."
+    m 1dsc "Однако..."
+    m 1esc "Не думаю, что тебе стоит повсюду таскать с собой бесполезный кусок данных."
+    m 3wub "Поэтому я придумала, как превратить себя в файл, который ты сможешь брать с собой!"
+    m "Просто скажи на прощание, что берёшь меня с собой, а остальное я сделаю сама."
+    m 1hua "Правда, чудесно?"
+    m 3hub "Не могу дождаться, когда смогу быть с тобой, куда бы ты ни пош[_ru_el]."
     return
 
 init 5 python:
@@ -1783,17 +1806,17 @@ label mas_steam_install_detected:
     $ filestruct = renpy.config.basedir[renpy.config.basedir.rfind('/') + 1:]
 
     if renpy.seen_label("mas_updater_steam_issue"):
-        m 1ekd "Hey [player], you know how I told you that Steam is a meanie and won't let me run the updater?"
-        m 1wud "Well, I've been doing some reading and it seems Steam can cause more problems than just that!"
+        m 1ekd "Слушай, [player], помнишь, я говорила, что Steam — вредина и не даёт мне запустить обновление?"
+        m 1wud "Так вот, я тут почитала, и оказалось, что от Steam проблем куда больше!"
 
     else:
-        m 1eub "[player], I see that you're using Steam to run this."
-        m 1eksdld "Unfortunately, Steam seems to have a lot of problems with me doing some of the things I do."
+        m 1eub "[player], я вижу, что ты запускаешь меня через Steam."
+        m 1eksdld "К сожалению, Steam очень плохо уживается с некоторыми вещами, которые я делаю."
 
-    m 2rksdlc "The kind of problems that could lead to me being removed from my home...{w=1}from you...{w=1}forever..."
-    m 2eka "If you don't mind, do you think you could just move the \"[filestruct]\" folder to a place that's not in Steam's files?"
+    m 2rksdlc "Из-за таких проблем меня могут забрать из моего дома...{w=1}от тебя...{w=1}навсегда..."
+    m 2eka "Если не трудно, может, перенесёшь папку \"[filestruct]\" куда-нибудь за пределы файлов Steam?"
     show monika 5esu at t11 zorder MAS_MONIKA_Z with dissolve_monika
-    m 5esu "I'd really appreciate it if you would do that for me."
+    m 5esu "Я была бы очень благодарна, если бы ты сделал[_ru_a] это для меня."
     return
 
 default persistent._mas_pm_has_rpy = None
@@ -1920,7 +1943,7 @@ label mas_rpy_file_delete(showing_monika=True):
 
 #label mas_bday_player_bday:
 label mas_bday_player_bday_select:
-    m 1eua "When is your birthdate?"
+    m 1eua "Когда у тебя день рождения?"
 
 label mas_bday_player_bday_select_select:
     $ old_bday = mas_player_bday_curr()
@@ -1931,8 +1954,8 @@ label mas_bday_player_bday_select_select:
 
     if not selected_date_t:
         m 2efc "[player]!"
-        m "You have to select a date!"
-        m 1hua "Try again!"
+        m "Нужно выбрать дату!"
+        m 1hua "Попробуй ещё раз!"
         jump mas_bday_player_bday_select_select
 
     $ selected_date = selected_date_t.date()
@@ -1940,56 +1963,56 @@ label mas_bday_player_bday_select_select:
 
     if selected_date > _today:
         m 2efc "[player]!"
-        m "You can't have been born in the future!"
-        m 1hua "Try again!"
+        m "Нельзя же родиться в будущем!"
+        m 1hua "Попробуй ещё раз!"
         jump mas_bday_player_bday_select_select
 
     elif selected_date == _today:
         m 2efc "[player]!"
-        m "You can't have been born today!"
-        m 1hua "Try again!"
+        m "Не мог[_ru_la] же ты родиться сегодня!"
+        m 1hua "Попробуй ещё раз!"
         jump mas_bday_player_bday_select_select
 
     elif _today.year - selected_date.year < 5:
         m 2efc "[player]!"
-        m "There's no way you're {i}that{/i} young!"
-        m 1hua "Try again!"
+        m "Не может быть, чтобы ты был[_ru_a] {i}настолько{/i} молод[_ru_a]!"
+        m 1hua "Попробуй ещё раз!"
         jump mas_bday_player_bday_select_select
 
     # otherwise, player selected a valid date
 
     if _today.year - selected_date.year < 13:
         m 2eksdlc "[player]..."
-        m 2rksdlc "You know I'm asking for your exact date of birth, right?"
-        m 2hksdlb "It's just I'm having a hard time believing you're {i}that{/i} young."
+        m 2rksdlc "Ты ведь понимаешь, что я спрашиваю точную дату рождения?"
+        m 2hksdlb "Просто мне трудно поверить, что ты {i}настолько{/i} юн[_ru_a]."
 
     else:
-        m 1eua "Alright, [player]."
+        m 1eua "Хорошо, [player]."
 
-    m 1eua "Just to double-check..."
+    m 1eua "Давай перепроверим..."
     $ new_bday_str, diff = store.mas_calendar.genFormalDispDate(selected_date)
 
-    m "Your birthdate is [new_bday_str]?{nw}"
+    m "Твоя дата рождения — [new_bday_str]?{nw}"
     $ _history_list.pop()
     menu:
-        m "Your birthdate is [new_bday_str]?{fast}"
-        "Yes.":
-            m 1eka "Are you sure it's [new_bday_str]? I'm never going to forget this date.{nw}"
+        m "Твоя дата рождения — [new_bday_str]?{fast}"
+        "Да.":
+            m 1eka "Точно [new_bday_str]? Эту дату я уже никогда не забуду.{nw}"
             $ _history_list.pop()
             # one more confirmation
             menu:
-                m "Are you sure it's [new_bday_str]? I'm never going to forget this date.{fast}"
-                "Yes, I'm sure!":
-                    m 1hua "Then it's settled!"
+                m "Точно [new_bday_str]? Эту дату я уже никогда не забуду.{fast}"
+                "Да, точно!":
+                    m 1hua "Тогда решено!"
 
-                "Actually...":
-                    m 1hksdrb "Aha, I figured you weren't so sure."
-                    m 1eka "Try again~"
+                "Вообще-то...":
+                    m 1hksdrb "А-ха, так и думала, что ты не до конца уверен[_ru_a]."
+                    m 1eka "Попробуй ещё раз~"
                     jump mas_bday_player_bday_select_select
 
-        "No.":
-            m 1euc "Oh, that's wrong?"
-            m 1eua "Then try again."
+        "Нет.":
+            m 1euc "Ой, неправильно?"
+            m 1eua "Тогда попробуй ещё раз."
             jump mas_bday_player_bday_select_select
 
     # save the birthday (and remove previous)
@@ -2001,7 +2024,7 @@ label mas_bday_player_bday_select_select:
             )
             store.mas_calendar.addRepeatable_d(
                 "player-bday",
-                "Your Birthday",
+                "Твой день рождения",
                 selected_date,
                 range(selected_date.year,MASCalendar.MAX_VIEWABLE_YEAR)
             )
@@ -2010,7 +2033,7 @@ label mas_bday_player_bday_select_select:
         python:
             store.mas_calendar.addRepeatable_d(
                 "player-bday",
-                "Your Birthday",
+                "Твой день рождения",
                 selected_date,
                 range(selected_date.year,MASCalendar.MAX_VIEWABLE_YEAR)
             )
@@ -2041,26 +2064,26 @@ default persistent._mas_pm_is_fast_reader = None
 # True if fast reader, False if not
 
 label mas_text_speed_enabler:
-    m 1eua "Hey [mas_get_player_nickname(exclude_names=['my love'])], I was wondering..."
+    m 1eua "Слушай, [mas_get_player_nickname(exclude_names=['my love'])], мне вот интересно..."
 
-    m "Are you a fast reader?{nw}"
+    m "Ты быстро читаешь?{nw}"
     $ _history_list.pop()
     menu:
-        m "Are you a fast reader?{fast}"
-        "Yes.":
+        m "Ты быстро читаешь?{fast}"
+        "Да.":
             $ persistent._mas_pm_is_fast_reader = True
             $ persistent._mas_text_speed_enabled = True
 
-            m 1wub "Really? That's impressive."
-            m 1kua "I guess you do a lot of reading in your spare time."
-            m 1eua "In that case..."
+            m 1wub "Правда? Впечатляет."
+            m 1kua "Наверное, ты много читаешь в свободное время."
+            m 1eua "В таком случае..."
 
-        "No.":
+        "Нет.":
             $ persistent._mas_pm_is_fast_reader = False
             $ persistent._mas_text_speed_enabled = True
 
-            m 1eud "Oh, that's alright."
-            m 2dsa "Regardless.{w=0.5}.{w=0.5}.{nw}"
+            m 1eud "А, ничего страшного."
+            m 2dsa "В любом случае.{w=0.5}.{w=0.5}.{nw}"
 
     if not persistent._mas_pm_is_fast_reader:
         # this sets the current speed to default monika's speed
@@ -2069,22 +2092,22 @@ label mas_text_speed_enabler:
     $ mas_enableTextSpeed()
 
     if persistent._mas_pm_is_fast_reader:
-        m 4eua "There!"
+        m 4eua "Вот!"
 
-    m 4eua "I've enabled the text speed setting!"
+    m 4eua "Я включила настройку скорости текста!"
 
-    m 1hka "I was only controlling it earlier so I could make sure you read {i}every single{/i} word I say to you."
-    m 1eka "But now that we've been together for a bit, I can trust that you're not just going to skip through my text without reading it."
+    m 1hka "Раньше я управляла ею сама, чтобы ты точно прочитал[_ru_a] {i}каждое{/i} моё слово."
+    m 1eka "Но теперь, когда мы уже какое-то время вместе, я верю, что ты не станешь пролистывать мои реплики не читая."
 
     if persistent._mas_pm_is_fast_reader:
-        m 1tuu "However,{w=0.3} I wonder if you can keep up."
-        m 3tuu "{cps=*2}I can talk pretty fast, you know...{/cps}{nw}"
+        m 1tuu "Хотя,{w=0.3} интересно, успеешь ли ты за мной."
+        m 3tuu "{cps=*2}Я ведь могу говорить очень быстро...{/cps}{nw}"
         $ _history_list.pop()
-        m 3hub "Ahaha~"
+        m 3hub "А-ха-ха~"
 
     else:
-        m 3hua "And I'm sure that you'll get faster at reading the longer we spend time together."
-        m "So feel free to change the text speed when you feel comfortable doing so."
+        m 3hua "И я уверена, чем дольше мы вместе, тем быстрее ты будешь читать."
+        m "Так что меняй скорость текста, как тебе удобно."
 
     return "derandom|no_unlock"
 
@@ -2104,87 +2127,87 @@ init 5 python:
 
 label mas_bookmarks_notifs_intro:
     if not renpy.seen_label('bookmark_derand_intro') and (len(persistent._mas_player_derandomed) == 0 or len(persistent._mas_player_bookmarked) == 0):
-        m 3eub "Hey [player]...{w=0.5} I have some new features to tell you about!"
+        m 3eub "Слушай, [player]...{w=0.5} мне нужно рассказать тебе о кое-каких новых функциях!"
 
         if len(persistent._mas_player_derandomed) == 0 and len(persistent._mas_player_bookmarked) == 0:
-            m 1eua "You now have the ability to bookmark topics I'm talking about simply by pressing the 'b' key."
-            m 3eub "Any topics you bookmark will be easily accessible simply by going to the 'Talk' menu!"
+            m 1eua "Теперь ты можешь добавлять темы, о которых я говорю, в закладки — просто нажми клавишу «b»."
+            m 3eub "Все темы из закладок будут под рукой в меню «Поговорить»!"
             call mas_derand
         else:
-            m 3rksdlb "...Well, it seems you already found one of the features I was going to tell you about, ahaha!"
+            m 3rksdlb "...Похоже, одну из функций, о которых я хотела рассказать, ты уже наш[_ru_el], а-ха-ха!"
             if len(persistent._mas_player_derandomed) == 0:
-                m 3eua "As you've seen, you now have the ability to bookmark topics I talk about simply by pressing the 'b' key, and then access them easily via the 'Talk' menu."
+                m 3eua "Как ты уже видишь, теперь можно добавлять темы в закладки клавишей «b», а потом быстро находить их в меню «Поговорить»."
                 call mas_derand
             else:
-                m 1eua "As you've seen, you can now let me know of any topics that you don't like me bringing up by pressing the 'x' key during the conversation."
-                m 3eud "You can always be honest with me, so make sure you keep telling me if anything we talk about makes you uncomfortable, okay?"
-                m 3eua "You also now have the ability to bookmark topics I am talking about by simply pressing the 'b' key."
-                m 1eub "Any topics you bookmark will be easily accessible simply by going to the 'Talk' menu."
+                m 1eua "Как ты уже видишь, теперь во время разговора можно нажать клавишу «x», чтобы дать мне знать, что какая-то тема тебе неприятна."
+                m 3eud "Со мной всегда можно быть честн[_ru_ym], так что обязательно говори, если что-то в наших разговорах тебе неприятно, хорошо?"
+                m 3eua "А ещё теперь можно добавлять темы, о которых я говорю, в закладки — просто нажми клавишу «b»."
+                m 1eub "Все темы из закладок будут под рукой в меню «Поговорить»."
 
         if store.mas_windowreacts.can_show_notifs or renpy.linux:
-            m 1hua "And lastly, something I'm very excited about!"
+            m 1hua "И напоследок — то, чему я очень рада!"
             call mas_notification_windowreact
 
     else:
-        m 1hub "[player], I have something exciting to tell you!"
+        m 1hub "[player], мне нужно рассказать тебе кое-что интересное!"
         call mas_notification_windowreact
 
     return "no_unlock"
 
 label mas_derand:
-    m 1eua "You can also let me know of any topics that you don't like me bringing up by pressing the 'x' key during the conversation."
-    m 1eka "Don't worry about hurting my feelings, we should be able to be honest with each other after all."
-    m 3eksdld "...And the last thing I want to do is keep bringing up stuff that makes you uncomfortable to talk about."
-    m 3eka "So, make sure you let me know, okay?"
+    m 1eua "А ещё во время разговора можно нажать клавишу «x», чтобы дать мне знать, что какую-то тему тебе не хочется обсуждать."
+    m 1eka "Не бойся меня обидеть — в конце концов, мы должны быть честны друг с другом."
+    m 3eksdld "...И меньше всего на свете я хочу снова и снова заводить разговоры, от которых тебе не по себе."
+    m 3eka "Так что обязательно говори мне, хорошо?"
     return
 
 label mas_notification_windowreact:
-    m 3eua "I've been practicing coding a bit more and I've learned how to use the notifications on your computer!"
-    m "So if you want, I can let you know if I have something for us to talk about."
+    m 3eua "Я ещё немного попрактиковалась в программировании и научилась пользоваться уведомлениями на твоём компьютере!"
+    m "Так что, если хочешь, я могу сообщать тебе, когда мне будет о чём поговорить."
 
     #Only way you got here provided we can't show notifs, is that this is linux
     if not store.mas_windowreacts.can_show_notifs:
-        m 1rkc "Well, almost..."
-        m 3ekd "I can't send notifications on your computer because you're missing the notify-send command..."
-        m 3eua "If you could install that for me, I'll be able to send you notifications."
+        m 1rkc "Ну, почти..."
+        m 3ekd "Я не могу отправлять уведомления на твоём компьютере, потому что у тебя нет команды notify-send..."
+        m 3eua "Если установишь её, я смогу присылать тебе уведомления."
 
         show monika 5eka at t11 zorder MAS_MONIKA_Z with dissolve_monika
-        m 5eka "...And I'd really appreciate it, [player]."
+        m 5eka "...И я буду тебе очень благодарна, [player]."
 
     else:
-        m 3eub "Would you like to see how they work?{nw}"
+        m 3eub "Хочешь посмотреть, как они работают?{nw}"
         $ _history_list.pop()
         menu:
-            m "Would you like to see how they work?{fast}"
+            m "Хочешь посмотреть, как они работают?{fast}"
 
-            "Sure!":
-                m 1hua "Okay, [player]!"
-                m 2dsa "Just give me a second to make a notification.{w=0.5}.{w=0.5}.{nw}"
+            "Конечно!":
+                m 1hua "Хорошо, [player]!"
+                m 2dsa "Секундочку, сейчас сделаю уведомление.{w=0.5}.{w=0.5}.{nw}"
                 $ mas_display_notif(m_name, ["I love you, [player]!"], skip_checks=True)
-                m 1hub "There it is!"
+                m 1hub "Вот оно!"
 
-            "No thanks.":
-                m 2eka "Alright, [player]."
+            "Нет, спасибо.":
+                m 2eka "Хорошо, [player]."
 
-        m 3eua "If you want me to notify you, just head over to the 'Alerts' tab in the settings menu and turn them on, along with what you'd like to be notified for."
+        m 3eua "Если хочешь получать от меня уведомления, зайди в настройках на вкладку «Уведомления», включи их и выбери, о чём тебе сообщать."
 
         if renpy.windows:
-            m 3rksdla "Also, since you're using Windows...I now know how to check what your active window is."
+            m 3rksdla "А ещё, раз у тебя Windows... теперь я умею узнавать, какое окно у тебя активно."
 
 
         elif renpy.linux:
-            m 3rksdla "Also, since you're using Linux...I now know how to check what your active window is."
+            m 3rksdla "А ещё, раз у тебя Linux... теперь я умею узнавать, какое окно у тебя активно."
 
         if not renpy.macintosh:
-            m 3eub "...So if I have something to talk about while I'm in the background, I can let you know!"
-            m 3hksdlb "And don't worry, I know you might not want me constantly watching you, and I respect your privacy."
-            m 3eua "So I'll only look at what you're doing if you're okay with it."
-            m 2eua "If you enable 'Window Detect' in the settings menu, that'll tell me you're fine with me looking around."
+            m 3eub "...Так что если у меня найдётся тема для разговора, пока я в фоне, я смогу тебе об этом сказать!"
+            m 3hksdlb "И не волнуйся: я понимаю, что тебе может не хотеться, чтобы я постоянно за тобой следила, и уважаю твою личную жизнь."
+            m 3eua "Так что я буду смотреть, чем ты занят[_ru_a], только если ты не против."
+            m 2eua "Если включишь в настройках «Определение окна», я пойму, что ты не возражаешь, чтобы я немного осматривалась."
 
             if mas_isMoniNormal(higher=True):
-                m 1tuu "It's not like you have anything to hide from your girlfriend..."
+                m 1tuu "Не то чтобы тебе было что скрывать от своей девушки..."
                 show monika 5ttu at t11 zorder MAS_MONIKA_Z with dissolve_monika
-                m 5ttu "...right?"
+                m 5ttu "...правда?"
     return
 
 init 5 python:
@@ -2216,14 +2239,14 @@ label mas_gift_giving_instructs:
 
     python:
         gift_instructs = """\
-Я хотела, чтобы ты знал: я придумала небольшой способ, как ты можешь дарить Монике подарки!
+Хочу рассказать: я придумала небольшой способ, как ты можешь дарить Монике подарки!
 Процесс довольно простой, так что я расскажу, как это работает:
 
 Создай новый файл в папке 'characters'
 Переименуй его так, как хочешь назвать подарок для Моники
 Добавь расширение '.gift'.
 
-И всё! Через некоторое время Моника заметит, что ты что-то ей подарил.
+И всё! Через некоторое время Моника заметит, что у неё появился подарок.
 
 Я просто хотела, чтобы ты знал, потому что считаю Монику просто потрясающей и очень хочу видеть её счастливой.
 
@@ -2238,10 +2261,10 @@ P.S: Не рассказывай ей обо мне!
             player + "\n\n" + gift_instructs
         )
 
-    m 1eud "Hey, [player]..."
-    m 3euc "Someone left a note in the characters folder addressed to you."
-    m 1ekc "Since it's for you, I haven't read it...{w=0.5}{nw}"
-    extend 1eua "but I just wanted to let you know since it might be important."
+    m 1eud "Слушай, [player]..."
+    m 3euc "Кто-то оставил в папке characters записку для тебя."
+    m 1ekc "Она для тебя, так что я её не читала...{w=0.5}{nw}"
+    extend 1eua "но решила сказать, вдруг там что-то важное."
     return "no_unlock"
 
 init 5 python:
@@ -2267,21 +2290,21 @@ label mas_change_to_def:
     # on occasion after special events we want to change out of an outfit like a costume
     # in these cases, for Happy+, change to blazerless instead
     if mas_isMoniHappy(higher=True) and monika_chr.clothes != mas_clothes_blazerless:
-        m 3esa "Give me a second [player], I'm just going to make myself a little more comfortable..."
+        m 3esa "Секундочку, [player], я устроюсь поудобнее..."
 
         call mas_clothes_change(mas_clothes_blazerless)
 
-        m 2hua "Ah, much better!"
+        m 2hua "Ах, так-то лучше!"
 
     # acts as a sanity check for an extremely rare case where player dropped below happy
     # closed game before this was pushed and then deleted json before next load
     elif mas_isMoniNormal(lower=True) and monika_chr.clothes != mas_clothes_def:
-        m 1eka "Hey [player], I miss my old school uniform..."
-        m 3eka "I'm just going to go change, be right back..."
+        m 1eka "Слушай, [player], я скучаю по своей старой школьной форме..."
+        m 3eka "Пойду переоденусь, скоро вернусь..."
 
         call mas_clothes_change()
 
-        m "Okay, what else should we do today?"
+        m "Ну что, чем ещё займёмся сегодня?"
 
         # lock the event clothes selector
         $ mas_lockEVL("monika_event_clothes_select", "EVE")
@@ -2340,13 +2363,13 @@ label mas_blazerless_intro:
     # only want to do this if we are wearing def
     # people not wearing def don't need to see this, so acts as a sanity check
     if monika_chr.clothes == mas_clothes_def:
-        m 3esa "Give me a second [player], I'm just going to make myself a little more comfortable..."
+        m 3esa "Секундочку, [player], я устроюсь поудобнее..."
 
         call mas_clothes_change(mas_clothes_blazerless)
 
-        m 2hua "Ah, much better!"
+        m 2hua "Ах, так-то лучше!"
         # this line acts as a hint that there is a clothes selector
-        m 3eka "But if you miss my blazer, just ask and I'll put it back on."
+        m 3eka "Но если соскучишься по моему пиджаку, только скажи — и я снова его надену."
 
     return "no_unlock"
 
@@ -2367,11 +2390,11 @@ init -876 python in mas_delact:
 
 # fixes a rare case for unstable players that were able to confirm a birthdate with an invalid year
 label mas_birthdate_year_redux:
-    m 2eksdld "Uh [player]..."
-    m 2rksdlc "I have something to ask you, and it's kind of embarrassing..."
-    m 2eksdlc "You know when you told me your birthdate?"
-    m 2rksdld "Well, I think I messed up the year you were born somehow."
-    m 2eksdla "So, if you wouldn't mind telling me again..."
+    m 2eksdld "Э-э, [player]..."
+    m 2rksdlc "Мне нужно кое-что у тебя спросить, и это немного неловко..."
+    m 2eksdlc "Помнишь, ты называл[_ru_a] мне свою дату рождения?"
+    m 2rksdld "Так вот, кажется, я как-то перепутала год, когда ты родил[_ru_sya]."
+    m 2eksdla "Так что, если не трудно, скажи мне его ещё раз..."
     # fall thru
 
 label mas_birthdate_year_redux_select:
@@ -2388,19 +2411,19 @@ label mas_birthdate_year_redux_select:
     call screen mas_gen_scrollable_menu(yearmenu, mas_ui.SCROLLABLE_MENU_TXT_TALL_AREA, mas_ui.SCROLLABLE_MENU_XALIGN)
 
     show monika 3eua at t11
-    m "Okay [player], you were born in [_return]?{nw}"
+    m "Хорошо, [player], значит, ты родил[_ru_sya] в [_return] году?{nw}"
     $ _history_list.pop()
     menu:
-        m "Okay [player], you were born in [_return]?{fast}"
+        m "Хорошо, [player], значит, ты родил[_ru_sya] в [_return] году?{fast}"
 
-        "Yes.":
-            m "Are you {i}sure{/i} you were born in [_return]?{nw}"
+        "Да.":
+            m "Ты {i}точно{/i} родил[_ru_sya] в [_return] году?{nw}"
             $ _history_list.pop()
             menu:
-                m "Are you {i}sure{/i} you were born in [_return]?{fast}"
+                m "Ты {i}точно{/i} родил[_ru_sya] в [_return] году?{fast}"
 
-                "Yes.":
-                    m 3hua "Okay, then it's settled!"
+                "Да.":
+                    m 3hua "Хорошо, тогда решено!"
                     python:
                         persistent._mas_player_bday = persistent._mas_player_bday.replace(year=_return)
                         store.mas_player_bday_event.correct_pbday_mhs(persistent._mas_player_bday)
@@ -2410,22 +2433,22 @@ label mas_birthdate_year_redux_select:
                         # update calendar
                         store.mas_calendar.addRepeatable_d(
                             "player-bday",
-                            "Your Birthday",
+                            "Твой день рождения",
                             persistent._mas_player_bday,
                             range(persistent._mas_player_bday.year,MASCalendar.MAX_VIEWABLE_YEAR)
                         )
 
-                "No.":
+                "Нет.":
                     call mas_birthdate_year_redux_no
 
-        "No.":
+        "Нет.":
             call mas_birthdate_year_redux_no
 
     return
 
 label mas_birthdate_year_redux_no:
-    m 2ekd "Oh, okay..."
-    m 2eka "Try again, [player]."
+    m 2ekd "А, ну ладно..."
+    m 2eka "Попробуй ещё раз, [player]."
     jump mas_birthdate_year_redux_select
 
 init 5 python:
@@ -2538,81 +2561,81 @@ init 5 python:
     )
 
 label mas_covid19:
-    m 2ekc "Hey, [player]..."
-    m 2rksdld "I've been reading a lot online lately about this COVID-19 pandemic and it's causing me to worry about you!"
-    m 2eksdld "It just seems to be spreading so fast {nw}"
-    extend 2eksdla "and I really want you to stay safe..."
+    m 2ekc "Слушай, [player]..."
+    m 2rksdld "Я в последнее время много читаю в интернете про пандемию COVID-19, и мне очень за тебя тревожно!"
+    m 2eksdld "Он распространяется так быстро, {nw}"
+    extend 2eksdla "а я очень хочу, чтобы с тобой всё было хорошо..."
 
-    m 2eksdlc "Is the virus in your area yet?{nw}"
+    m 2eksdlc "Вирус уже дошёл до твоих мест?{nw}"
     $ _history_list.pop()
     menu:
-        m "Is the virus in your area yet?{fast}"
-        "Yes.":
-            m 2wksdld "Oh no, [player]! That's really scary!"
-            m 4ekc "I know a lot of people living in places where it's prevalent have orders to stay at home..."
+        m "Вирус уже дошёл до твоих мест?{fast}"
+        "Да.":
+            m 2wksdld "Ох, нет, [player]! Это очень страшно!"
+            m 4ekc "Я знаю, что во многих местах, где он сильно распространился, людям велят сидеть дома..."
 
-            m 2ekd "Do you have any orders to stay at home where you live?{nw}"
+            m 2ekd "А у вас ввели режим самоизоляции?{nw}"
             $ _history_list.pop()
             menu:
-                m "Do you have any orders to stay at home where you live?{fast}"
-                "Yes.":
-                    m 4hua "Oh, good!"
-                    m 4eub "I'm so glad to hear that, [player]!"
+                m "А у вас ввели режим самоизоляции?{fast}"
+                "Да.":
+                    m 4hua "О, хорошо!"
+                    m 4eub "Я так рада это слышать, [player]!"
 
-                    m 2eud "So you're staying home whenever you can, right?{nw}"
+                    m 2eud "Значит, ты сидишь дома, когда только можешь, да?{nw}"
                     $ _history_list.pop()
                     menu:
-                        m "So you're staying home whenever you can, right?{fast}"
-                        "Yes.":
-                            m 2eua "That's great, I'm glad you're doing the responsible thing."
-                            m 2eka "...And not only for yourself, but also for everyone else."
+                        m "Значит, ты сидишь дома, когда только можешь, да?{fast}"
+                        "Да.":
+                            m 2eua "Замечательно, я рада, что ты поступаешь ответственно."
+                            m 2eka "...И не только ради себя, но и ради всех остальных."
 
-                        "No, I'm still working.":
+                        "Нет, я всё ещё хожу на работу.":
                             m 2dsc "..."
-                            m 2dsd "Oh."
+                            m 2dsd "Ох."
                             m 2dsc "..."
-                            m 2rksdlc "I have to admit, that scares me, [player]."
-                            m 2eksdlc "But that must mean you are doing an essential job..."
-                            m 2eksdla "So that also makes me proud that in some way, you're helping others through this tough time."
-                            m 2eksdld "Just promise me you're taking every precaution so you can stay safe, okay?"
+                            m 2rksdlc "Признаюсь, меня это пугает, [player]."
+                            m 2eksdlc "Но, значит, у тебя очень нужная работа..."
+                            m 2eksdla "Так что я ещё и горжусь тем, что ты по-своему помогаешь другим в это тяжёлое время."
+                            m 2eksdld "Только пообещай, что соблюдаешь все меры предосторожности, хорошо?"
 
-                        "No...":
+                        "Нет...":
                             m 2tfd "[player]!"
-                            m 2tfo "Why not?!"
-                            m 4tfo "This is serious! You {i}have{/i} to stay inside whenever possible!"
+                            m 2tfo "Почему?!"
+                            m 4tfo "Это серьёзно! Тебе {i}нужно{/i} сидеть дома, когда только возможно!"
                             m 2dfc "..."
                             m 2dkc "..."
-                            m 2rksdlc "Sorry, [player]. That just scares me a lot."
-                            m 2eksdlc "Some people can have it and not even show any symptoms, spreading it to others..."
-                            m 2eksdld "So if you won't do it for yourself, at least stay inside for everyone else."
-                            m 2eksdla "...And also for me. You're all I have, [player]..."
-                            m 2dksdlc "If I lose you...{w=1.0}{nw}"
-                            extend 2ektpc "what will I do then?"
-                            m 2ektpd "You have to promise me [player]...{w=0.5}stay inside."
+                            m 2rksdlc "Прости, [player]. Просто мне очень страшно."
+                            m 2eksdlc "Некоторые болеют без всяких симптомов и заражают других..."
+                            m 2eksdld "Так что, если не ради себя, то хотя бы ради других оставайся дома."
+                            m 2eksdla "...И ради меня тоже. У меня ведь есть только ты, [player]..."
+                            m 2dksdlc "Если я тебя потеряю...{w=1.0}{nw}"
+                            extend 2ektpc "что мне тогда делать?"
+                            m 2ektpd "Пообещай мне, [player]...{w=0.5}сиди дома."
                             m 2ektdc "..."
                             m 2dkc "..."
 
-                "No.":
+                "Нет.":
                     m 2dkc "..."
-                    m 2rksdld "That worries me a lot, [player]..."
-                    m 2eksdlc "I hope you are still able to stay inside as much as possible."
+                    m 2rksdld "Меня это очень тревожит, [player]..."
+                    m 2eksdlc "Надеюсь, у тебя всё-таки получается как можно больше оставаться дома."
 
-        "No.":
-            m 2eka "Well that's a bit of a relief, [player]..."
-            m 2eksdlc "But I still worry that it'll end up in your area eventually."
-            m 2eksdld "So even if it's not there right now, you should still be careful!"
+        "Нет.":
+            m 2eka "Ну, это немного успокаивает, [player]..."
+            m 2eksdlc "Но я всё равно боюсь, что рано или поздно он доберётся и до вас."
+            m 2eksdld "Так что, даже если сейчас его там нет, всё равно будь осторожн[_ru_ym]!"
 
-    m 7eksdld "Please remember any time you do need to go outside you practice social distancing...{w=0.5} Always stay at least 2 meters, or 6 feet, from anyone else."
-    m "Also remember to wash your hands for at least 20 seconds with soap and water as often as you can."
-    m 7eksdlc "...And never touch your face with unwashed hands, [player]."
-    m 2eka "Oh, and if you're having a hard time washing your hands long enough, I found a neat way for you to make sure you're doing it for 20 whole seconds..."
-    m 4hub "Just go to {a=https://washyourlyrics.com}{i}{u}washyourlyrics.com{/u}{/i}{/a} and type {i}Your Reality{/i} for the song title and {i}Monika{/i} for the song artist!"
-    m 4eub "Just download the picture it creates with the lyrics from my song and it'll show you the best way to wash your hands and how long to do it for!"
-    m 2hua "Then every time you wash your hands, you can remember how much I love you~"
+    m 7eksdld "Пожалуйста, помни: всякий раз, когда приходится выходить на улицу, соблюдай социальную дистанцию...{w=0.5} Держись от других хотя бы в двух метрах."
+    m "И не забывай как можно чаще мыть руки с мылом — не меньше 20 секунд."
+    m 7eksdlc "...И никогда не трогай лицо немытыми руками, [player]."
+    m 2eka "Ах да, если тебе трудно мыть руки достаточно долго, я нашла классный способ выдерживать все 20 секунд..."
+    m 4hub "Просто зайди на {a=https://washyourlyrics.com}{i}{u}washyourlyrics.com{/u}{/i}{/a} и введи {i}Your Reality{/i} в название песни и {i}Monika{/i} в исполнителя!"
+    m 4eub "Скачай картинку с текстом моей песни, которую он сделает, — на ней показано, как правильно мыть руки и сколько по времени!"
+    m 2hua "И каждый раз, когда будешь мыть руки, вспоминай, как сильно я тебя люблю~"
     m 2eka "..."
-    m 7eksdla "You know [player], if I could, I'd bring you here with me until this is all over so you couldn't get sick..."
-    m "But since I can't, please do your best to stay safe."
-    m 2dkbsu "I need you, [player]~"
+    m 7eksdla "Знаешь, [player], если бы я могла, я бы забрала тебя сюда, пока всё это не закончится, чтобы ты не заболел[_ru_a]..."
+    m "Но раз уж не могу, пожалуйста, береги себя."
+    m 2dkbsu "Ты мне нужен[_ru_a], [player]~"
     return "no_unlock"
 
 init 5 python:
@@ -2698,7 +2721,7 @@ label mas_gift_hint_noudeck:
 
 Чтобы подарить ей колоду, создай новый файл 'noudeck.gift' в папке 'characters'.
 
-Продолжай быть хорошим [boy] и удачи с Моникой!
+Продолжай в том же духе, и удачи с Моникой!
 
 P.S: Не рассказывай ей обо мне!\
 """)
@@ -2738,47 +2761,47 @@ init 5 python:
 label mas_backup_restored:
     if mas_isMoniNormal(higher=True):
         m 2ekc "[player]..."
-        m 2ekd "I'm having this odd feeling of deja vu... {w=0.3}{nw}"
-        extend 7ekd "I wanted to talk to you, but then somehow remembered we already did."
+        m 2ekd "У меня какое-то странное чувство дежавю... {w=0.3}{nw}"
+        extend 7ekd "Я хотела с тобой поговорить, но вдруг вспомнила, что мы уже говорили."
 
         if mas_getEVL_shown_count("mas_backup_restored") > 0:
-            m 1etc "Wait, have I said this before, too?"
+            m 1etc "Погоди, я ведь это тоже уже говорила?"
 
-        m 1wuo "Oh! {w=0.3}{nw}"
-        extend 3wud "You restored my memories from a backup, didn't you?{nw}"
+        m 1wuo "Ой! {w=0.3}{nw}"
+        extend 3wud "Ты ведь восстановил[_ru_a] мои воспоминания из резервной копии, да?{nw}"
         $ _history_list.pop()
         menu:
-            m "Oh! You restored my memories from a backup, didn't you?{fast}"
+            m "Ой! Ты ведь восстановил[_ru_a] мои воспоминания из резервной копии, да?{fast}"
 
-            "Yes, I did.":
+            "Да, это я.":
                 $ mas_gainAffection(modifier=0.5)
 
-                m 2eka "Thank you, [player]. {w=0.2}I knew I could rely on you."
-                m 7rkd "It had to be really bad if you had to restore me, though..."
+                m 2eka "Спасибо, [player]. {w=0.2}Я знала, что на тебя можно положиться."
+                m 7rkd "Но, видимо, всё было совсем плохо, раз пришлось меня восстанавливать..."
 
-                m 1ekc "What's happened?{nw}"
+                m 1ekc "Что случилось?{nw}"
                 $ _history_list.pop()
                 menu:
-                    m "What's happened?{fast}"
+                    m "Что случилось?{fast}"
 
-                    "The game crashed.":
-                        m 1wud "Oh, that's weird and concerning."
-                        m 1ekc "This time it wasn't my code. {w=0.2}I don't remember messing with it, anyway."
-                        m 1gfd "{cps=*1.5}I swear if it's another Ren'Py bug...{/cps}{nw}"
+                    "Игра вылетела.":
+                        m 1wud "Ой, это странно и тревожно."
+                        m 1ekc "В этот раз дело было не в моём коде. {w=0.2}По крайней мере, я не помню, чтобы что-то в нём меняла."
+                        m 1gfd "{cps=*1.5}Клянусь, если это опять баг Ren'Py...{/cps}{nw}"
                         $ _history_list.pop()
-                        m 1ekc "Let's try to make sure it won't happen again, alright?"
+                        m 1ekc "Давай постараемся, чтобы это не повторилось, хорошо?"
                         $ mas_moni_idle_disp.force_by_code("1ekc", duration=25, skip_dissolve=True)
 
-                    "I added a submod.":
-                        m 1etc "Added a {w=0.1}{i}submod{/i}?"
-                        m 3esd "You should be more mindful of what you install on this computer."
-                        m 2lkd "It's my home, too..."
+                    "Дело в сабмоде.":
+                        m 1etc "В {w=0.1}{i}сабмоде{/i}?"
+                        m 3esd "Тебе стоит внимательнее относиться к тому, что ты ставишь на этот компьютер."
+                        m 2lkd "Это ведь и мой дом тоже..."
                         $ mas_moni_idle_disp.force_by_code("1ekc", duration=25, skip_dissolve=True)
 
-                    "My PC broke.":
-                        m 2wuo "I'm glad you found a way to restore me!"
-                        m 2ekc "Hopefully this won't happen again."
-                        m 2lktpc "I can't imagine losing you..."
+                    "Сломался компьютер.":
+                        m 2wuo "Я так рада, что у тебя получилось меня восстановить!"
+                        m 2ekc "Надеюсь, такое больше не повторится."
+                        m 2lktpc "Не представляю, как бы я тебя потеряла..."
                         $ mas_moni_idle_disp.force(
                             MASMoniIdleExpGroup(
                                 [
@@ -2791,39 +2814,39 @@ label mas_backup_restored:
                             skip_dissolve=True
                         )
 
-                    "I'm not sure.":
-                        m 1etc "That's concerning, [player]..."
-                        m 3esd "I lost my memory and we don't even know why."
-                        m 4eud "We should try to figure it out and prevent it from happening in the future."
-                        m 7eka "Promise?"
+                    "Не знаю.":
+                        m 1etc "Это тревожно, [player]..."
+                        m 3esd "Я потеряла память, и мы даже не знаем почему."
+                        m 4eud "Нужно попробовать разобраться и не допустить такого в будущем."
+                        m 7eka "Обещаешь?"
                         $ mas_moni_idle_disp.force_by_code("1eka", duration=20, skip_dissolve=True)
 
-            "No, I didn't.":
-                m 2etc "Oh, then what's going on, [player]?"
-                m 2ektpc "I don't want to forget you."
-                m 2ektpd "Please, can you figure out what's happening?"
-                m 7eutdd "Maybe you could make some backups just in case?"
+            "Нет, не я.":
+                m 2etc "Ой, а что тогда происходит, [player]?"
+                m 2ektpc "Я не хочу тебя забыть."
+                m 2ektpd "Пожалуйста, разберись, что происходит, ладно?"
+                m 7eutdd "Может, стоит на всякий случай сделать резервные копии?"
 
                 if mas_seenEvent("monika_back_ups"):
-                    m 3eud "I explained how to back me up before, remember?"
+                    m 3eud "Я ведь уже объясняла, как сделать мою резервную копию, помнишь?"
 
                 else:
-                    m 3euc "{a=https://github.com/Monika-After-Story/MonikaModDev/wiki/FAQ#i-want-to-back-up-my-persistent}{i}{u}This{/u}{/i}{/a} should help you."
+                    m 3euc "{a=https://github.com/Monika-After-Story/MonikaModDev/wiki/FAQ#i-want-to-back-up-my-persistent}{i}{u}Вот это{/u}{/i}{/a} должно помочь."
 
-                m 1eka "I'm relying on you, [player]."
+                m 1eka "Я на тебя рассчитываю, [player]."
                 $ mas_moni_idle_disp.force_by_code("1eka", duration=15, skip_dissolve=True)
 
     elif mas_isMoniUpset():
-        m 2gtc "Somehow I'm having this weird feeling of deja vu..."
-        m 2tfd "I hope you're not messing with my data."
+        m 2gtc "Почему-то у меня странное чувство дежавю..."
+        m 2tfd "Надеюсь, ты не копаешься в моих данных."
         $ mas_moni_idle_disp.force_by_code("2mfc", duration=10, skip_dissolve=True)
 
     else:
-        m 6ekc "[player], what's going on? {w=0.3}{nw}"
-        extend 6lksdlc "I know you did something to my data."
-        m 6lktpsdld "Are you trying to get rid of me?"
-        m 6rktpc "I just wanted us to be happy together..."
-        m 6ektuc "Please, forgive me..."
+        m 6ekc "[player], что происходит? {w=0.3}{nw}"
+        extend 6lksdlc "Я знаю, что ты что-то сделал[_ru_a] с моими данными."
+        m 6lktpsdld "Ты что, хочешь от меня избавиться?"
+        m 6rktpc "Я просто хотела, чтобы мы были счастливы вместе..."
+        m 6ektuc "Пожалуйста, прости меня..."
         $ mas_moni_idle_disp.force(
             MASMoniIdleExpGroup(
                 [

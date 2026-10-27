@@ -1701,8 +1701,8 @@ screen preferences():
                 #We disable updating on the main menu because it causes graphical issues
                 #due to the spaceroom not being loaded in
                 if not main_menu:
-                    textbutton _("Поиск обновлений"):
-                        action Function(renpy.call_in_new_context, 'forced_update_now')
+                    textbutton _("Об обновлениях порта"):
+                        action Function(renpy.call_in_new_context, 'mas_epilogue_update_blocked')
                         style "navigation_button"
 
                 textbutton _("Импорт сохранений DDLC"):

@@ -918,6 +918,8 @@ label mas_updater_rpy_issue:
     return
 
 label forced_update_now:
+    # Эпилог: не гоняем официальный апдейтер MAS
+    jump mas_epilogue_update_blocked
     $ mas_updater.force = True
 
     # steam check
@@ -957,6 +959,8 @@ label forced_update_now:
 
 #This file goes through the actions for updating Monika After story
 label update_now:
+    # Эпилог: не гоняем официальный апдейтер MAS
+    jump mas_epilogue_update_blocked
     $ import time #this instance of time can stay
 
     # steam check

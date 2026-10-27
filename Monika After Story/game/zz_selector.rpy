@@ -50,57 +50,57 @@ init -100 python in mas_selspr:
     PROMPT_MAP = {
         "choker": {
             "_ev": "monika_choker_select",
-            "change": "Можешь сменить свой чокер?",
-            "wear": "Можешь надеть чокер?",
+            "change": "Сменишь чокер?",
+            "wear": "Наденешь чокер?",
         },
         "clothes": {
             "_not_group": True,
             "_ev": "monika_clothes_select",
-            "change": "Можешь переодеться?",
+            "change": "Переоденешься?",
             # TODO: min-items
         },
         "earrings": {
             "_ev": "monika_earrings_select",
             "_min-items": 1,
-            "change": "Можешь сменить серьги?",
-            "wear": "Можешь надеть серьги?",
+            "change": "Сменишь серьги?",
+            "wear": "Наденешь серьги?",
         },
         "hair": {
             "_not_group": True,
             "_ev": "monika_hair_select",
-            "change": "Можешь сменить прическу?",
+            "change": "Сменишь причёску?",
             # TODO: min-items
         },
         "hat": {
             "_ev": "monika_hat_select",
             "_min-items": 1,
-            "change": "Можешь сменить головной убор?",
-            "wear": "Можешь надеть головной убор?",
+            "change": "Сменишь головной убор?",
+            "wear": "Наденешь головной убор?",
         },
         "left-hair-clip": {
             "_ev": "monika_hairclip_select",
             "_min-items": 1,
-            "change": "Можешь сменить заколку?",
-            "wear": "Можешь надеть заколку?",
+            "change": "Сменишь заколку?",
+            "wear": "Наденешь заколку?",
         },
         "left-hair-flower": {
             "_ev": "monika_hairflower_select",
             "_min-items": 1,
-            "change": "Можешь сменить цветок в волосах?",
-            "wear": "Можешь вставить цветок в волосы?",
+            "change": "Сменишь цветок в волосах?",
+            "wear": "Вплетёшь цветок в волосы?",
         },
         "necklace": {
             "_ev": "monika_necklace_select",
             "_min-items": 1,
-            "change": "Можешь сменить ожерелье?",
-            "wear": "Можешь надеть ожерелье?",
+            "change": "Сменишь ожерелье?",
+            "wear": "Наденешь ожерелье?",
         },
         "ribbon": {
             "_ev": "monika_ribbon_select",
             "_min-items": 1,
             "_rule": _rule_ribbon,
-            "change": "Можешь завязать волосы чем-нибудь другим?",
-            "wear": "Можешь завязать волосы чем-нибудь другим?",
+            "change": "Сменишь ленточку?",
+            "wear": "Завяжешь ленточку?",
         },
     }
 
@@ -700,14 +700,14 @@ init -10 python in mas_selspr:
     # should be as neutral as possible to go with any kind of acs
     # be it singular or plural
     generic_sel_dlg_quips = [
-        "Good choice, [player]!",
-        "I was thinking the same thing, [player]!",
-        "Great choice, [player]!",
-        "What do you think, [player]?",
-        "How do I look, [player]?",
-        "I really like this look, [player]!",
-        "Just what I was thinking!",
-        "Just what I had in mind!"
+        "Хороший выбор, [player]!",
+        "Я как раз о том же подумала, [player]!",
+        "Отличный выбор, [player]!",
+        "Как тебе, [player]?",
+        "Ну как я выгляжу, [player]?",
+        "Мне очень нравится этот образ, [player]!",
+        "Как раз об этом я и думала!",
+        "Именно это я и хотела!"
     ]
 
     # disable constants
@@ -719,16 +719,16 @@ init -10 python in mas_selspr:
     disable_sel_dlg_quips = {
         DISB_NONE: None,
         DISB_HAIR_BC_CLOTH: [
-            "That hairstyle doesn't really work with my clothes.",
-            "I don't think this hairstyle really works with this outfit.",
-            "That hairstyle doesn't really work with this outfit.",
-            "I think this hairstyle works better with a different outfit."
+            "Эта причёска не очень подходит к моей одежде.",
+            "По-моему, эта причёска не очень сочетается с этим нарядом.",
+            "Эта причёска не особо подходит к этому наряду.",
+            "Думаю, эта причёска лучше смотрится с другим нарядом."
         ],
         DISB_ACS_BC_HAIR: [
-            "That doesn't really work with my hair.",
-            "I don't think this really works with my hairstyle.",
-            "This might work with a different hairstyle.",
-            "I don't really think this goes with my hair."
+            "Это не очень подходит к моим волосам.",
+            "По-моему, это не очень сочетается с моей причёской.",
+            "С другой причёской это, может, и подойдёт.",
+            "Не думаю, что это идёт к моим волосам."
         ],
     }
 
@@ -834,7 +834,7 @@ init -10 python in mas_selspr:
         RETURNS: remover ACS selectable
         """
         if remover_name is None:
-            remover_name = "Remove"
+            remover_name = "Снять"
 
         # get default mux for this acs type
         template = store.mas_sprites.get_ACSTemplate_by_type(acs_type)
@@ -3362,7 +3362,7 @@ screen mas_selector_sidebar(items, mailbox, confirm, cancel, restore, remover=No
                             first_spacing 0
                             null height 1
 
-                            textbutton _("Show All"):
+                            textbutton _("Показать всё"):
                                 style "hkb_button"
                                 xysize (300, 40)
                                 xalign 0.8
@@ -3480,7 +3480,7 @@ screen mas_selector_sidebar(items, mailbox, confirm, cancel, restore, remover=No
 
             if mailbox.read_outfit_checkbox_visible():
                 $ ocb_checked = mailbox.read_outfit_checkbox_checked()
-                textbutton _("Outfit Mode"):
+                textbutton _("Режим наряда"):
                     style "generic_fancy_check_button"
                     activate_sound gui.activate_sound
                     action [
@@ -3959,7 +3959,7 @@ label mas_selector_generic_sidebar_select_acs(acs_type, use_acs=None, set_compat
         if sel_group is None:
             sel_group = acs_type
         if idle_dlg is None:
-            idle_dlg = "Which {0} would you like me to wear?".format(acs_type)
+            idle_dlg = "Что мне надеть?"
 
         # filter for acs
         if use_acs is None:
@@ -3974,7 +3974,7 @@ label mas_selector_generic_sidebar_select_acs(acs_type, use_acs=None, set_compat
         sel_map = {}
 
     $ renpy.show(launch_exp)
-    m "Sure [player]!"
+    m "Конечно, [player]!"
 
     if idle_exp is not None and idle_exp != launch_exp:
         $ renpy.show(idle_exp)
@@ -3982,7 +3982,7 @@ label mas_selector_generic_sidebar_select_acs(acs_type, use_acs=None, set_compat
     call mas_selector_sidebar_select_acs(use_acs, mailbox=mailbox, select_map=sel_map, add_remover=True)
 
     if not _return:
-        m 1eka "Oh, alright."
+        m 1eka "Ох, ладно."
 
     # set the appropriate prompt and dialogue
     if monika_chr.get_acs_of_type(acs_type):
@@ -4251,7 +4251,7 @@ label monika_ribbon_select:
 #        m "But im going to change my clothes and hair back to normal."
 #        $ monika_chr.reset_outfit(False)
 
-    m 1eua "Конечно [player]!"
+    m 1eua "Конечно, [player]!"
 
     call mas_selector_sidebar_select_acs(use_acs, mailbox=mailbox, select_map=sel_map, add_remover=True, filter_map=mapping)
 

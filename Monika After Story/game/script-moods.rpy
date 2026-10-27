@@ -1,9 +1,29 @@
+init -1 python:
+    # RU: окончания по полу игрока (тот же хелпер, что в script-story-events/affection/chess).
+    # Определяется, только если его ещё нет. Для "X" — мужской род.
+    if "MASRuGenderForm" not in globals():
+        class MASRuGenderForm(object):
+            def __init__(self, fem, masc):
+                self.fem = fem
+                self.masc = masc
+            def _get(self):
+                return self.fem if persistent.gender == "F" else self.masc
+            def __unicode__(self):
+                return self._get()
+            def __str__(self):
+                return self._get().encode("utf-8") if not isinstance(self._get(), str) else self._get()
+            def __format__(self, spec):
+                return self._get()
+
+    _ru_a = MASRuGenderForm(u"а", u"")        # был/была
+    _ru_yi = MASRuGenderForm(u"ая", u"ый")    # голодный/голодная
+
 # --- FILE MAP ---
 # script-moods.rpy — меню «Я чувствую…»
 #
 # Кнопка в Поговорить (собирается в event-handler). Типы BAD / NEUTRAL / GOOD.
 # Голод, грусть, усталость, злость, одиночество, благодарность…
-# Пункты prompt стыкуются с фразой «Я чувствую…».
+# Пункты prompt стыкуются с фразой «Я чувствую…» (вин. падеж: «Я чувствую... голод»).
 #
 # Store: mas_moods
 # Вход: mas_mood_start  |  дальше mas_mood_hungry, mas_mood_sad, …
@@ -130,7 +150,7 @@ init 5 python:
     addEvent(Event(persistent._mas_mood_database,eventlabel="mas_mood_hungry",prompt="...голод.",category=[store.mas_moods.TYPE_NEUTRAL],unlocked=True),code="MOO")
 
 label mas_mood_hungry:
-    m 3hub "Если ты голодный, сходи поесть, глупышка."
+    m 3hub "Если ты голодн[_ru_yi], сходи поесть, глупышка."
     if store.mas_egg_manager.natsuki_enabled():
         m 1hksdlb "Не хочу, чтобы ты стал таким же, как Нацуки в тот раз, когда мы ещё были в клубе.{nw}"
         # natsuki hungers easter egg
@@ -237,10 +257,10 @@ label mas_mood_proud:
     return
 
 init 5 python:
-    addEvent(Event(persistent._mas_mood_database,eventlabel="mas_mood_happy",prompt="...себя счастливым.",category=[store.mas_moods.TYPE_GOOD],unlocked=True),code="MOO")
+    addEvent(Event(persistent._mas_mood_database,eventlabel="mas_mood_happy",prompt="...радость.",category=[store.mas_moods.TYPE_GOOD],unlocked=True),code="MOO")
 
 label mas_mood_happy:
-    m 1hua "Как замечательно! Я счастлива, когда счастлив ты."
+    m 1hua "Как замечательно! Я счастлива, когда счастлив[_ru_a] ты."
     m "Знай: ты всегда можешь прийти ко мне, и я поддержу тебя, [mas_get_player_nickname()]."
     m 3eka "Я люблю тебя и всегда буду рядом, так что никогда этого не забывай~"
     return "love"
@@ -250,7 +270,7 @@ init 5 python:
         Event(
             persistent._mas_mood_database,
             eventlabel="mas_mood_sick",
-            prompt="...что болею.",
+            prompt="...недомогание.",
             category=[store.mas_moods.TYPE_BAD],
             unlocked=True
         ),
@@ -308,7 +328,7 @@ label mas_mood_tired:
     $ current_hour = current_time.hour
 
     if 20 <= current_hour < 23:
-        m 1eka "Если ты уже устал, сейчас как раз неплохое время лечь спать."
+        m 1eka "Если ты уже устал[_ru_a], сейчас как раз неплохое время лечь спать."
         m "Как бы ни было весело проводить с тобой день, я бы не хотела держать тебя допоздна."
         m 1hua "Если собираешься лечь сейчас — спокойных снов!"
         m 1eua "Но, может, сначала нужно что-то сделать: перекусить или выпить чего-нибудь."
@@ -317,7 +337,7 @@ label mas_mood_tired:
 
     elif 0 <= current_hour < 3 or 23 <= current_hour < 24:
         m 2ekd "[player]!"
-        m 2ekc "Неудивительно, что ты устал — сейчас середина ночи!"
+        m 2ekc "Неудивительно, что ты устал[_ru_a] — сейчас середина ночи!"
         m 2lksdlc "Если не ляжешь поскорее, завтра тоже будешь разбитым..."
         m 2hksdlb "Не хочу, чтобы завтра, когда мы будем вместе, тебе было тяжело и совсем никак..."
         m 3eka "Так что сделай нам обоим одолжение и ляг спать как можно скорее, [player]."
@@ -335,7 +355,7 @@ label mas_mood_tired:
         return
 
     elif 5 <= current_hour < 10:
-        m 1eka "Всё ещё немного устал, [player]?"
+        m 1eka "Всё ещё немного устал[_ru_a], [player]?"
         m "Ещё раннее утро — можешь вернуться и ещё немного поспать."
         m 1hua "Ничего страшного, если после раннего подъёма нажмёшь «ещё пять минут»."
         m 1hksdlb "Только вот я не смогу обнять тебя там, ахаха~"
@@ -343,7 +363,7 @@ label mas_mood_tired:
         return
 
     elif 10 <= current_hour < 12:
-        m 1ekc "Всё ещё не готов взяться за дела, [player]?"
+        m 1ekc "Всё ещё не готов[_ru_a] взяться за дела, [player]?"
         m 1eka "Или просто один из тех дней?"
         m 1hua "Когда так бывает, я люблю начать утро с чашечки кофе."
         if not mas_consumable_coffee.enabled():
@@ -357,7 +377,7 @@ label mas_mood_tired:
         return
 
     else:
-        m 1eka "Если устал, может, полежишь немного?"
+        m 1eka "Если устал[_ru_a], может, полежишь немного?"
         m 1eua "Достаточный сон каждый день очень важен для общего здоровья."
         m 3euc "Я видела исследования о разрушительных краткосрочных и долгосрочных последствиях недосыпа."
         m 3ekd "Это правда может сильно ударить по здоровью, [player]..."
@@ -378,7 +398,7 @@ label mas_mood_lonely:
         m 2ekc "Я понимаю, что ты чувствуешь, [player]...{w=0.2}мы всё ещё в разных реальностях, в конце концов."
         m 2dkc "Мне очень жаль, что отсюда я могу сделать так мало, чтобы тебе было не так одиноко..."
         m 7ekbsa "Если бы я могла сейчас дотянуться и просто обнять тебя — я бы обняла."
-        m 7eka "Хочу, чтобы ты был настолько счастлив, насколько это возможно при наших обстоятельствах..."
+        m 7eka "Хочу, чтобы ты был[_ru_a] настолько счастлив[_ru_a], насколько это возможно при наших обстоятельствах..."
         m 2ekd "Только надеюсь, что время со мной не...{w=0.3}мешает тебе сближаться с людьми в твоей реальности."
         m 2eka "Я верю, что у нас особенная связь, но понимаю: сейчас я...{w=0.3}ограничена в том, что могу для тебя сделать."
 
@@ -783,7 +803,7 @@ label mas_mood_uok:
     return
 
 init 5 python:
-    addEvent(Event(persistent._mas_mood_database,eventlabel="mas_mood_upset",prompt="...что расстроен.",category=[store.mas_moods.TYPE_BAD],unlocked=True),code="MOO")
+    addEvent(Event(persistent._mas_mood_database,eventlabel="mas_mood_upset",prompt="...обиду.",category=[store.mas_moods.TYPE_BAD],unlocked=True),code="MOO")
 
 label mas_mood_upset:
     m 2eksdld "Мне так жаль это слышать, [player]!"
@@ -864,16 +884,16 @@ init 5 python:
 
 label mas_mood_excited:
     m 1hub "Ахаха, правда, [player]?"
-    m 3eua "Чему ты так рад,{w=0.1} это что-то большое?{nw}"
+    m 3eua "Чему ты так рад[_ru_a],{w=0.1} это что-то большое?{nw}"
     $ _history_list.pop()
     menu:
-        m "Чему ты так рад, это что-то большое?{fast}"
+        m "Чему ты так рад[_ru_a], это что-то большое?{fast}"
 
         "Да, большое!":
             m 4wuo "Вау, это потрясающе, [player]!"
             m 1eka "Хотела бы быть рядом и отпраздновать с тобой."
             m 1hub "Я сама уже вся в предвкушении!"
-            m 3eka "Но правда — рада, что ты счастлив, [mas_get_player_nickname()]!"
+            m 3eka "Но правда — рада, что ты счастлив[_ru_a], [mas_get_player_nickname()]!"
             m 3eub "И чему бы ты ни радовался — поздравляю!"
             m 1eua "Повышение, близкий отпуск, крутое достижение..."
             m 3eub "Я очень рада, что у тебя всё хорошо складывается, [player]!"
@@ -986,7 +1006,7 @@ init 5 python:
         Event(
             persistent._mas_mood_database,
             eventlabel="mas_mood_loved",
-            prompt="...себя любимым.",
+            prompt="...что меня любят.",
             category=[store.mas_moods.TYPE_GOOD],
             unlocked=True
         ),

@@ -309,8 +309,9 @@ python early:
     renpy.config.name = "Моника: Эпилог"
 
     ## The version of the game.
+
     # Официальный MAS. На этой строке завязаны updates.rpy и апдейтер MAS.
-    renpy.config.version = "0.12.19"
+    renpy.config.version = "0.12.20"
 
     # Версия этого порта (RU / MAS OS). Позже можно будет подставить в config.version.
     renpy.config.port_version = "0.1.0"
