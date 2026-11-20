@@ -74,7 +74,8 @@ init -991 python in mas_submod_utils:
         FB_VERS_STR = "0.0.0"
 
         #Regular expression representing a valid author and name
-        AN_REGEXP = re.compile(ur'^[ a-zA-Z_\u00a0-\ufffd][ 0-9a-zA-Z_\u00a0-\ufffd]*$')
+        # Ren'Py 8 / Python 3: префикс ur недопустим; обычная строка по-прежнему обрабатывает \u-escape, как ur в Python 2
+        AN_REGEXP = re.compile('^[ a-zA-Z_\u00a0-\ufffd][ 0-9a-zA-Z_\u00a0-\ufffd]*$')
 
         def __init__(
             self,

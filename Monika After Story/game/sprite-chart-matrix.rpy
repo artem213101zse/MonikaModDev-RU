@@ -1093,11 +1093,12 @@ init -4 python in mas_sprites:
         """
         Clears all caches
         """
-        for cid, cache in CACHE_TABLE.iteritems():
-            for key in cache.keys():
+        # Ren'Py 8 / Python 3: iteritems() нет; keys() — живое представление, перед pop нужна копия
+        for cid, cache in CACHE_TABLE.items():
+            for key in list(cache.keys()):
                 cache.pop(key)
 
-        for key in MFM_CACHE.keys():
+        for key in list(MFM_CACHE.keys()):
             MFM_CACHE.pop(key)
 
 

@@ -80,8 +80,9 @@ init -45 python:
         """
         import hashlib  # sha256 signatures
         import base64   # "packing" shipments involve base64
-        from StringIO import StringIO as slowIO
-        from cStringIO import StringIO as fastIO
+        # Ren'Py 8 / Python 3: StringIO и cStringIO перенесены в модуль io
+        from io import StringIO as slowIO
+        from io import BytesIO as fastIO
 
         import store.mas_utils as mas_utils # logging
 
@@ -730,8 +731,8 @@ init -45 python:
 
             contents = None
             try:
-                # NOTE: we use regular StringIO in case of unicode
-                contents = self.slowIO()
+                # Ren'Py 8 / Python 3: b64decode возвращает bytes, нужен BytesIO
+                contents = self.fastIO()
 
                 _pkg_slip = self._unpack(
                     package,
@@ -1188,7 +1189,8 @@ init -11 python in mas_dockstat:
 
 init python in mas_dockstat:
     import store
-    import cPickle
+    # Ren'Py 8 / Python 3: модуль cPickle переименован в pickle
+    import pickle as cPickle
     import math
 
     # previous vars dict
@@ -1220,7 +1222,8 @@ init 200 python in mas_dockstat:
     import store.mas_greetings as mas_greetings
     import store.mas_ics as mas_ics
     import store.evhand as evhand
-    from cStringIO import StringIO as fastIO
+    # Ren'Py 8 / Python 3: cStringIO.StringIO для двоичных буферов заменён на io.BytesIO
+    from io import BytesIO as fastIO
     import codecs
     import re
     import os

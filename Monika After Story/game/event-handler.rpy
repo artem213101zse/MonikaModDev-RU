@@ -44,7 +44,8 @@ init -999 python in mas_ev_data_ver:
     # must be before -900 so we can use in persistent backup/cleanup
 
     # need to use real lists and dicts here
-    import __builtin__
+    # Ren'Py 8 / Python 3: модуль __builtin__ переименован в builtins
+    import builtins as __builtin__
 
     # special store dedicated to verification of Event-based data
     import datetime
@@ -101,7 +102,7 @@ init -999 python in mas_ev_data_ver:
                 bool,
                 int,
                 float,
-                long,
+                # Ren'Py 8 / Python 3: типа long больше нет, его покрывает уже указанный int
                 complex,
                 datetime.timedelta,
                 datetime.date,
@@ -679,7 +680,8 @@ init 6 python:
         if ev is None:
             return False
 
-        for attr, new_value in kwargs.iteritems():
+        # Ren'Py 8 / Python 3: у dict нет iteritems(), используем items()
+        for attr, new_value in kwargs.items():
             setattr(ev, attr, new_value)
 
         return True

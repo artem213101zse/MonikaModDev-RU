@@ -13,10 +13,27 @@
 ## Before load, check to be sure that the archive files were found.
 ## If not, display an error message and quit.
 init -100 python:
-    #Check for each archive needed
-    for archive in ['audio','images','scripts','fonts']:
+    # Порт на Ren'Py 8: по-прежнему проверяем архивы audio/images/fonts.
+    # scripts.rpa намеренно не используем, чтобы не загружать оригинальный
+    # сюжет DDLC; вместо этого архива проверяем выбранные распакованные файлы.
+    for archive in ['audio','images','fonts']:
         if not archive in config.archives:
             #If one is missing, throw an error and chlose
+            renpy.error("Архивы игры DDLC не найдены в папке /game. Проверьте установку и попробуйте снова.")
+
+    if 'scripts' not in config.archives:
+        import os
+        _unpacked_scripts = (
+            "console.rpy",
+            "effects.rpy",
+            "gui.rpy",
+            "poemwords.txt",
+            "transforms.rpy",
+        )
+        if not all(
+            os.path.isfile(os.path.join(config.gamedir, _name))
+            for _name in _unpacked_scripts
+        ):
             renpy.error("Архивы игры DDLC не найдены в папке /game. Проверьте установку и попробуйте снова.")
 
 ## First, a disclaimer declaring this is a mod is shown, then there is a

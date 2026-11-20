@@ -31,7 +31,10 @@ default persistent._mas_is_backup = False
 
 python early in mas_per_check:
     import __main__
-    import cPickle
+    # Ren'Py 8 / Python 3: модуль cPickle переименован в pickle
+    import pickle as cPickle
+    # Ren'Py 8 / Python 3: decode("zlib") больше нет, используем zlib.decompressobj
+    import zlib
     import os
     import datetime
     import shutil
@@ -116,12 +119,14 @@ python early in mas_per_check:
             [1] - the version number, or the persistent data if get_data is
                 True
         """
-        per_file = None
         try:
-            per_file = file(_tp_persistent, "rb")
-            per_data = per_file.read().decode("zlib")
-            per_file.close()
-            actual_data = cPickle.loads(per_data)
+            # Ren'Py 8 / Python 3: file() и str.decode("zlib") недоступны.
+            # Читаем так же, как SDK: open(..., "rb"), zlib.decompressobj, compat.pickle.
+            # Trailing unused_data (подпись) не считаем ошибкой; повреждённый файл по-прежнему даст исключение.
+            with open(_tp_persistent, "rb") as per_file:
+                decompressor = zlib.decompressobj()
+                per_data = decompressor.decompress(per_file.read())
+            actual_data = renpy.compat.pickle.loads(per_data)
 
             if get_data:
                 return True, actual_data
@@ -130,10 +135,6 @@ python early in mas_per_check:
 
         except Exception as e:
             raise e
-
-        finally:
-            if per_file is not None:
-                per_file.close()
 
 
     def is_version_compatible(per_version, cur_version):
@@ -703,13 +704,14 @@ init -900 python:
 
         # the seen ever dict must be iterated through
         from store.mas_ev_data_ver import _verify_str
-        for seen_ever_key in persistent._seen_ever.keys():
+        # Ren'Py 8 / Python 3: dict.keys() — живое представление, перед pop нужна копия
+        for seen_ever_key in list(persistent._seen_ever.keys()):
             if not _verify_str(seen_ever_key):
                 persistent._seen_ever.pop(seen_ever_key)
 
         # the seen images dict must be iterated through
         # NOTE: we only want to keep non-monika sprite images
-        for seen_images_key in persistent._seen_images.keys():
+        for seen_images_key in list(persistent._seen_images.keys()):
             if (
                     len(seen_images_key) > 0
                     and seen_images_key[0] == "monika"

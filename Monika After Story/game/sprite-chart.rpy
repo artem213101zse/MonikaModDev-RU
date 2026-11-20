@@ -5464,6 +5464,10 @@ init -3 python:
                 return result
             return not result
 
+        def __hash__(self):
+            # Ren'Py 8 / Python 3: при наличии __eq__ без __hash__ объект нельзя использовать как ключ dict
+            return hash(self.name)
+
         def __setup_hl_map(self, hl_data):
             """
             Sets up the highlight map

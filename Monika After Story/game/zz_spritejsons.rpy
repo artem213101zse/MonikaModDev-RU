@@ -419,7 +419,8 @@ default persistent._mas_sprites_json_gifted_sprites = {}
 
 
 init -21 python in mas_sprites_json:
-    import __builtin__
+    # Ren'Py 8 / Python 3: модуль __builtin__ переименован в builtins
+    import builtins as __builtin__
     import json
     import store
     import store.mas_utils as mas_utils

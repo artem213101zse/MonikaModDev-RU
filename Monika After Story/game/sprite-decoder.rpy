@@ -67,14 +67,15 @@ init python in mas_sprite_decoder:
             SWEAT_MAP = jobj["sweat"]
             MOD_MAP = jobj["MOD_MAP"]
             # Convert lists into sets for speed
-            for sub_map in MOD_MAP.itervalues():
-                for key, value in sub_map.iteritems():
+            # Ren'Py 8 / Python 3: у dict нет itervalues()/iteritems(), используем values()/items()
+            for sub_map in MOD_MAP.values():
+                for key, value in sub_map.items():
                     sub_map[key] = set(value)
 
             #Since tuples aren't supported in json, we need to do some conversion here
             ARM_MAP["5"] = tuple(ARM_MAP["5"])
 
-            for side_key, side_list in SIDES_MAP.iteritems():
+            for side_key, side_list in SIDES_MAP.items():
                 SIDES_MAP[side_key] = tuple(side_list)
 
         #I don't really like this but it's a cleaner way of bringing up this exception once instead of multiple times

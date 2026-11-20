@@ -796,7 +796,8 @@ init -50 python:
                     ignored. Values should be MASWeatherMap objects.
             """
             # validate MASWeatherMap objects
-            for wmap in filter_pairs.itervalues():
+            # Ren'Py 8 / Python 3: у dict нет itervalues(), используем values()
+            for wmap in filter_pairs.values():
                 if not isinstance(wmap, MASWeatherMap):
                     raise TypeError(
                         "Expected MASWeatherMap object, not {0}".format(

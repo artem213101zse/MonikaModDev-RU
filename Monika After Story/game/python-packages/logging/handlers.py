@@ -23,7 +23,8 @@ Copyright (C) 2001-2013 Vinay Sajip. All Rights Reserved.
 To use, simply 'import logging.handlers' and log away!
 """
 
-import errno, logging, socket, os, cPickle, struct, time, re
+# Ren'Py 8 / Python 3: модуль cPickle переименован в pickle
+import errno, logging, socket, os, pickle as cPickle, struct, time, re
 from stat import ST_DEV, ST_INO, ST_MTIME
 
 try:

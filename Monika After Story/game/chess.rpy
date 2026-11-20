@@ -1983,7 +1983,8 @@ init python:
     import random
     import pygame
     import threading
-    import StringIO
+    # Ren'Py 8 / Python 3: модуль StringIO перенесён в io
+    import io as StringIO
     import os
 
     #Only add the chess_games folder if we can even do chess

@@ -151,17 +151,18 @@ init 999 python:
             "mouth": mas_sprite_decoder.MOUTH_MAP
         }
         # Same as above, but reversed - image names to sprite code letters
+        # Ren'Py 8 / Python 3: у dict нет iteritems(), используем items()
         REVERSE_IMG_NAMES_MAP = {
             key: {
                 v: k
-                for k, v in sub_map.iteritems()
+                for k, v in sub_map.items()
             }
-            for key, sub_map in IMG_NAMES_MAP.iteritems()
+            for key, sub_map in IMG_NAMES_MAP.items()
         }
         # And also handle the keys from the mod map
         # (different keys that actually correspond to the same sprite letters)
-        for key, sub_map in MOD_MAP.iteritems():
-            for k, v in sub_map.iteritems():
+        for key, sub_map in MOD_MAP.items():
+            for k, v in sub_map.items():
                 spr_code_letter = REVERSE_IMG_NAMES_MAP[key][k]
                 for mod_str in v:
                     REVERSE_IMG_NAMES_MAP[key][k + mod_str] = spr_code_letter

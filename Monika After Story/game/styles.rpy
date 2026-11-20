@@ -181,7 +181,8 @@ init python:
         # FIXME: could be done on startup for some speedup
         new_aliases = {}
 
-        for style_tuple, style_ptr in renpy.style.styles.iteritems():
+        # Ren'Py 8 / Python 3: у dict нет iteritems(); keys() копируем на случай изменения styles
+        for style_tuple, style_ptr in renpy.style.styles.items():
             style_name = style_tuple[0]
             if mas_isTextDarkStyle(style_name):
                 text_dark_suffix = "_text" + mas_ui.dark_suffix
@@ -190,11 +191,11 @@ init python:
                 if not style.exists(alias_name):
                     new_aliases[alias_name] = style_ptr
 
-        for alias_name, alias_style_ptr in new_aliases.iteritems():
+        for alias_name, alias_style_ptr in new_aliases.items():
             setattr(style, alias_name, alias_style_ptr)
 
         # Automagically switch every style which has a dark variant
-        for style_tuple in renpy.style.styles.keys():
+        for style_tuple in list(renpy.style.styles.keys()):
             style_name = style_tuple[0]
             if not mas_isDarkStyle(style_name) and mas_hasDarkStyle(style_name):
                 dark_style_name = style_name + mas_ui.dark_suffix
@@ -468,10 +469,11 @@ init 25 python in mas_ui:
     # Methods for twopane_scrollable_menu
     TWOPANE_MENU_MAX_FLT_ITEMS = 50
     TWOPANE_MENU_SEARCH_DBS = (
-        store.mas_all_ev_db_map["EVE"].values()
+        # Ren'Py 8 / Python 3: dict.values() нельзя складывать, нужен list(...)
+        list(store.mas_all_ev_db_map["EVE"].values())
         # + store.mas_all_ev_db_map["BYE"].values()
         # + store.mas_all_ev_db_map["STY"].values()
-        + store.mas_all_ev_db_map["CMP"].values()
+        + list(store.mas_all_ev_db_map["CMP"].values())
         # + store.mas_all_ev_db_map["SNG"].values()
     )
     TWOPANE_MENU_DELEGATES_CALLBACK_MAP = {

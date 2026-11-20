@@ -37,6 +37,16 @@ init -4 python:
     #   mPoint - the amount of points this gives monika (int)
     #   glitch - True means this a glitch word, false if not
     #
+    # Ren'Py 8: класс PoemWord из DDLC script-poemgame.rpy.
+    # Весь файл мини-игры не подключаем, нужен только этот класс.
+    class PoemWord(object):
+        def __init__(self, word, sPoint, nPoint, yPoint, glitch=False):
+            self.word = word
+            self.sPoint = sPoint
+            self.nPoint = nPoint
+            self.yPoint = yPoint
+            self.glitch = glitch
+
     class MASPoemWord(object):
         def __init__(self, word, sPoint, nPoint, yPoint, mPoint, glitch=False):
             self.word = word
@@ -1500,6 +1510,20 @@ transform sticker_midright:
 # right sticker
 transform sticker_right:
     xcenter 340 yalign 0.9 subpixel True
+
+# Ren'Py 8: transform sticker_hop из DDLC script-poemgame.rpy.
+# Весь файл мини-игры не подключаем, нужен только этот transform.
+transform sticker_hop:
+    easein_quad .18 yoffset -80
+    easeout_quad .18 yoffset 0
+    easein_quad .18 yoffset -80
+    easeout_quad .18 yoffset 0
+
+# Ren'Py 8: transform sticker_move_n из DDLC script-poemgame.rpy.
+# Весь файл мини-игры не подключаем, нужен только этот transform.
+transform sticker_move_n:
+    easein_quad .08 yoffset -15
+    easeout_quad .08 yoffset 0
 
 # we need a special scary yuri hop incase we want to remain cut
 image y_sticker_cut hopg:

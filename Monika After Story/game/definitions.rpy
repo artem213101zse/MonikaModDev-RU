@@ -21,6 +21,7 @@ python early:
     import datetime
     import random
     import traceback
+    import string
     from collections import defaultdict # this will be availalable anywhere now
 
     # define the zorders
@@ -81,7 +82,8 @@ python early:
     # clear this so no more traceback. We expect node loops anyway
     renpy.execution.check_infinite_loop = dummy
 
-    class MASFormatter(renpy.substitutions.Formatter):
+    # Ren'Py 8: класса substitutions.Formatter больше нет, используем string.Formatter
+    class MASFormatter(string.Formatter):
         """
         Our string formatter that uses more
         advanced formatting rules compared to the RenPy one
@@ -4426,7 +4428,8 @@ init -995 python in mas_utils:
         """
         # check dicts
         if data is not None:
-            for value in data.itervalues():
+            # Ren'Py 8 / Python 3: у dict нет itervalues(), используем values()
+            for value in data.values():
                 if value is not None:
                     return False
 
@@ -4805,7 +4808,8 @@ init -100 python in mas_utils:
     import random
     import os
     import math
-    from cStringIO import StringIO as fastIO
+    # Ren'Py 8 / Python 3: вместо cStringIO.StringIO для двоичных буферов используем io.BytesIO
+    from io import BytesIO as fastIO
     from collections import defaultdict
     import functools
 

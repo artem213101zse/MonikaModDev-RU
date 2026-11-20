@@ -215,7 +215,8 @@ init python:
 
 
 init python in dev_mas_shared:
-    import cPickle
+    # Ren'Py 8 / Python 3: модуль cPickle переименован в pickle
+    import pickle as cPickle
     import store
     import store.mas_ev_data_ver as ver
 
