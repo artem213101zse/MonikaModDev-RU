@@ -294,7 +294,15 @@ init python:
                 store.mas_settings.ui_changed
                 and store.mas_core._last_text is not None
         ):
-                store.mas_core._last_text.call_slow_done(0)
+                last_text = store.mas_core._last_text
+                # Ren'Py 8: show_display_say/get_widget возвращает Text;
+                # call_slow_done был у виджета Ren'Py 7 и в SDK 8.5 его нет.
+                # Кнопка тёмной темы ставит и ui_changed, и dark_mode_clicked,
+                # поэтому раньше падали здесь вместо restart_interaction.
+                if hasattr(last_text, "call_slow_done"):
+                    last_text.call_slow_done(0)
+                else:
+                    renpy.restart_interaction()
 
         elif store.mas_settings.dark_mode_clicked:
             renpy.restart_interaction()

@@ -1067,18 +1067,19 @@ init -10 python in mas_selspr:
                 (Default: False)
         """
         if select_type == SELECT_ACS:
-            new_map_view = new_map.viewkeys()
+            # Ren'Py 8 / Python 3: viewkeys()/itervalues() заменены на keys()/values()
+            new_map_view = new_map.keys()
 
             # determine which map is the "old" and which is "new"
             # we want to remove what is excess from the desired map
             if use_old:
-                old_map_view = old_map.viewkeys()
+                old_map_view = old_map.keys()
                 remove_keys = new_map_view - old_map_view
                 remove_map = new_map
                 add_map = old_map
 
             else:
-                old_map_view = prev_map.viewkeys()
+                old_map_view = prev_map.keys()
                 remove_keys = old_map_view - new_map_view
                 remove_map = prev_map
                 add_map = new_map
@@ -1091,7 +1092,7 @@ init -10 python in mas_selspr:
 
             # then readd everything that was previous
             # EXCEPT removers
-            for item in add_map.itervalues():
+            for item in add_map.values():
                 if not item.selectable.remover:
                     moni_chr.wear_acs(item.selectable.get_sprobj())
 
@@ -1105,7 +1106,7 @@ init -10 python in mas_selspr:
                 select_map = new_map
 
             # change to that map
-            for item in select_map.itervalues():
+            for item in select_map.values():
                 if use_old or item.selected:
                     prev_hair = moni_chr.hair
                     new_hair = item.selectable.get_sprobj()
@@ -1139,7 +1140,7 @@ init -10 python in mas_selspr:
                 select_map = new_map
 
             # change to that map
-            for item in select_map.itervalues():
+            for item in select_map.values():
                 if use_old or item.selected:
                     prev_cloth = moni_chr.clothes
                     new_cloth = item.selectable.get_sprobj()
@@ -1269,7 +1270,9 @@ init -10 python in mas_selspr:
         OUT:
             select_map - select map cleaned of non-selectd items
         """
-        for item_name in select_map.keys():
+        # Ren'Py 8 / Python 3: keys() — живое представление, pop() в цикле
+        # поднимает RuntimeError; list() фиксирует снимок, как keys() в Python 2.
+        for item_name in list(select_map.keys()):
             if force or not select_map[item_name].selected:
                 item = select_map.pop(item_name)
                 item.selected = False # force deselection
@@ -1325,7 +1328,7 @@ init -10 python in mas_selspr:
             source - source data to read
             dest - data place to save
         """
-        for item_name, item in source.iteritems():
+        for item_name, item in source.items():
             dest[item_name] = item.toTuple()
 
 
@@ -1352,7 +1355,7 @@ init -10 python in mas_selspr:
             source - source data to load from
             dest - data to save the loaded data into
         """
-        for item_name, item_tuple in source.iteritems():
+        for item_name, item_tuple in source.items():
             if item_name in dest:
                 dest[item_name].fromTuple(item_tuple)
 
@@ -2737,7 +2740,7 @@ init -1 python:
 
             if not self.multi_select:
                 # must clean select map
-                for item in self.select_map.itervalues():
+                for item in self.select_map.values():
                     # setting to False will queue for removal of item
                     # NOTE: the caller must handle teh removal
                     item.selected = False
@@ -3684,8 +3687,10 @@ label mas_selector_sidebar_select(items, select_type, preview_selections=True, o
         prev_select_map = dict(select_map)
 
         # also create views that we use for comparisons
-        old_view = old_select_map.viewkeys()
-        new_view = select_map.viewkeys()
+        # Ren'Py 8 / Python 3: у RevertableDict нет viewkeys();
+        # keys() даёт тот же set-like view, что viewkeys() в Python 2.
+        old_view = old_select_map.keys()
+        new_view = select_map.keys()
 
         # disable menu interactions to prevent bugs
         disable_esc()
@@ -3822,7 +3827,8 @@ label mas_selector_sidebar_select_confirm:
             monika_chr.restore(prev_moni_state)
 
         # If monika is wearing a remover ACS, remove it.
-        for item_name in select_map.keys():
+        # Ren'Py 8 / Python 3: снимок ключей, т.к. ниже pop() меняет словарь.
+        for item_name in list(select_map.keys()):
             sel_obj = select_map[item_name].selectable
             if sel_obj.remover:
                 spr_obj = sel_obj.get_sprobj()

@@ -22,19 +22,10 @@ init python in mas_sprites:
             name - tuple of strings (tag, attributes)
             d - displayables
         """
-        if store.mas_globals.is_r7:
-            renpy.display.image.register_image(name, d)
-
-        else:
-            img_tag = name[0]
-            img_attr = name[1:]
-            existing_attrs = renpy.display.image.image_attributes[img_tag]
-
-            #Override the displayable if it exists
-            renpy.display.image.images[name] = d
-            #Override the attributes if those exist
-            if img_attr not in existing_attrs:
-                existing_attrs.append(img_attr)
+        # Ren'Py 8.5: image_attributes[tag] — это dict, не list;
+        # прежний else-путь с .append() ломал регистрацию спрайтов.
+        # Официальный register_image одинаково работает в Ren'Py 7 и 8.
+        renpy.display.image.register_image(name, d)
 
     def needs_closed_eye_variant(exp):
         """

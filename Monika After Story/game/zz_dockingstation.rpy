@@ -601,7 +601,8 @@ init -45 python:
 
             # internalize contents so we can do proper file closing
             if contents is None:
-                _contents = self.slowIO()
+                # после b64decode содержимое — bytes; StringIO в Python 3 их не примет
+                _contents = self.fastIO()
             else:
                 _contents = contents
 
@@ -631,7 +632,13 @@ init -45 python:
                     first_unpacked = self.base64.b64decode(first_item)
 
                     # parse the line for the first NUM_DELIM
-                    raw_num, sep, remain = first_unpacked.partition(NUM_DELIM)
+                    # b64decode в Python 3 даёт bytes, разделитель тоже должен быть bytes
+                    _num_delim = (
+                        NUM_DELIM.encode("utf-8")
+                        if isinstance(first_unpacked, (bytes, bytearray))
+                        else NUM_DELIM
+                    )
+                    raw_num, sep, remain = first_unpacked.partition(_num_delim)
                     if len(sep) == 0:
                         raise Exception(
                             "did not find sep. size of first {0}".format(
@@ -1230,6 +1237,36 @@ init 200 python in mas_dockstat:
     import random
     import datetime
 
+    # Ren'Py 8 / Python 3: character-файл собирается в сыром BytesIO.
+    # Текстовые поля и разделители кодируются в UTF-8; бинарные куски
+    # (pickle/base64, mbase) пишутся как bytes без utf-8 StreamWriter.
+    def _dock_as_bytes(data):
+        if data is None:
+            return b""
+        if isinstance(data, memoryview):
+            data = data.tobytes()
+        if isinstance(data, bytearray):
+            data = bytes(data)
+        if isinstance(data, bytes):
+            return data
+        return str(data).encode("utf-8")
+
+    def _dock_as_text(data):
+        # обратное к _dock_as_bytes: текстовые поля метаданных из bytes
+        if data is None:
+            return ""
+        if isinstance(data, memoryview):
+            data = data.tobytes()
+        if isinstance(data, (bytes, bytearray)):
+            return bytes(data).decode("utf-8")
+        return str(data)
+
+    def _dock_write_text(buf, text):
+        buf.write(_dock_as_bytes(text))
+
+    def _dock_write_bytes(buf, data):
+        buf.write(_dock_as_bytes(data))
+
     cr_log_path = "mfgen"
     rd_log_path = "mfread"
 
@@ -1267,8 +1304,8 @@ init 200 python in mas_dockstat:
 
         affection_val = num_f.format(_mas_getAffection())
 
-        # build metadata list
-        _outbuffer.write("|".join([
+        # текстовые метаданные пишем как UTF-8 bytes вместе с разделителем
+        _dock_write_text(_outbuffer, "|".join([
             first_sesh,
             store.persistent.playername,
             store.persistent._mas_monika_nickname,
@@ -1295,13 +1332,15 @@ init 200 python in mas_dockstat:
         END_DELIM = "|||per|"
 
         try:
-            _outbuffer.write(codecs.encode(cPickle.dumps(store.persistent), "base64"))
-            _outbuffer.write(END_DELIM)
+            # codecs.encode(..., "base64") в Python 3 возвращает bytes
+            _dock_write_bytes(_outbuffer, codecs.encode(cPickle.dumps(store.persistent), "base64"))
+            _dock_write_text(_outbuffer, END_DELIM)
             return True
 
         except Exception as e:
-            log.write(
-                "[ERROR]: failed to pickle data: {0}".format(repr(e))
+            # MAS Logger не имеет write(); иначе фоновый поток падает без _th_done
+            log.error(
+                "failed to pickle data: {0}".format(repr(e))
             )
             return False
 
@@ -1480,9 +1519,8 @@ init 200 python in mas_dockstat:
             return False
 
         ### other stuff we need
-        # inital buffer
+        # исходный буфер — сырой BytesIO, без utf-8 StreamWriter
         moni_buffer = fastIO()
-        moni_buffer = codecs.getwriter("utf8")(moni_buffer)
 
         # number deliemter
         NUM_DELIM = "|num|"
@@ -1546,14 +1584,14 @@ init 200 python in mas_dockstat:
                 blocksize
             )
             moni_tbuffer = fastIO()
-            moni_tbuffer = codecs.getwriter("utf8")(moni_tbuffer)
-            moni_tbuffer.write(str(lines) + NUM_DELIM)
+            _dock_write_text(moni_tbuffer, str(lines) + NUM_DELIM)
             for _line in moni_buffer_iter:
-                moni_tbuffer.write(_line)
+                _dock_write_bytes(moni_tbuffer, _line)
             moni_buffer.close()
 
             # now we can prepare to write
-            moni_fbuffer = codecs.open(moni_path, "wb", "utf-8")
+            # внешний пакет — бинарный (b64encode возвращает bytes)
+            moni_fbuffer = open(moni_path, "wb")
 
             # now open up the checklist and encoders
             checklist = dockstat.hashlib.sha256()
@@ -1758,7 +1796,10 @@ init 200 python in mas_dockstat:
             # this isn't a persistent. Let's try backup strats
 
             # and see if this does contain our stuff
-            real_data, sep, garbage = real_data.partition(END_DELIM)
+            # разделитель ||| в Python 3 режем как bytes, если буфер двоичный
+            real_data, sep, garbage = _dock_as_bytes(real_data).partition(
+                _dock_as_bytes(END_DELIM)
+            )
 
             # and return results
             if len(sep) == 0:
@@ -1809,7 +1850,7 @@ init 200 python in mas_dockstat:
             OR None if general (not item-specific) parse errors occurs)
         """
         try:
-            data_list = data_line.split("|")
+            data_list = _dock_as_text(data_line).split("|")
 
             # now parse what needs to be parsed
             data_list[0] = mas_utils.tryparsedt(data_list[0])
@@ -1842,10 +1883,12 @@ init 200 python in mas_dockstat:
         try:
             #pers = re.match(r"^(.*?)\|\|\|per\|",str(data_line)).group()
             # TODO: change separator to a very large delimeter so we can handle persistents larger than 4MB
-            splitted = data_line.split("|||per|")
+            # payload и разделитель |||per| в Python 3 — bytes (как codecs.decode ниже)
+            payload = _dock_as_bytes(data_line)
+            splitted = payload.split(_dock_as_bytes("|||per|"))
             if(len(splitted)>0):
                 return cPickle.loads(codecs.decode(splitted[0] + b'='*4, "base64"))
-            return cPickle.loads(codecs.decode(data_line + b'='*4, "base64"))
+            return cPickle.loads(codecs.decode(payload + b'='*4, "base64"))
 
         except Exception as e:
             log.error(

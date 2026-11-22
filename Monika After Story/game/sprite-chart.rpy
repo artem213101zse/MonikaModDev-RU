@@ -9012,8 +9012,15 @@ python early:
                 else:
                     next_exp = self.select_exp()
 
+                    # Первый кадр: current_img ещё None, на экране не было предыдущего спрайта.
+                    # Dissolve из fallback (1esa) в первое выбранное выражение (при низкой
+                    # привязанности это 2esc и т.п.) строится на ещё не сгенерированных
+                    # ImageReference и даёт пустой render; если st обёртки t11 не идёт,
+                    # этот кадр крутится вечно. После «прогрева» прямой показ уже работает.
+                    first_blit = self.current_img is None
+
                     # New pose? Dissolve
-                    if not self._skip_dissolve and next_exp.code[0] != self.current_exp.code[0]:
+                    if (not first_blit) and (not self._skip_dissolve) and next_exp.code[0] != self.current_exp.code[0]:
                         key = (MASMoniIdleDisp.SLOW_DISSOLVE, self.current_exp.code, next_exp.code)
 
                         if key not in MASMoniIdleDisp._transform_cache:
@@ -9033,7 +9040,7 @@ python early:
                         redraw_time = self.redraw_st
 
                     # Different exp? Dissolve
-                    elif not self._skip_dissolve and next_exp.code != self.current_exp.code:
+                    elif (not first_blit) and (not self._skip_dissolve) and next_exp.code != self.current_exp.code:
                         key = (MASMoniIdleDisp.QUICK_DISSOLVE, self.current_exp.code, next_exp.code)
 
                         if key not in MASMoniIdleDisp._transform_cache:

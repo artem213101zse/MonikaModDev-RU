@@ -284,10 +284,17 @@ python early:
                     store.mas_sprites.generate_images(name[1])
                     #Try to get the img again
                     target = renpy.display.image.images[name]
+                    # Полное имя только что зарегистрировано; хвост args
+                    # (например "2esc") нельзя передавать в _duplicate.
+                    # При config.developer Ren'Py 8 кидает
+                    # "Image 'monika 2esc' does not accept attributes '2esc'."
+                    # и find_target навсегда кэширует эту строку как Text (~665x34),
+                    # из-за чего Моника и стол исчезают до смены ImageReference.
+                    args = []
 
                 #If we somehow failed, show the exception and return False
-                except:
-                    error("Image '%s' not found." % ' '.join(self.name))
+                except Exception as e:
+                    error("Image '%s' not found. (%s)" % (' '.join(self.name), e))
                     return False
 
             else:
@@ -295,14 +302,30 @@ python early:
                 return False
 
         try:
+            # Если нашли точное имя, лишних атрибутов нет
+            if name == self.name:
+                args = []
             a = self._args.copy(name=name, args=args)
             self.target = target._duplicate(a)
 
         except Exception as e:
-            if renpy.config.debug:
-                raise
+            # Повтор без хвоста args, если картинка уже есть (генерация прошла,
+            # а _duplicate упал на extraneous attributes).
+            if name == self.name and args:
+                try:
+                    a = self._args.copy(name=name, args=[])
+                    self.target = target._duplicate(a)
+                except Exception as e2:
+                    if renpy.config.debug:
+                        raise
+                    error(str(e2))
+                    return False
+            else:
+                if renpy.config.debug:
+                    raise
 
-            error(str(e))
+                error(str(e))
+                return False
 
         #Copy the old transform over.
         new_transform = self.target._target()
@@ -356,7 +379,7 @@ python early:
             f = io.BytesIO(self.data)
             return renpy.display.pgrender.load_image(f, self.filename)
 
-    class MASAudioData(unicode):
+    class MASAudioData(renpy.audio.audio.AudioData):
         """
         NOTE: This is temporal plaster-fix to renpy, use on your own risk,
             this class and all support for it will be completely gone with r8
@@ -367,8 +390,9 @@ python early:
         """
 
         def __new__(cls, data, filename):
-            rv = unicode.__new__(cls, filename)
-            rv.data = data
+            # Ren'Py 8: наследуем официальный AudioData, чтобы штатный periodic
+            # принимал звук из памяти (острова и т.п.) без старого Channel.periodic.
+            rv = renpy.audio.audio.AudioData.__new__(cls, data, filename)
             return rv
 
         def __init__(self, data, filename):
@@ -520,7 +544,12 @@ python early:
 
             self.paused = want_pause
 
-    renpy.audio.audio.Channel.periodic = __mas_periodic_override
+    # Ren'Py 8.5: split_filename теперь возвращает 4 значения, а play()/queue()
+    # используют другие аргументы. Старый override распаковывает три значения
+    # и глотает исключение без записи в лог — из-за этого нет звука вообще.
+    # На 8+ оставляем штатный periodic; MASAudioData — наследник AudioData.
+    if renpy.version(True)[0] < 8:
+        renpy.audio.audio.Channel.periodic = __mas_periodic_override
 
 # uncomment this if you want syntax highlighting support on vim
 # init -1 python:
@@ -4215,6 +4244,12 @@ init -1 python in _mas_root:
         for x in range(length):
             output += random.choice(nonunicode)
         return output
+
+    # Официальный DDLC кладёт glitchtext и nonunicode в глобальный store
+    # (отдельный glitchtext.rpy, его не было среди распакованных файлов).
+    # У MAS копии живут только в _mas_root, а addGlitchQuip календаря ищет имя в store.
+    store.glitchtext = glitchtext
+    store.nonunicode = nonunicode
 
     def mangleFile(filepath, mangle_length=1000):
         """

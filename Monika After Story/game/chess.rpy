@@ -648,6 +648,21 @@ init python in mas_chess:
 
         out.close()
 
+    def stockfish_send(proc, command):
+        """
+        Отправляет UCI-команду в stdin Stockfish.
+        В Python 3 трубы subprocess.Popen по умолчанию двоичные,
+        поэтому текст кодируем в байты и сбрасываем буфер.
+        """
+        if isinstance(command, bytes):
+            data = command if command.endswith(b"\n") else command + b"\n"
+        else:
+            if not command.endswith("\n"):
+                command += "\n"
+            data = command.encode("ascii")
+        proc.stdin.write(data)
+        proc.stdin.flush()
+
 #START: Main game label
 label game_chess:
     #NOTE: This is a failsafe in case people jump to this label
@@ -2367,8 +2382,8 @@ init python:
             #Empty the piece map
             self.piece_map = dict()
 
-            #And refill it
-            for position, Piece in self.board.piece_map().iteritems():
+            # And refill it. В Python 3 у dict есть items()/values(), не iteritems().
+            for position, Piece in self.board.piece_map().items():
                 MASPiece.fromPiece(
                     Piece,
                     MASChessDisplayableBase.square_to_board_coords(position),
@@ -2627,7 +2642,7 @@ init python:
                 renderer.blit(highlight_yellow, MASChessDisplayableBase.board_coords_to_screen_coords(hl))
 
             #Draw the pieces on the Board renderer.
-            for piece_location, Piece in self.piece_map.iteritems():
+            for piece_location, Piece in self.piece_map.items():
                 #Unpack the location
                 ix, iy = piece_location
 
@@ -2776,8 +2791,10 @@ init python:
             mx, my = mas_getMousePos()
             mx -= MASChessDisplayableBase.BASE_PIECE_X
             my -= MASChessDisplayableBase.BASE_PIECE_Y
-            px = mx / MASChessDisplayableBase.PIECE_WIDTH
-            py = my / MASChessDisplayableBase.PIECE_HEIGHT
+            # mas_getMousePos() в Ren'Py 8 возвращает float, а float // int
+            # остаётся float — chr() в coords_to_uci из-за этого падает.
+            px = int(mx // MASChessDisplayableBase.PIECE_WIDTH)
+            py = int(my // MASChessDisplayableBase.PIECE_HEIGHT)
 
             #White
             if self.is_player_white:
@@ -2805,6 +2822,9 @@ init python:
             OUT:
                 the move represented in the uci form
             """
+            # Индекс клетки должен быть int: chr() в Python 3 не принимает float.
+            x = int(x)
+            y = int(y)
             x = chr(x + ord('a'))
             y += 1
             return "{0}{1}".format(x, y)
@@ -2848,7 +2868,9 @@ init python:
             OUT:
                 tuple - (x, y) coords representing board coordinates for the square provided
             """
-            return (sq_num % 8, sq_num / 8)
+            # В Python 3 оператор / даёт float (12/8 == 1.5), из-за этого
+            # ключи piece_map не совпадают с целыми координатами из UCI.
+            return (sq_num % 8, sq_num // 8)
 
         @staticmethod
         def board_coords_to_screen_coords(pos_tuple, inversion_tuple=(False,False)):
@@ -2913,7 +2935,7 @@ init python:
 
         IMG_MAP = {
             color + (symbol.upper() if color == "w" else symbol): Image("mod_assets/games/chess/pieces/{0}{1}.png".format(color, (symbol.upper() if color == "w" else symbol)))
-            for color in FP_COLOR_LOOKUP.itervalues()
+            for color in FP_COLOR_LOOKUP.values()
             for symbol in mas_chess.PIECE_POOL
         }
 
@@ -3401,6 +3423,9 @@ init python:
                 res = None
                 while self.queue:
                     line = self.queue.pop()
+                    # readline() в двоичном режиме возвращает bytes — для re нужен str
+                    if isinstance(line, bytes):
+                        line = line.decode("ascii", "replace")
                     match = re.match(r"^bestmove (\w+)", line)
                     if match:
                         res = match.group(1)
@@ -3411,9 +3436,9 @@ init python:
             """
             Starts Monika's analysis of the board
             """
-            self.stockfish.stdin.write("position fen {0}\n".format(self.board.fen()))
-            self.stockfish.stdin.write("go depth {0}\n".format(persistent._mas_chess_difficulty[1]))
-            self.stockfish.stdin.write("go movetime {0}\n".format(self.MONIKA_WAITTIME))
+            store.mas_chess.stockfish_send(self.stockfish, "position fen {0}\n".format(self.board.fen()))
+            store.mas_chess.stockfish_send(self.stockfish, "go depth {0}\n".format(persistent._mas_chess_difficulty[1]))
+            store.mas_chess.stockfish_send(self.stockfish, "go movetime {0}\n".format(self.MONIKA_WAITTIME))
 
         def additional_setup(self):
             """
@@ -3513,9 +3538,9 @@ init python:
                 self.stockfish = open_stockfish(fp)
 
             #Set Monika's parameters
-            self.stockfish.stdin.write("setoption name Skill Level value {0}\n".format(persistent._mas_chess_difficulty[0]))
-            self.stockfish.stdin.write("setoption name Contempt value {0}\n".format(self.MONIKA_OPTIMISM))
-            self.stockfish.stdin.write("setoption name Ponder value False\n")
+            store.mas_chess.stockfish_send(self.stockfish, "setoption name Skill Level value {0}\n".format(persistent._mas_chess_difficulty[0]))
+            store.mas_chess.stockfish_send(self.stockfish, "setoption name Contempt value {0}\n".format(self.MONIKA_OPTIMISM))
+            store.mas_chess.stockfish_send(self.stockfish, "setoption name Ponder value False\n")
 
             #And set up facilities for asynchronous communication
             self.queue = collections.deque()
